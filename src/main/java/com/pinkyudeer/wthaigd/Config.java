@@ -1,4 +1,4 @@
-package com.myname.mymodid;
+package com.pinkyudeer.wthaigd;
 
 import java.io.File;
 

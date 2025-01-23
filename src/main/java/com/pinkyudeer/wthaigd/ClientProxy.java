@@ -1,4 +1,4 @@
-package com.myname.mymodid;
+package com.pinkyudeer.wthaigd;
 
 public class ClientProxy extends CommonProxy {
 
