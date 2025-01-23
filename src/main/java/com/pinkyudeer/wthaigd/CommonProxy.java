@@ -1,6 +1,7 @@
 package com.pinkyudeer.wthaigd;
 
 import com.pinkyudeer.wthaigd.loader.ItemLoader;
+
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
