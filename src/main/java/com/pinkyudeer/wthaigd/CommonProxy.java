@@ -1,5 +1,6 @@
 package com.pinkyudeer.wthaigd;
 
+import com.pinkyudeer.wthaigd.loader.BlockLoader;
 import com.pinkyudeer.wthaigd.loader.ItemLoader;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -13,10 +14,10 @@ public class CommonProxy {
     // GameRegistry." (Remove if not needed)
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
-
         Wthaigd.LOG.info(Config.greeting);
         Wthaigd.LOG.info("wthaigd version " + Tags.VERSION);
         new ItemLoader(event);
+        new BlockLoader(event);
     }
 
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes." (Remove if not needed)

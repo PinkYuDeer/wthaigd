@@ -10,10 +10,10 @@ public class ItemLoader {
     public static ItemDebugStick ds = new ItemDebugStick();
 
     public ItemLoader(FMLPreInitializationEvent event) {
-        register(ds, "debugStick");
+        registerItems(ds, "debugStick");
     }
 
-    private void register(ItemDebugStick item, String name) {
+    private void registerItems(ItemDebugStick item, String name) {
         GameRegistry.registerItem(item, name);
     }
 }
