@@ -4,12 +4,12 @@ import net.minecraft.item.Item;
 
 import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
 
-public class ItemDebugStick extends Item {
+public class ItemHandViewer extends Item {
 
-    public ItemDebugStick() {
+    public ItemHandViewer() {
         super();
-        this.setUnlocalizedName("debugStick");
-        this.setTextureName("wthaigd:debug_stick");
+        this.setUnlocalizedName("handViewer");
+        this.setTextureName("wthaigd:hand_viewer");
         this.setCreativeTab(CreativeTabsLoader.creativeTabWthaigd);
     }
 }

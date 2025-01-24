@@ -1,6 +1,7 @@
 package com.pinkyudeer.wthaigd;
 
 import com.pinkyudeer.wthaigd.loader.BlockLoader;
+import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
 import com.pinkyudeer.wthaigd.loader.ItemLoader;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -16,8 +17,10 @@ public class CommonProxy {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
         Wthaigd.LOG.info(Config.greeting);
         Wthaigd.LOG.info("wthaigd version " + Tags.VERSION);
+        new CreativeTabsLoader(event);
         new ItemLoader(event);
         new BlockLoader(event);
+
     }
 
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes." (Remove if not needed)

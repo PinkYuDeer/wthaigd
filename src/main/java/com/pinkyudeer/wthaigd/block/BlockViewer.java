@@ -5,12 +5,12 @@ import net.minecraft.block.material.Material;
 
 import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
 
-public class BlockDebugWthaigd extends Block {
+public class BlockViewer extends Block {
 
-    public BlockDebugWthaigd() {
+    public BlockViewer() {
         super(Material.gourd);
-        this.setBlockName("debugWthaigd");
-        this.setBlockTextureName("wthaigd:debug_wthaigd");
+        this.setBlockName("viewer");
+        this.setBlockTextureName("wthaigd:viewer");
         this.setHardness(50F);
         this.setResistance(6000000.0F);
         this.setLightLevel(15.0F);
