@@ -22,6 +22,8 @@ what the hell am I gonna do (minecraft mod)
 * 新建文件夹
 * 画饼
 * 成功进入游戏
+* 第一个物品
+* 第一个方块
 
 ## 未来计划
 * 通过指令完成：工作项创建、修改、删除
