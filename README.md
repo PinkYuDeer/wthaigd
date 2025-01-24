@@ -1,45 +1,96 @@
 # wthaigd
+
 what the hell am I gonna do (minecraft mod)
 
-一个我的世界1.7.10 GTNH 2.7.x开发环境下模组（或许未来会进行原版适配、高版本兼容）
+中文版介绍在这里：[README-zh_CN.md](./README-zh_CN.md)
 
-甘特图mod（bushi
+A Minecraft 1.7.10GTNH 2.7.x development environment module (perhaps the future will be original adaptation, high version compatibility)
 
-这是作者的第一个mod，此mod初心作为学习开发用，所以会比较粗糙、但会积极逐步学习完善。
 
-* 多有粗糙，欢迎大佬或创意者莅临指点，使我的技能和此mod成为合格甚至优秀的程度。
 
-欢迎多开issue，提出bug、建议、修改等。
+Gantt chart mod (Maybe
 
-如果您想进行pr，请尽量说明，作者拥有编程经验但没有mod开发经验。
 
-## 简介
-一个用来提供多人协同工作的todo List，以尽量简单的方式提供交互。
-* 在完成任务时获得积分和一些视觉效果来鼓励任务完成。
-* 提供Better Quest兼容。
 
-## 已实现
-* 新建文件夹
-* 画饼
-* 成功进入游戏
-* 第一个物品
-* 第一个方块
+This is the author's first mod, this mod is intended as a learning development, so it will be relatively rough, but will actively learn to improve gradually.
 
-## 未来计划
-* 通过指令完成：工作项创建、修改、删除
-* 通过指令完成：工作项状态设置：优先级、状态、父子工作项、完成时间、创建时间、负责人、关注者（等等
-* 周期工作项自动创建
-* 通过快捷键打开工作项
-* 工作项UI界面（以表格形式
-* 工作项转化为思维导图、甘特图看板、时间轴看板（简陋的实现
-* 适配Better Quest、 以合理的方式选择任务项
-* 多人适配，使用Better Quest的组队接口，同步组队
-* 类github的同时编辑冲突处理
-* 任务完成的正反馈效果，视觉、听觉、积分等方面
-* 重构工作项UI界面（炫酷的实现
-* github首页重构
-* 完成只添加此mod的组队系统
-* 高版本适配
+
+
+* There are many rough, welcome big boss or creative people to come and guide, so that my skills and this mod become qualified or even excellent degree.
+
+
+
+Welcome to open more issues, put forward bugs, suggestions, changes, etc.
+
+
+
+If you want to do pr, please try to state that the author has programming experience but no mod development experience.
+
+
+
+## Introduction
+
+A todo List for multiple people to work together to provide interaction in as simple a way as possible.
+
+* Earn points and some visual effects to encourage completion of the quest.
+
+* Better Quest compatibility is available.
+
+
+
+## Achieved
+
+* New folder
+
+* Draw the cake
+
+* Successfully entered the game
+
+* First custom item
+
+* First custom box
+
+* Try high-resolution maps
+
+* First custom recipe
+
+* First custom fuel
+
+* Localized language files
+
+
+
+## Future plans
+
+* Complete by command: work item creation, modification, deletion
+
+* Done with instructions: Work item status Settings: priority, status, parent-child work items, completion time, creation time, responsible, followers (and so on)
+
+* Periodic work items are automatically created
+
+* Open a work item with a shortcut key
+
+* Work item UI interface (in tabular form
+
+* Work items converted to mind maps, Gantt chart kanban, timeline kanban (simple implementation
+
+* Adapt to Better Quest and select task items in a reasonable way
+
+* Multi-player adaptation, using Better Quest's team interface, team up simultaneously
+
+* Class github while editing conflict handling
+
+* Positive feedback effect of task completion, visual, auditory, integral, etc
+
+* Refactoring the work item UI interface (cool implementation
+
+* github home page refactoring
+
+* Complete the team-up system for adding only this mod
+
+* High version adaptation
+
 
 ## License
+
 This project is licensed under the GNU General Public License v3.0. See the [LICENSE](./LICENSE) file for details.
