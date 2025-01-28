@@ -1,7 +1,9 @@
-package com.pinkyudeer.wthaigd;
+package com.pinkyudeer.wthaigd.core;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import com.pinkyudeer.wthaigd.Tags;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
@@ -16,7 +18,9 @@ public class Wthaigd {
     public static final String MODID = "wthaigd";
     public static final Logger LOG = LogManager.getLogger(MODID);
 
-    @SidedProxy(clientSide = "com.pinkyudeer.wthaigd.ClientProxy", serverSide = "com.pinkyudeer.wthaigd.CommonProxy")
+    @SidedProxy(
+        clientSide = "com.pinkyudeer.wthaigd.core.ClientProxy",
+        serverSide = "com.pinkyudeer.wthaigd.core.CommonProxy")
     public static CommonProxy proxy;
 
     @Mod.EventHandler

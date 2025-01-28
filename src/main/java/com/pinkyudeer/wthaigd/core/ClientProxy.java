@@ -1,4 +1,4 @@
-package com.pinkyudeer.wthaigd;
+package com.pinkyudeer.wthaigd.core;
 
 public class ClientProxy extends CommonProxy {
 

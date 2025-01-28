@@ -1,10 +1,12 @@
-package com.pinkyudeer.wthaigd;
+package com.pinkyudeer.wthaigd.core;
 
+import com.pinkyudeer.wthaigd.Tags;
+import com.pinkyudeer.wthaigd.helper.ModFileManager;
 import com.pinkyudeer.wthaigd.loader.BlockLoader;
 import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
 import com.pinkyudeer.wthaigd.loader.ItemLoader;
-
 import com.pinkyudeer.wthaigd.loader.RecipeLoader;
+
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -33,5 +35,8 @@ public class CommonProxy {
     public void postInit(FMLPostInitializationEvent event) {}
 
     // register server commands in this event handler (Remove if not needed)
-    public void serverStarting(FMLServerStartingEvent event) {}
+    public void serverStarting(FMLServerStartingEvent event) {
+        ModFileManager.init();
+
+    }
 }

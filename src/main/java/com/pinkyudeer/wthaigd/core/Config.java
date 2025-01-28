@@ -1,4 +1,4 @@
-package com.pinkyudeer.wthaigd;
+package com.pinkyudeer.wthaigd.core;
 
 import java.io.File;
 
