@@ -4,17 +4,55 @@ import java.io.File;
 
 import net.minecraftforge.common.config.Configuration;
 
+import cpw.mods.fml.client.event.ConfigChangedEvent;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.EventBus;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+
 public class Config {
 
+    private static final EventBus EVENT_BUS = new EventBus();
+
+    public static Configuration config;
     public static String greeting = "Hello World";
+    public static boolean debugMode;
+    public static boolean isMemoryMode;
 
     public static void synchronizeConfiguration(File configFile) {
-        Configuration configuration = new Configuration(configFile);
+        config = new Configuration(configFile);
 
-        greeting = configuration.getString("greeting", Configuration.CATEGORY_GENERAL, greeting, "How shall I greet?");
+        greeting = config.getString(
+            "greeting",
+            Configuration.CATEGORY_GENERAL,
+            greeting,
+            "Welcome to WTHAIGD!",
+            "config.comment.greeting");
+        debugMode = config.getBoolean(
+            "debugMode",
+            Configuration.CATEGORY_GENERAL,
+            debugMode,
+            "Whether to enable debug mode",
+            "config.comment.debugMode");
+        isMemoryMode = config.getBoolean(
+            "isMemoryMode",
+            Configuration.CATEGORY_GENERAL,
+            isMemoryMode,
+            "Whether to enable sqlite memory mode",
+            "config.comment.isMemoryMode");
+    }
 
-        if (configuration.hasChanged()) {
-            configuration.save();
+    @SubscribeEvent
+    public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
+        if (event.modID.equals("wthaigd")) {
+            synchronizeConfiguration(config.getConfigFile());
         }
     }
+
+    public static void registerEventHandlers() {
+        FMLCommonHandler.instance()
+            .bus()
+            .register(new Config());
+    }
+
+    // TODO:使服务器可以动态修改配置
 }

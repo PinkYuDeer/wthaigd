@@ -4,3 +4,7 @@ tile.debugWthaigd.name=WTHAIGD Debug Table
 tile.viewer.name=Viewer
 
 itemGroup.wthaigd.name=WTHAIGD
+
+config.comment.greeting=Welcome to WTHAIGD!
+config.comment.isMemoryMode=Whether to enable debug mode
+config.comment.debugMode=Whether to enable sqlite memory mode

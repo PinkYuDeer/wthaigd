@@ -3,27 +3,41 @@ package com.pinkyudeer.wthaigd.helper;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.pinkyudeer.wthaigd.core.Config;
+
 public class SQLiteManager {
 
     private static final Logger log = LogManager.getLogger(SQLiteManager.class);
     private static Connection connection;
-    private static boolean isMemoryMode = true; // 控制是否为内存模式
     private final static String memoryDbUrl = "jdbc:sqlite::memory:";
-    private final static String fileDbUrl = "jdbc:sqlite:" + ModFileManager.getFile("task_data.db")
+    private final static String fileName = "task_data.db";
+    private final static String fileDbUrl = "jdbc:sqlite:" + ModFileManager.getFile(fileName)
         .getAbsolutePath();
 
     // onServerStarting时初始化数据库
     public static void initDatabase() {
+        // 控制是否为内存模式
+        boolean isMemoryMode = Config.isMemoryMode;
         try {
             String dbUrl = isMemoryMode ? memoryDbUrl : fileDbUrl;
             connection = DriverManager.getConnection(dbUrl);
-            // 判断是否有task_data.db，没有则新建并初始化表
+            if (isMemoryMode) {
+                // 如果本地数据库文件存在，则加载到内存
+                File dbFile = ModFileManager.getFile("task_data.db");
+                if (dbFile.exists()) {
+
+                }
+            } else {
+                loadFromFile();
+            }
 
             System.out.println("[Wthaigd] SQLite Database initialized successfully. Memory mode: " + isMemoryMode);
         } catch (SQLException e) {
@@ -32,78 +46,83 @@ public class SQLiteManager {
         }
     }
 
-    private static void createTables() throws SQLException {
+    // 从文件加载到内存数据库
+    private static void loadFromFile() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
-            stmt.execute(
-                "CREATE TABLE IF NOT EXISTS tasks (" + "id TEXT PRIMARY KEY,"
-                    + "title TEXT NOT NULL,"
-                    + "description TEXT NOT NULL,"
-                    + "assignee TEXT,"
-                    + "followers TEXT,"
-                    + "likes TEXT,"
-                    + "comments TEXT,"
-                    + "priority INTEGER NOT NULL,"
-                    + "importance INTEGER NOT NULL,"
-                    + "urgency INTEGER NOT NULL,"
-                    + "status INTEGER NOT NULL,"
-                    + "create_time INTEGER NOT NULL,"
-                    + "deadline INTEGER NOT NULL,"
-                    + "subtasks TEXT,"
-                    + "tags TEXT,"
-                    + "update_time INTEGER NOT NULL"
-                    + ")");
-            stmt.execute(
-                "CREATE TABLE IF NOT EXISTS task_users (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                    + "name TEXT NOT NULL,"
-                    + "group_id INTEGER NOT NULL,"
-                    + "status INTEGER NOT NULL,"
-                    + "create_time INTEGER NOT NULL,"
-                    + "update_time INTEGER NOT NULL"
-                    + ")");
-            stmt.execute(
-                "CREATE TABLE IF NOT EXISTS task_user_groups (" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                    + "name TEXT NOT NULL,"
-                    + "create_time INTEGER NOT NULL,"
-                    + "update_time INTEGER NOT NULL"
-                    + ")");
+            // 附加文件数据库
+            stmt.execute("ATTACH DATABASE '" + fileDbUrl + "' AS file_db");
+
+            // 获取所有表结构并复制（需要关闭外键约束）
+            stmt.execute("PRAGMA foreign_keys=OFF");
+            copySchema(connection, "file_db", "main");
+            copyData(connection, "file_db", "main");
+            stmt.execute("PRAGMA foreign_keys=ON");
+
+            stmt.execute("DETACH DATABASE file_db");
         }
     }
 
-    private static void loadTables() throws SQLException {
-        // 从本地文件task_data.db中加载数据到内存中
-        if (isMemoryMode) {
-            File dbFile = ModFileManager.getFile("task_data.db");
-            try (Connection fileConnection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath())) {
-                try (Statement stmt = fileConnection.createStatement()) {
-                    stmt.execute("ATTACH DATABASE '" + dbFile.getAbsolutePath() + "' AS backup");
-                    stmt.execute("INSERT INTO tasks SELECT * FROM backup.tasks");
-                }
-            }
-        } else {
-            try (Statement stmt = connection.createStatement()) {
-                stmt.execute("ATTACH DATABASE '" + fileDbUrl + "' AS backup");
-                stmt.execute("INSERT INTO tasks SELECT * FROM backup.tasks");
+    // 保存内存数据库到文件
+    private static void saveToFile() throws SQLException {
+        try (Statement stmt = connection.createStatement()) {
+            // 创建/清空目标文件数据库
+            ModFileManager.deleteFile("task_data.db");
+
+            // 附加文件数据库
+            stmt.execute("ATTACH DATABASE '" + fileDbUrl + "' AS file_db");
+
+            // 复制内存数据到文件（需要关闭外键约束）
+            stmt.execute("PRAGMA foreign_keys=OFF");
+            copySchema(connection, "main", "file_db");
+            copyData(connection, "main", "file_db");
+            stmt.execute("PRAGMA foreign_keys=ON");
+
+            stmt.execute("DETACH DATABASE file_db");
+        }
+    }
+
+    // 复制表结构
+    private static void copySchema(Connection conn, String sourceSchema, String targetSchema) throws SQLException {
+        try (Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT sql FROM " + sourceSchema + ".sqlite_master WHERE type='table'")) {
+
+            while (rs.next()) {
+                String createTableSQL = rs.getString("sql");
+                conn.createStatement()
+                    .execute(createTableSQL.replace(sourceSchema, targetSchema));
             }
         }
     }
 
-    // 获取数据库连接
-    public static Connection getConnection() {
-        return connection;
-    }
+    // 复制表数据（支持事务批处理）
+    private static void copyData(Connection conn, String sourceSchema, String targetSchema) throws SQLException {
+        conn.setAutoCommit(false);
+        try (Statement stmt = conn.createStatement();
+            ResultSet rs = stmt
+                .executeQuery("SELECT name FROM " + sourceSchema + ".sqlite_master WHERE type='table'")) {
 
-    // 保存内存模式数据到磁盘
-    public static void saveDatabase() throws SQLException {
-        if (isMemoryMode) {
-            File dbFile = ModFileManager.getFile("task_data.db");
-            try (Connection fileConnection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath())) {
-                // 使用 SQLite 提供的 backup API 将内存数据库的内容保存到文件中
-                try (Statement stmt = fileConnection.createStatement()) {
-                    stmt.execute("ATTACH DATABASE '" + dbFile.getAbsolutePath() + "' AS backup");
-                    stmt.execute("INSERT INTO backup.tasks SELECT * FROM tasks");
+            while (rs.next()) {
+                String tableName = rs.getString("name");
+                if (tableName.equals("sqlite_sequence")) continue; // 忽略自增序列表
+
+                // 使用批量插入提升性能
+                try (PreparedStatement pstmt = conn.prepareStatement(
+                    "INSERT INTO " + targetSchema
+                        + "."
+                        + tableName
+                        + " SELECT * FROM "
+                        + sourceSchema
+                        + "."
+                        + tableName)) {
+                    pstmt.executeUpdate();
                 }
-                System.out.println("[Wthaigd] Memory data saved to file: " + dbFile.getAbsolutePath());
             }
+            conn.commit();
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(true);
         }
     }
 }

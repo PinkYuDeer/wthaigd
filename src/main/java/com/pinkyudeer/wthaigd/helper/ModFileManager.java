@@ -30,6 +30,21 @@ public class ModFileManager {
         return new File(baseDir, fileName);
     }
 
+    // 获取已有文件或创建新文件
+    public static File getOrCreateFile(String fileName) {
+        File file = getFile(fileName);
+        if (!file.exists()) {
+            try {
+                if (!file.createNewFile()) {
+                    throw new RuntimeException("Failed to create file: " + fileName);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create file: " + fileName, e);
+            }
+        }
+        return file;
+    }
+
     // 保存文件
     public static void saveFile(String fileName, String content) {
         File file = getFile(fileName);
@@ -49,4 +64,26 @@ public class ModFileManager {
             throw new RuntimeException("Failed to read file: " + fileName, e);
         }
     }
+
+    // 删除文件
+    public static void deleteFile(String fileName) {
+        File file = getFile(fileName);
+        if (file.exists()) {
+            if (!file.delete()) {
+                throw new RuntimeException("Failed to delete file: " + fileName);
+            }
+        }
+    }
+
+    // 清空目录
+    public static void clearDirectory() {
+        if (baseDir != null && baseDir.exists()) {
+            for (File file : baseDir.listFiles()) {
+                if (!file.delete()) {
+                    throw new RuntimeException("Failed to delete file: " + file.getName());
+                }
+            }
+        }
+    }
+
 }
