@@ -23,6 +23,14 @@ public class Wthaigd {
 
     public static final String MODID = "wthaigd";
     public static final String NAME = "what the hell am I gonna do";
+    // 定义一个log4j的日志记录器，其中
+    // debug为调试信息，开发阶段的详细输出，
+    // info为普通信息，用户可见的基础日志
+    // warn为警告信息，潜在信息，不影响运行
+    // error为错误信息，功能异常，但模组仍然可以运行
+    // fatal为严重错误，模组无法继续运行
+    // trace为跟踪信息，通常用于调试
+    // 应该使用 {} 占位符动态插入变量，避免字符串拼接： LOG.info("成功注册了 {} 个物品", itemCount);
     public static final Logger LOG = LogManager.getLogger(MODID);
 
     @SidedProxy(
