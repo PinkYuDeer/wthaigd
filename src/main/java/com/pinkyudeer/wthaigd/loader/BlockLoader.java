@@ -21,4 +21,9 @@ public class BlockLoader {
     private static void registerBlock(Block block, String name) {
         GameRegistry.registerBlock(block, name);
     }
+
+    public static void init() {
+        registerBlock(debugWthaigd, "debugWthaigd");
+        registerBlock(viewer, "viewer");
+    }
 }

@@ -14,16 +14,15 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
 public class CommonProxy {
 
-    // preInit "Run before anything else. Read your config, create blocks, items, etc, and register them with the
+    // preInit "Run before anything else. Read your config, create blocks, items, etc., and register them with the
     // GameRegistry." (Remove if not needed)
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
         Wthaigd.LOG.info(Config.greeting);
         Wthaigd.LOG.info("wthaigd version " + Tags.VERSION);
-        new CreativeTabsLoader(event);
-        new ItemLoader(event);
-        new BlockLoader(event);
-
+        CreativeTabsLoader.init();
+        ItemLoader.init();
+        BlockLoader.init();
     }
 
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes." (Remove if not needed)
@@ -37,6 +36,6 @@ public class CommonProxy {
     // register server commands in this event handler (Remove if not needed)
     public void serverStarting(FMLServerStartingEvent event) {
         ModFileManager.init();
-        Config.registerEventHandlers();
+        Config.init();
     }
 }

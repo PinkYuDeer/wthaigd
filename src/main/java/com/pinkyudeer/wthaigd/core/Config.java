@@ -48,7 +48,7 @@ public class Config {
         }
     }
 
-    public static void registerEventHandlers() {
+    public static void init() {
         FMLCommonHandler.instance()
             .bus()
             .register(new Config());

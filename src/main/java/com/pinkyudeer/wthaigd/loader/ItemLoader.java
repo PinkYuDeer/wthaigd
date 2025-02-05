@@ -18,7 +18,12 @@ public class ItemLoader {
         registerItems(itemHandViewer, "handViewer");
     }
 
-    private void registerItems(Item item, String name) {
+    private static void registerItems(Item item, String name) {
         GameRegistry.registerItem(item, name);
+    }
+
+    public static void init() {
+        registerItems(itemDebugStick, "debugStick");
+        registerItems(itemHandViewer, "handViewer");
     }
 }

@@ -1,4 +1,4 @@
-package com.pinkyudeer.wthaigd.creativeTabs;
+package com.pinkyudeer.wthaigd.gui;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;

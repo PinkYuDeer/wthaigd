@@ -33,10 +33,8 @@ public class SQLiteManager {
                 // 如果本地数据库文件存在，则加载到内存
                 File dbFile = ModFileManager.getFile("task_data.db");
                 if (dbFile.exists()) {
-
+                    loadFromFile();
                 }
-            } else {
-                loadFromFile();
             }
 
             System.out.println("[Wthaigd] SQLite Database initialized successfully. Memory mode: " + isMemoryMode);

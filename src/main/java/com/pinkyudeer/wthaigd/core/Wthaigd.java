@@ -24,7 +24,7 @@ public class Wthaigd {
     public static CommonProxy proxy;
 
     @Mod.EventHandler
-    // preInit "Run before anything else. Read your config, create blocks, items, etc, and register them with the
+    // preInit "Run before anything else. Read your config, create blocks, items, etc., and register them with the
     // GameRegistry." (Remove if not needed)
     public void preInit(FMLPreInitializationEvent event) {
         proxy.preInit(event);
