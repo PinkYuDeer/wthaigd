@@ -25,7 +25,7 @@ public class Config {
             "greeting",
             Configuration.CATEGORY_GENERAL,
             greeting,
-            "Welcome to WTHAIGD!",
+            "Welcome to WTHAIGD!!!",
             "config.comment.greeting");
         debugMode = config.getBoolean(
             "debugMode",
