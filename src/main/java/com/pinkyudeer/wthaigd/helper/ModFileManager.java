@@ -76,11 +76,16 @@ public class ModFileManager {
     }
 
     // 清空目录
-    public static void clearDirectory() {
-        if (baseDir != null && baseDir.exists()) {
-            for (File file : baseDir.listFiles()) {
-                if (!file.delete()) {
-                    throw new RuntimeException("Failed to delete file: " + file.getName());
+    public static void clearDirectory(String dirName) {
+        File dir = getFile(dirName);
+        if (dir.exists()) {
+            for (File file : dir.listFiles()) {
+                if (file.isDirectory()) {
+                    clearDirectory(file.getName());
+                } else {
+                    if (!file.delete()) {
+                        throw new RuntimeException("Failed to delete file: " + file.getName());
+                    }
                 }
             }
         }

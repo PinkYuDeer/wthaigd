@@ -19,7 +19,7 @@ public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
         Wthaigd.LOG.info(Config.greeting);
-        Wthaigd.LOG.info("wthaigd version " + Tags.VERSION);
+        Wthaigd.LOG.info("wthaigd version {}", Tags.VERSION);
         CreativeTabsLoader.init();
         ItemLoader.init();
         BlockLoader.init();
