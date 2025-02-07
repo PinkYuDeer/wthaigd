@@ -11,27 +11,25 @@ import java.sql.Statement;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.pinkyudeer.wthaigd.core.Config;
+public class SQLiteHelper {
 
-public class SQLiteManager {
-
-    private static final Logger log = LogManager.getLogger(SQLiteManager.class);
+    private static final Logger log = LogManager.getLogger(SQLiteHelper.class);
     private static Connection connection;
     private final static String memoryDbUrl = "jdbc:sqlite::memory:";
     private final static String fileName = "task_data.db";
-    private final static String fileDbUrl = "jdbc:sqlite:" + ModFileManager.getFile(fileName)
+    private final static String fileDbUrl = "jdbc:sqlite:" + ModFileHelper.getFile(fileName)
         .getAbsolutePath();
 
     // onServerStarting时初始化数据库
     public static void initDatabase() {
         // 控制是否为内存模式
-        boolean isMemoryMode = Config.isMemoryMode;
+        boolean isMemoryMode = !Boolean.FALSE.equals(ConfigHelper.getConfigValue("isMemoryMode"));
         try {
             String dbUrl = isMemoryMode ? memoryDbUrl : fileDbUrl;
             connection = DriverManager.getConnection(dbUrl);
             if (isMemoryMode) {
                 // 如果本地数据库文件存在，则加载到内存
-                File dbFile = ModFileManager.getFile("task_data.db");
+                File dbFile = ModFileHelper.getFile("task_data.db");
                 if (dbFile.exists()) {
                     loadFromFile();
                 }
@@ -61,10 +59,11 @@ public class SQLiteManager {
     }
 
     // 保存内存数据库到文件
+    @SuppressWarnings("unused")
     private static void saveToFile() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
             // 创建/清空目标文件数据库
-            ModFileManager.deleteFile("task_data.db");
+            ModFileHelper.deleteFile("task_data.db");
 
             // 附加文件数据库
             stmt.execute("ATTACH DATABASE '" + fileDbUrl + "' AS file_db");

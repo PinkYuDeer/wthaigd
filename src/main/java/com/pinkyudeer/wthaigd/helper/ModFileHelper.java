@@ -4,7 +4,7 @@ import java.io.File;
 
 import net.minecraft.server.MinecraftServer;
 
-public class ModFileManager {
+public class ModFileHelper {
 
     private static File baseDir;
 

@@ -1,7 +1,8 @@
 package com.pinkyudeer.wthaigd.core;
 
 import com.pinkyudeer.wthaigd.Tags;
-import com.pinkyudeer.wthaigd.helper.ModFileManager;
+import com.pinkyudeer.wthaigd.helper.ConfigHelper;
+import com.pinkyudeer.wthaigd.helper.ModFileHelper;
 import com.pinkyudeer.wthaigd.loader.BlockLoader;
 import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
 import com.pinkyudeer.wthaigd.loader.ItemLoader;
@@ -26,13 +27,13 @@ public class CommonProxy {
 
     // 注册物品/方块、加载配置文件、设置日志（最常见入口）。
     public void preInit(FMLPreInitializationEvent event) {
-        Config.init(event.getSuggestedConfigurationFile());
-        Wthaigd.LOG.info(Config.greeting);
+        ConfigHelper.init(event.getSuggestedConfigurationFile());
+        Wthaigd.LOG.info((String) ConfigHelper.getConfigValue("greeting"));
         Wthaigd.LOG.info("wthaigd version {}", Tags.VERSION);
         FMLCommonHandler.instance()
             .bus()
-            .register(new Config());
-        ModFileManager.init();
+            .register(new ConfigHelper());
+        ModFileHelper.init();
         CreativeTabsLoader.init();
         ItemLoader.init();
         BlockLoader.init();
