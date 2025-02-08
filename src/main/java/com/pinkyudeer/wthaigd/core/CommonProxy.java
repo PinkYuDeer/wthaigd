@@ -4,6 +4,7 @@ import com.pinkyudeer.wthaigd.Tags;
 import com.pinkyudeer.wthaigd.helper.ConfigHelper;
 import com.pinkyudeer.wthaigd.helper.ModFileHelper;
 import com.pinkyudeer.wthaigd.loader.BlockLoader;
+import com.pinkyudeer.wthaigd.loader.CommandLoader;
 import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
 import com.pinkyudeer.wthaigd.loader.ItemLoader;
 import com.pinkyudeer.wthaigd.loader.RecipeLoader;
@@ -20,6 +21,7 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 
+@SuppressWarnings("EmptyMethod")
 public class CommonProxy {
 
     // 在模组主类实例化后触发，用于极早期的初始化（如反射操作）。
@@ -41,7 +43,7 @@ public class CommonProxy {
 
     // 注册合成配方、网络通信、事件监听器。
     public void init(FMLInitializationEvent event) {
-        new RecipeLoader(event);
+        RecipeLoader.init();
     }
 
     // 模组间交互（如获取其他模组内容）、覆盖原版逻辑。
@@ -54,7 +56,9 @@ public class CommonProxy {
     public void serverAboutToStart(FMLServerAboutToStartEvent event) {}
 
     // register server commands in this event handler (Remove if not needed)
-    public void serverStarting(FMLServerStartingEvent event) {}
+    public void serverStarting(FMLServerStartingEvent event) {
+        CommandLoader.init(event);
+    }
 
     // 服务端启动后的后续操作
     public void afterServerStarting(FMLServerStartedEvent event) {}

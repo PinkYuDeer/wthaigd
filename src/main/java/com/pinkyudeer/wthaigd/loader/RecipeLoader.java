@@ -8,10 +8,15 @@ import cpw.mods.fml.common.registry.GameRegistry;
 
 public class RecipeLoader {
 
-    public RecipeLoader(FMLInitializationEvent event) {
+    public static void init() {
         registerCraftingRecipes();
         registerSmeltingRecipes();
         registerFuel();
+    }
+
+    @SuppressWarnings("unused")
+    private RecipeLoader(FMLInitializationEvent event) {
+        init();
     }
 
     private static void registerCraftingRecipes() {
@@ -30,6 +35,7 @@ public class RecipeLoader {
             Items.diamond);
     }
 
+    @SuppressWarnings("EmptyMethod")
     private static void registerSmeltingRecipes() {
 
     }

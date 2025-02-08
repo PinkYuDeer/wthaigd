@@ -15,9 +15,9 @@ public class SQLiteHelper {
 
     private static final Logger log = LogManager.getLogger(SQLiteHelper.class);
     private static Connection connection;
-    private final static String memoryDbUrl = "jdbc:sqlite::memory:";
-    private final static String fileName = "task_data.db";
-    private final static String fileDbUrl = "jdbc:sqlite:" + ModFileHelper.getFile(fileName)
+    private static final String MEMORY_DB_URL = "jdbc:sqlite::memory:";
+    private static final String FILE_NAME = "task_data.db";
+    private static final String FILE_DB_URL = "jdbc:sqlite:" + ModFileHelper.getFile(FILE_NAME)
         .getAbsolutePath();
 
     // onServerStarting时初始化数据库
@@ -25,7 +25,7 @@ public class SQLiteHelper {
         // 控制是否为内存模式
         boolean isMemoryMode = !Boolean.FALSE.equals(ConfigHelper.getConfigValue("isMemoryMode"));
         try {
-            String dbUrl = isMemoryMode ? memoryDbUrl : fileDbUrl;
+            String dbUrl = isMemoryMode ? MEMORY_DB_URL : FILE_DB_URL;
             connection = DriverManager.getConnection(dbUrl);
             if (isMemoryMode) {
                 // 如果本地数据库文件存在，则加载到内存
@@ -46,7 +46,7 @@ public class SQLiteHelper {
     private static void loadFromFile() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
             // 附加文件数据库
-            stmt.execute("ATTACH DATABASE '" + fileDbUrl + "' AS file_db");
+            stmt.execute("ATTACH DATABASE '" + FILE_DB_URL + "' AS file_db");
 
             // 获取所有表结构并复制（需要关闭外键约束）
             stmt.execute("PRAGMA foreign_keys=OFF");
@@ -66,7 +66,7 @@ public class SQLiteHelper {
             ModFileHelper.deleteFile("task_data.db");
 
             // 附加文件数据库
-            stmt.execute("ATTACH DATABASE '" + fileDbUrl + "' AS file_db");
+            stmt.execute("ATTACH DATABASE '" + FILE_DB_URL + "' AS file_db");
 
             // 复制内存数据到文件（需要关闭外键约束）
             stmt.execute("PRAGMA foreign_keys=OFF");

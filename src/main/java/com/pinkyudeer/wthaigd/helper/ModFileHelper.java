@@ -1,8 +1,7 @@
 package com.pinkyudeer.wthaigd.helper;
 
 import java.io.File;
-
-import net.minecraft.server.MinecraftServer;
+import java.io.IOException;
 
 public class ModFileHelper {
 
@@ -10,15 +9,23 @@ public class ModFileHelper {
 
     // 初始化存档路径
     public static void init() {
-        MinecraftServer server = MinecraftServer.getServer();
-        if (server != null) {
-            baseDir = new File(server.getFile(""), "wthaigd"); // 存储在存档目录的 wthaigd 文件夹下
-            if (!baseDir.exists() && !baseDir.mkdirs()) {
-                throw new IllegalStateException(
-                    "Failed to initialize ModFileManager: Failed to create base directory.");
-            }
+        // 获取Minecraft根目录
+        File minecraftDir = new File(".");
+
+        // 判断是客户端还是服务端
+        File worldDir;
+        if (new File(minecraftDir, "saves").exists()) {
+            // 客户端
+            worldDir = new File(minecraftDir, "saves");
         } else {
-            throw new IllegalStateException("Failed to initialize ModFileManager: Server is null.");
+            // 服务端
+            worldDir = new File(minecraftDir, "world");
+        }
+
+        // 创建mod数据目录
+        baseDir = new File(worldDir, "wthaigd");
+        if (!baseDir.exists() && !baseDir.mkdirs()) {
+            throw new RuntimeException("无法创建mod数据目录");
         }
     }
 
@@ -38,7 +45,7 @@ public class ModFileHelper {
                 if (!file.createNewFile()) {
                     throw new RuntimeException("Failed to create file: " + fileName);
                 }
-            } catch (Exception e) {
+            } catch (SecurityException | IOException e) {
                 throw new RuntimeException("Failed to create file: " + fileName, e);
             }
         }
@@ -50,7 +57,7 @@ public class ModFileHelper {
         File file = getFile(fileName);
         try {
             org.apache.commons.io.FileUtils.writeStringToFile(file, content);
-        } catch (Exception e) {
+        } catch (SecurityException | IOException e) {
             throw new RuntimeException("Failed to save file: " + fileName, e);
         }
     }
@@ -60,7 +67,7 @@ public class ModFileHelper {
         File file = getFile(fileName);
         try {
             return org.apache.commons.io.FileUtils.readFileToString(file);
-        } catch (Exception e) {
+        } catch (SecurityException | IOException e) {
             throw new RuntimeException("Failed to read file: " + fileName, e);
         }
     }

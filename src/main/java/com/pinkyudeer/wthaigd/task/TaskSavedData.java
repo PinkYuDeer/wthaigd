@@ -11,8 +11,11 @@ import net.minecraft.world.storage.MapStorage;
 public class TaskSavedData extends WorldSavedData {
 
     private static final String DATA_NAME = "wthaigd";
+    @SuppressWarnings("unused")
     private List<TaskUserGroup> userGroups; // 用户组列表
+    @SuppressWarnings("unused")
     private List<TaskUser> users; // 用户列表
+    @SuppressWarnings("unused")
     private List<Task> tasks; // 任务列表
 
     public TaskSavedData() {

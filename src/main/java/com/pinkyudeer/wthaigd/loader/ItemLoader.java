@@ -10,12 +10,11 @@ import cpw.mods.fml.common.registry.GameRegistry;
 
 public class ItemLoader {
 
-    public static ItemDebugStick itemDebugStick = new ItemDebugStick();
-    public static ItemHandViewer itemHandViewer = new ItemHandViewer();
+    public static final ItemDebugStick itemDebugStick = new ItemDebugStick();
+    public static final ItemHandViewer itemHandViewer = new ItemHandViewer();
 
     public ItemLoader(FMLPreInitializationEvent event) {
-        registerItems(itemDebugStick, "debugStick");
-        registerItems(itemHandViewer, "handViewer");
+        init();
     }
 
     private static void registerItems(Item item, String name) {

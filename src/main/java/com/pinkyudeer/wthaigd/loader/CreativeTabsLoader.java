@@ -11,7 +11,7 @@ public class CreativeTabsLoader {
     public static CreativeTabs creativeTabWthaigd;
 
     public CreativeTabsLoader(FMLPreInitializationEvent event) {
-        creativeTabWthaigd = new CreativeTabsWthaigd();
+        init();
     }
 
     public static void init() {

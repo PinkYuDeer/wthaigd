@@ -78,13 +78,13 @@ A todo List for multiple people to work together to provide interaction in as si
 
 * Multi-player adaptation, using Better Quest's team interface, team up simultaneously
 
-* Class github while editing conflict handling
+* Class GitHub while editing conflict handling
 
 * Positive feedback effect of task completion, visual, auditory, integral, etc
 
 * Refactoring the work item UI interface (cool implementation
 
-* github home page refactoring
+* GitHub home page refactoring
 
 * Complete the team-up system for adding only this mod
 

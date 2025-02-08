@@ -10,12 +10,11 @@ import cpw.mods.fml.common.registry.GameRegistry;
 
 public class BlockLoader {
 
-    public static BlockDebugWthaigd debugWthaigd = new BlockDebugWthaigd();
-    public static BlockViewer viewer = new BlockViewer();
+    public static final BlockDebugWthaigd debugWthaigd = new BlockDebugWthaigd();
+    public static final BlockViewer viewer = new BlockViewer();
 
     public BlockLoader(FMLPreInitializationEvent event) {
-        registerBlock(debugWthaigd, "debugWthaigd");
-        registerBlock(viewer, "viewer");
+        init();
     }
 
     private static void registerBlock(Block block, String name) {

@@ -76,8 +76,6 @@ public class ConfigHelper {
         T value;
         final String comment;
         final String langKey;
-        final T minValue; // 添加最小值
-        final T maxValue; // 添加最大值
 
         ConfigEntry(String key, T defaultValue, String comment, String langKey) {
             this.key = key;
@@ -85,18 +83,6 @@ public class ConfigHelper {
             this.value = defaultValue;
             this.comment = comment;
             this.langKey = langKey;
-            this.minValue = null;
-            this.maxValue = null;
-        }
-
-        ConfigEntry(String key, T defaultValue, String comment, String langKey, T minValue, T maxValue) {
-            this.key = key;
-            this.category = Configuration.CATEGORY_GENERAL;
-            this.value = defaultValue;
-            this.comment = comment;
-            this.langKey = langKey;
-            this.minValue = minValue;
-            this.maxValue = maxValue;
         }
 
         abstract void loadFromConfig(Configuration config);
@@ -106,6 +92,7 @@ public class ConfigHelper {
 
     private static class StringConfigEntry extends ConfigEntry<String> {
 
+        @SuppressWarnings("SameParameterValue")
         StringConfigEntry(String key, String defaultValue, String comment, String langKey) {
             super(key, defaultValue, comment, langKey);
         }
@@ -147,15 +134,15 @@ public class ConfigHelper {
         private final int maxValue;
 
         IntConfigEntry(String key, int defaultValue, String comment, String langKey, int minValue, int maxValue) {
-            super(key, defaultValue, comment, langKey, Integer.MIN_VALUE, Integer.MAX_VALUE);
+            super(key, defaultValue, comment, langKey);
             this.minValue = minValue;
             this.maxValue = maxValue;
         }
 
-        IntConfigEntry(String key, int defaultValue, int minValue, int maxValue, String comment, String langKey) {
+        IntConfigEntry(String key, int defaultValue, String comment, String langKey) {
             super(key, defaultValue, comment, langKey);
-            this.minValue = minValue;
-            this.maxValue = maxValue;
+            this.minValue = Integer.MIN_VALUE;
+            this.maxValue = Integer.MAX_VALUE;
         }
 
         @Override

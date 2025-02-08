@@ -1,6 +1,3 @@
-
 plugins {
     id 'com.gtnewhorizons.gtnhconvention'
 }
-
-//utf-8
