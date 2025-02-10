@@ -87,4 +87,29 @@ public class TaskCommand extends CommandBase {
         return true;
     }
 
+    @Override
+    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+        if (args.length == 1) {
+            return getListOfStringsMatchingLastWord(args, "add", "remove", "list", "update");
+        }
+        if (args.length == 2 && args[0].equals("remove")) {
+            return getListOfStringsMatchingLastWord(
+                args,
+                TaskManager.getInstance()
+                    .getAllTasks()
+                    .stream()
+                    .map(Task::getTitle)
+                    .toArray(String[]::new));
+        }
+        if (args.length == 2 && args[0].equals("update")) {
+            return getListOfStringsMatchingLastWord(
+                args,
+                TaskManager.getInstance()
+                    .getAllTasks()
+                    .stream()
+                    .map(Task::getTitle)
+                    .toArray(String[]::new));
+        }
+        return null;
+    }
 }
