@@ -1,7 +1,7 @@
 # wthaigd
 What the hell am I gonna do (Minecraft Mod)
 
-The English version is available here: [README.md](./README.md)
+中文版介绍在这里：[README-zh_CN.md](./README-zh_CN.md)
 
 This mod is developed for Minecraft 1.7.10 GTNH 2.7.x environment (future adaptations for vanilla and higher versions may be considered).
 
