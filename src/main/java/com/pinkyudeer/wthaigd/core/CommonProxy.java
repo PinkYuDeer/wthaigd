@@ -37,8 +37,8 @@ public class CommonProxy {
             .register(new ConfigHelper());
         ModFileHelper.init();
         CreativeTabsLoader.init();
-        ItemLoader.init();
         BlockLoader.init();
+        ItemLoader.init();
     }
 
     // 注册合成配方、网络通信、事件监听器。

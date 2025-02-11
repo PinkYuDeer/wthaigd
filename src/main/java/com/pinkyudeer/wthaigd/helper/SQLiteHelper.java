@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Objects;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,7 +18,8 @@ public class SQLiteHelper {
     private static Connection connection;
     private static final String MEMORY_DB_URL = "jdbc:sqlite::memory:";
     private static final String FILE_NAME = "task_data.db";
-    private static final String FILE_DB_URL = "jdbc:sqlite:" + ModFileHelper.getFile(FILE_NAME)
+    private static final File DB_FILE = ModFileHelper.getFile(FILE_NAME, ModFileHelper.LocationType.WORLD);
+    private static final String FILE_DB_URL = "jdbc:sqlite:" + Objects.requireNonNull(DB_FILE)
         .getAbsolutePath();
 
     // onServerStarting时初始化数据库
@@ -27,12 +29,8 @@ public class SQLiteHelper {
         try {
             String dbUrl = isMemoryMode ? MEMORY_DB_URL : FILE_DB_URL;
             connection = DriverManager.getConnection(dbUrl);
-            if (isMemoryMode) {
-                // 如果本地数据库文件存在，则加载到内存
-                File dbFile = ModFileHelper.getFile("task_data.db");
-                if (dbFile.exists()) {
-                    loadFromFile();
-                }
+            if (DB_FILE != null && isMemoryMode && DB_FILE.exists()) {
+                loadFromFile();
             }
 
             System.out.println("[Wthaigd] SQLite Database initialized successfully. Memory mode: " + isMemoryMode);
@@ -62,9 +60,6 @@ public class SQLiteHelper {
     @SuppressWarnings("unused")
     private static void saveToFile() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
-            // 创建/清空目标文件数据库
-            ModFileHelper.deleteFile("task_data.db");
-
             // 附加文件数据库
             stmt.execute("ATTACH DATABASE '" + FILE_DB_URL + "' AS file_db");
 
@@ -75,6 +70,13 @@ public class SQLiteHelper {
             stmt.execute("PRAGMA foreign_keys=ON");
 
             stmt.execute("DETACH DATABASE file_db");
+
+            // 保存文件
+            if (DB_FILE != null) {
+                ModFileHelper.saveFile(DB_FILE, ModFileHelper.LocationType.WORLD, true);
+            } else {
+                log.error("DB_FILE is null, cannot save to file.");
+            }
         }
     }
 
