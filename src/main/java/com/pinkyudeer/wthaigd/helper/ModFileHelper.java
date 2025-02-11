@@ -47,18 +47,8 @@ public class ModFileHelper {
             MinecraftServer server = FMLCommonHandler.instance()
                 .getMinecraftServerInstance();
             baseDir = server.getFile(".");
-            currentWorldDir = server.worldServerForDimension(0)
-                .getChunkSaveLocation();
         } else {
             baseDir = Minecraft.getMinecraft().mcDataDir;
-            if (Minecraft.getMinecraft()
-                .isIntegratedServerRunning()) {
-                currentWorldDir = new File(
-                    savesDir,
-                    Minecraft.getMinecraft()
-                        .getIntegratedServer()
-                        .getWorldName());
-            }
         }
 
         // 初始化派生路径
