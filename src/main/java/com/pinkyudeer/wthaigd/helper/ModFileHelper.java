@@ -226,7 +226,7 @@ public class ModFileHelper {
     /**
      * 世界加载事件处理
      */
-    private static class WorldLoadHandler {
+    public static class WorldLoadHandler {
 
         @SubscribeEvent
         public void onWorldLoad(WorldEvent.Load event) {
