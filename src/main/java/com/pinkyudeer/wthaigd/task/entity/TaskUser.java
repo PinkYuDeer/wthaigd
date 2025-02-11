@@ -1,4 +1,4 @@
-package com.pinkyudeer.wthaigd.task;
+package com.pinkyudeer.wthaigd.task.entity;
 
 public class TaskUser {
 

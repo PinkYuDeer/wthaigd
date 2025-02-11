@@ -3,6 +3,8 @@ package com.pinkyudeer.wthaigd.task;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.pinkyudeer.wthaigd.task.entity.Task;
+
 public class TaskManager {
 
     private static final TaskManager INSTANCE = new TaskManager();

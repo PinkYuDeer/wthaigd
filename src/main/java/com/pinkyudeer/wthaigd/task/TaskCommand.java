@@ -7,6 +7,8 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 
+import com.pinkyudeer.wthaigd.task.entity.Task;
+
 public class TaskCommand extends CommandBase {
 
     @Override

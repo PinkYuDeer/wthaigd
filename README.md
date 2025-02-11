@@ -1,96 +1,52 @@
 # wthaigd
+What the hell am I gonna do (Minecraft Mod)
 
-what the hell am I gonna do (minecraft mod)
+The English version is available here: [README.md](./README.md)
 
-中文版介绍在这里：[README-zh_CN.md](./README-zh_CN.md)
+This mod is developed for Minecraft 1.7.10 GTNH 2.7.x environment (future adaptations for vanilla and higher versions may be considered).
 
-A Minecraft 1.7.10GTNH 2.7.x development environment module (perhaps the future will be original adaptation, high version compatibility)
+Gantt Chart Mod (maybe)
 
+This is the author's first mod, created primarily as a learning project in development; therefore, it may appear somewhat rough around the edges. However, I am committed to actively learning and improving.
 
+* Despite its imperfections, I welcome guidance from experienced developers or creative individuals to help elevate my skills and this mod to a competent or even excellent level.
 
-Gantt chart mod (Maybe
+Please feel free to open multiple issues to report bugs, suggestions, modifications, etc.
 
-
-
-This is the author's first mod, this mod is intended as a learning development, so it will be relatively rough, but will actively learn to improve gradually.
-
-
-
-* There are many rough, welcome big boss or creative people to come and guide, so that my skills and this mod become qualified or even excellent degree.
-
-
-
-Welcome to open more issues, put forward bugs, suggestions, changes, etc.
-
-
-
-If you want to do pr, please try to state that the author has programming experience but no mod development experience.
-
-
+If you wish to submit a pull request (PR), please provide an explanation; while I have programming experience, I lack experience in mod development.
 
 ## Introduction
+A collaborative todo list designed for multiplayer environments that aims to provide interaction in the simplest way possible.
+* Earn points and visual effects upon task completion as motivation.
+* Compatible with Better Quest.
 
-A todo List for multiple people to work together to provide interaction in as simple a way as possible.
-
-* Earn points and some visual effects to encourage completion of the quest.
-
-* Better Quest compatibility is available.
-
-
-
-## Achieved
-
-* New folder
-
-* Draw the cake
-
+## Achievements
+* Created folders
+* Drafted tasks
 * Successfully entered the game
-
-* First custom item
-
-* First custom box
-
-* Try high-resolution maps
-
-* First custom recipe
-
-* First custom fuel
-
+* First custom item implemented
+* First custom block created
+* Attempted high-resolution textures
+* Developed first custom recipe
+* Established first custom fuel type
 * Localized language files
+* Command-based functionalities: create, modify, delete work items
+* Configuration files management including database handling and player status helper classes
 
-
-
-## Future plans
-
-* Complete by command: work item creation, modification, deletion
-
-* Done with instructions: Work item status Settings: priority, status, parent-child work items, completion time, creation time, responsible, followers (and so on)
-
-* Periodic work items are automatically created
-
-* Open a work item with a shortcut key
-
-* Work item UI interface (in tabular form
-
-* Work items converted to mind maps, Gantt chart kanban, timeline kanban (simple implementation
-
-* Adapt to Better Quest and select task items in a reasonable way
-
-* Multi-player adaptation, using Better Quest's team interface, team up simultaneously
-
-* Class GitHub while editing conflict handling
-
-* Positive feedback effect of task completion, visual, auditory, integral, etc
-
-* Refactoring the work item UI interface (cool implementation
-
-* GitHub home page refactoring
-
-* Complete the team-up system for adding only this mod
-
-* High version adaptation
-
+## Future Plans
+* Debugging ConfigHelper, ModFileHelper, PlayerHelper, SqliteHelper
+* Command-based functionalities: setting work item statuses such as priority levels, states of completion or pending tasks along with parent-child relationships among tasks; tracking creation time and responsible parties including followers (etc.)
+* Development of a GUI interface for work items
+* Shortcut key functionality for opening work items
+* Conversion of work items into mind maps or Gantt chart boards along with timeline boards (basic implementation)
+* Enhancement of work item features such as automatic creation of recurring tasks
+* Compatibility improvements with Better Quest by selecting task items reasonably
+* Adaptation for multiplayer settings using Better Quest's team interfaces for synchronized teamwork
+* Conflict resolution similar to GitHub’s simultaneous editing feature
+* Positive feedback mechanisms upon task completion encompassing visual cues , auditory signals , point rewards , etc .
+* Refactoring UI design elements related to work items towards more visually appealing implementations
+* Completion of a team system solely reliant on this mod
+* High-version compatibility
 
 ## License
-
-This project is licensed under the GNU General Public License v3.0. See the [LICENSE](./LICENSE) file for details.
+This project is licensed under the GNU General Public License v3.0. Please refer to the [LICENSE](./LICENSE) file for further details.

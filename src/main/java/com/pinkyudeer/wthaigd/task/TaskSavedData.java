@@ -7,7 +7,11 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldSavedData;
 import net.minecraft.world.storage.MapStorage;
 
-// 包含任务、玩家状态的文件
+import com.pinkyudeer.wthaigd.task.entity.Task;
+import com.pinkyudeer.wthaigd.task.entity.TaskUser;
+import com.pinkyudeer.wthaigd.task.entity.TaskUserGroup;
+
+// 包含任务、玩家状态的文件【WIP，已被sqlite替代】
 public class TaskSavedData extends WorldSavedData {
 
     private static final String DATA_NAME = "wthaigd";
