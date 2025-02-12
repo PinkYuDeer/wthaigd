@@ -121,7 +121,7 @@ public class ConfigHelper {
     /**
      * 输出所有配置项到日志
      *
-     * @param sender
+     * @param sender   ICommandSender命令发送者
      * @param detailed 是否输出详细信息
      */
     public static void logAllConfigs(ICommandSender sender, boolean detailed) {
