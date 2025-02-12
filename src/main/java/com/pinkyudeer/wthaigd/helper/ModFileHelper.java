@@ -5,8 +5,6 @@ import static com.pinkyudeer.wthaigd.core.Wthaigd.MODID;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.MinecraftServer;
@@ -103,7 +101,13 @@ public class ModFileHelper {
 
         try {
             createDirIfNeeded(targetFile.getParentFile());
-            Files.copy(sourceFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            if (!sourceFile.exists()) {
+                if (!sourceFile.createNewFile()) {
+                    throw new IOException("创建文件失败: " + sourceFile);
+                }
+            }
+            java.nio.file.Files
+                .copy(sourceFile.toPath(), targetFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             return true;
         } catch (IOException e) {
             LOG.error("保存文件失败: {}", targetFile, e);
@@ -231,6 +235,7 @@ public class ModFileHelper {
         @SubscribeEvent
         public void onWorldLoad(WorldEvent.Load event) {
             if (event.world.isRemote) return;
+            if (event.world.provider.dimensionId != 0) return;
 
             if (FMLCommonHandler.instance()
                 .getSide()
@@ -242,7 +247,7 @@ public class ModFileHelper {
                     savesDir,
                     Minecraft.getMinecraft()
                         .getIntegratedServer()
-                        .getWorldName());
+                        .getFolderName());
             }
             updateModWorldDir();
         }
@@ -250,6 +255,8 @@ public class ModFileHelper {
         @SubscribeEvent
         public void onWorldUnload(WorldEvent.Unload event) {
             if (event.world.isRemote) return;
+            if (event.world.provider.dimensionId != 0) return;
+
             modWorldDir = new File(configDir, MODID + "/inactive_world");
         }
     }
