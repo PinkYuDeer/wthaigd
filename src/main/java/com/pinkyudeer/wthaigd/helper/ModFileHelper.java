@@ -16,10 +16,9 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ModFileHelper {
 
-    private static File baseDir; // .minecraft或服务器根目录
     private static File savesDir; // baseDir/saves
-    private static File currentWorldDir; // 服务器: baseDir/world 客户端: savesDir/<world_name>
     private static File configDir; // baseDir/config
+    private static File currentWorldDir; // 服务器: baseDir/world 客户端: savesDir/<world_name>
 
     private static File modGlobalDir; // configDir/MODID (跨世界持久化数据)
     private static File modWorldDir; // currentWorldDir/MODID (世界专用数据)
@@ -38,16 +37,7 @@ public class ModFileHelper {
      */
     public static void init() {
         // 初始化基础路径
-        boolean isServer = FMLCommonHandler.instance()
-            .getSide()
-            .isServer();
-        if (isServer) {
-            MinecraftServer server = FMLCommonHandler.instance()
-                .getMinecraftServerInstance();
-            baseDir = server.getFile(".");
-        } else {
-            baseDir = Minecraft.getMinecraft().mcDataDir;
-        }
+        File baseDir = getFile();
 
         // 初始化派生路径
         savesDir = new File(baseDir, "saves");
@@ -55,8 +45,35 @@ public class ModFileHelper {
         modGlobalDir = new File(configDir, MODID);
         updateModWorldDir();
 
+        // 记录目录信息
+        LOG.info("基础目录: {}", baseDir);
+        LOG.info("存档目录: {}", savesDir);
+        LOG.info("配置目录: {}", configDir);
+        LOG.info("全局MOD数据目录: {}", modGlobalDir);
+
         // 注册世界加载监听
         MinecraftForge.EVENT_BUS.register(new WorldLoadHandler());
+    }
+
+    private static File getFile() {
+        boolean isServer = FMLCommonHandler.instance()
+            .getSide()
+            .isServer();
+        File baseDir; // .minecraft或服务器根目录
+        if (isServer) {
+            MinecraftServer server = FMLCommonHandler.instance()
+                .getMinecraftServerInstance();
+            try {
+                baseDir = server.getFile(".")
+                    .getAbsoluteFile()
+                    .getCanonicalFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            baseDir = Minecraft.getMinecraft().mcDataDir;
+        }
+        return baseDir;
     }
 
     private static void updateModWorldDir() {
@@ -233,7 +250,7 @@ public class ModFileHelper {
     public static class WorldLoadHandler {
 
         @SubscribeEvent
-        public void onWorldLoad(WorldEvent.Load event) {
+        public void onWorldLoad(WorldEvent.Load event) throws IOException {
             if (event.world.isRemote) return;
             if (event.world.provider.dimensionId != 0) return;
 
@@ -241,7 +258,8 @@ public class ModFileHelper {
                 .getSide()
                 .isServer()) {
                 currentWorldDir = event.world.getSaveHandler()
-                    .getWorldDirectory();
+                    .getWorldDirectory()
+                    .getCanonicalFile();
             } else {
                 currentWorldDir = new File(
                     savesDir,
@@ -250,6 +268,7 @@ public class ModFileHelper {
                         .getFolderName());
             }
             updateModWorldDir();
+            LOG.info("世界MOD数据目录: {}", modWorldDir);
         }
 
         @SubscribeEvent
@@ -258,6 +277,7 @@ public class ModFileHelper {
             if (event.world.provider.dimensionId != 0) return;
 
             modWorldDir = new File(configDir, MODID + "/inactive_world");
+            LOG.info("onWorldUnload，世界MOD数据目录初始化");
         }
     }
 }
