@@ -8,6 +8,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 
 import com.pinkyudeer.wthaigd.core.Wthaigd;
+import com.pinkyudeer.wthaigd.helper.ConfigHelper;
 import com.pinkyudeer.wthaigd.task.entity.Task;
 
 public class TaskCommand extends CommandBase {
@@ -99,6 +100,9 @@ public class TaskCommand extends CommandBase {
                     case "config" -> {
                         sender.addChatMessage(new ChatComponentText("进入配置测试模块..."));
                         Wthaigd.LOG.info("进入配置测试模块");
+                        // 打印全部配置
+                        ConfigHelper.logAllConfigs(sender, true);
+                        Wthaigd.LOG.info("测试配置完成");
                     }
                     default -> {
                         sender.addChatMessage(new ChatComponentText("未知的测试模块: " + testModule));

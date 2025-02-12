@@ -4,9 +4,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.command.ICommandSender;
+import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.config.Configuration;
 
 import com.pinkyudeer.wthaigd.core.Wthaigd;
+import com.pinkyudeer.wthaigd.helper.entity.ConfigEntry;
 
 import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -18,12 +21,20 @@ public class ConfigHelper {
     private static final List<ConfigEntry<?>> CONFIG_ENTRIES = new ArrayList<>();
 
     private static void addConfigEntry() {
-        CONFIG_ENTRIES
-            .add(new StringConfigEntry("greeting", "Hello World", "Welcome to WTHAIGD!!!", "config.comment.greeting"));
         CONFIG_ENTRIES.add(
-            new BooleanConfigEntry("debugMode", false, "Whether to enable debug mode", "config.comment.debugMode"));
+            new ConfigEntry.StringConfigEntry(
+                "greeting",
+                "Hello World",
+                "Welcome to WTHAIGD!!!",
+                "config.comment.greeting"));
         CONFIG_ENTRIES.add(
-            new BooleanConfigEntry(
+            new ConfigEntry.BooleanConfigEntry(
+                "debugMode",
+                false,
+                "Whether to enable debug mode",
+                "config.comment.debugMode"));
+        CONFIG_ENTRIES.add(
+            new ConfigEntry.BooleanConfigEntry(
                 "isMemoryMode",
                 false,
                 "Whether to enable sqlite memory optimization mode",
@@ -41,18 +52,16 @@ public class ConfigHelper {
         try {
             if (loadFromFile) {
                 config.load();
-                for (ConfigEntry<?> entry : CONFIG_ENTRIES) {
-                    entry.loadFromConfig(config);
-                }
+                CONFIG_ENTRIES.forEach(entry -> entry.loadFromConfig(config));
             } else {
-                for (ConfigEntry<?> entry : CONFIG_ENTRIES) {
-                    entry.saveToConfig(config);
-                }
+                CONFIG_ENTRIES.forEach(entry -> entry.saveToConfig(config));
             }
         } catch (Exception e) {
-            Wthaigd.LOG.error("Failed to load config file, using default values");
+            Wthaigd.LOG.error("配置文件加载失败，使用默认值", e);
         } finally {
-            if (config.hasChanged()) config.save();
+            if (config.hasChanged()) {
+                config.save();
+            }
         }
     }
 
@@ -69,137 +78,75 @@ public class ConfigHelper {
         synchronizeConfiguration(true);
     }
 
-    private static abstract class ConfigEntry<T> {
-
-        final String key;
-        final String category;
-        T value;
-        final String comment;
-        final String langKey;
-
-        ConfigEntry(String key, T defaultValue, String comment, String langKey) {
-            this.key = key;
-            this.category = Configuration.CATEGORY_GENERAL;
-            this.value = defaultValue;
-            this.comment = comment;
-            this.langKey = langKey;
-        }
-
-        abstract void loadFromConfig(Configuration config);
-
-        abstract void saveToConfig(Configuration config);
+    public static String getStringConfig(String configName) {
+        return getConfigValue(configName, String.class);
     }
 
-    private static class StringConfigEntry extends ConfigEntry<String> {
-
-        @SuppressWarnings("SameParameterValue")
-        StringConfigEntry(String key, String defaultValue, String comment, String langKey) {
-            super(key, defaultValue, comment, langKey);
-        }
-
-        @Override
-        void loadFromConfig(Configuration config) {
-            value = config.getString(key, category, value, comment, langKey);
-        }
-
-        @Override
-        void saveToConfig(Configuration config) {
-            config.get(category, key, value)
-                .set(value);
-        }
+    public static Boolean getBooleanConfig(String configName) {
+        return getConfigValue(configName, Boolean.class);
     }
 
-    private static class BooleanConfigEntry extends ConfigEntry<Boolean> {
-
-        BooleanConfigEntry(String key, boolean defaultValue, String comment, String langKey) {
-            super(key, defaultValue, comment, langKey);
-        }
-
-        @Override
-        void loadFromConfig(Configuration config) {
-            value = config.getBoolean(key, category, value, comment, langKey);
-        }
-
-        @Override
-        void saveToConfig(Configuration config) {
-            config.get(category, key, value)
-                .set(value);
-        }
+    public static Integer getIntConfig(String configName) {
+        return getConfigValue(configName, Integer.class);
     }
 
-    @SuppressWarnings("unused")
-    private static class IntConfigEntry extends ConfigEntry<Integer> {
-
-        private final int minValue;
-        private final int maxValue;
-
-        IntConfigEntry(String key, int defaultValue, String comment, String langKey, int minValue, int maxValue) {
-            super(key, defaultValue, comment, langKey);
-            this.minValue = minValue;
-            this.maxValue = maxValue;
-        }
-
-        IntConfigEntry(String key, int defaultValue, String comment, String langKey) {
-            super(key, defaultValue, comment, langKey);
-            this.minValue = Integer.MIN_VALUE;
-            this.maxValue = Integer.MAX_VALUE;
-        }
-
-        @Override
-        void loadFromConfig(Configuration config) {
-            value = config.getInt(key, category, value, minValue, maxValue, comment, langKey);
-        }
-
-        @Override
-        void saveToConfig(Configuration config) {
-            config.get(category, key, value)
-                .set(value);
-        }
+    public static Float getFloatConfig(String configName) {
+        return getConfigValue(configName, Float.class);
     }
 
-    @SuppressWarnings("unused")
-    private static class FloatConfigEntry extends ConfigEntry<Float> {
-
-        private final float minValue;
-        private final float maxValue;
-
-        FloatConfigEntry(String key, float defaultValue, String comment, String langKey, float minValue,
-            float maxValue) {
-            super(key, defaultValue, comment, langKey);
-            this.minValue = minValue;
-            this.maxValue = maxValue;
-        }
-
-        FloatConfigEntry(String key, float defaultValue, String comment, String langKey) {
-            super(key, defaultValue, comment, langKey);
-            this.minValue = Float.MIN_VALUE;
-            this.maxValue = Float.MAX_VALUE;
-        }
-
-        @Override
-        void loadFromConfig(Configuration config) {
-            value = config.getFloat(key, category, value, minValue, maxValue, comment, langKey);
-        }
-
-        @Override
-        void saveToConfig(Configuration config) {
-            config.get(category, key, value)
-                .set(value);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> T getConfigValue(String configName) {
-        ConfigEntry<T> entry = CONFIG_ENTRIES.stream()
+    private static <T> T getConfigValue(String configName, Class<T> type) {
+        ConfigEntry<?> entry = CONFIG_ENTRIES.stream()
             .filter(e -> e.key.equals(configName))
-            .map(e -> (ConfigEntry<T>) e)
             .findFirst()
             .orElse(null);
+
         if (entry == null) {
-            Wthaigd.LOG.error("尝试获取不存在的配置项: {}", configName);
+            Wthaigd.LOG.error("配置项不存在: {}", configName);
             return null;
         }
-        return entry.value;
+
+        if (!type.isInstance(entry.value)) {
+            Wthaigd.LOG.error(
+                "配置项类型不匹配: {} 预期类型: {}, 实际类型: {}",
+                configName,
+                type.getSimpleName(),
+                entry.value.getClass()
+                    .getSimpleName());
+            return null;
+        }
+
+        return type.cast(entry.value);
+    }
+
+    /**
+     * 输出所有配置项到日志
+     *
+     * @param sender
+     * @param detailed 是否输出详细信息
+     */
+    public static void logAllConfigs(ICommandSender sender, boolean detailed) {
+        Wthaigd.LOG.info("当前配置项列表:");
+        CONFIG_ENTRIES.forEach(entry -> {
+            if (detailed) {
+                String details = String.format(
+                    "配置项: %s | 类别: %s | 当前值: %s | 默认值: %s | 描述: %s | 国际化键: %s",
+                    entry.key,
+                    entry.category,
+                    entry.value,
+                    entry.defaultValue,
+                    entry.comment,
+                    entry.langKey);
+
+                if (entry instanceof ConfigEntry.IntConfigEntry intEntry) {
+                    details += String.format(" | 最小值: %d | 最大值: %d", intEntry.minValue, intEntry.maxValue);
+                }
+                Wthaigd.LOG.info(details);
+                sender.addChatMessage(new ChatComponentText(details));
+            } else {
+                Wthaigd.LOG.info("配置项: {} = {}", entry.key, entry.value);
+                sender.addChatMessage(new ChatComponentText(entry.key + " = " + entry.value));
+            }
+        });
     }
 
     // TODO:使服务器可以动态修改配置

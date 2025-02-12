@@ -25,7 +25,7 @@ public class SQLiteHelper {
     // onServerStarting时初始化数据库
     public static void initDatabase() {
         // 控制是否为内存模式
-        boolean isMemoryMode = !Boolean.FALSE.equals(ConfigHelper.getConfigValue("isMemoryMode"));
+        boolean isMemoryMode = !Boolean.FALSE.equals(ConfigHelper.getBooleanConfig("isMemoryMode"));
         try {
             String dbUrl = isMemoryMode ? MEMORY_DB_URL : FILE_DB_URL;
             connection = DriverManager.getConnection(dbUrl);

@@ -1,16 +1,3 @@
 plugins {
     id 'com.gtnewhorizons.gtnhconvention'
 }
-
-// 在插件生效后修改配置
-gradle.projectsEvaluated {
-    // 客户端运行目录隔离
-    tasks.named('runClient').configure {
-        workingDir = file('run/client')
-    }
-
-    // 服务端运行目录隔离
-    tasks.named('runServer').configure {
-        workingDir = file('run/server')
-    }
-}
