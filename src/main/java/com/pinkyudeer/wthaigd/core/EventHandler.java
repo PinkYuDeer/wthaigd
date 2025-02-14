@@ -1,14 +1,16 @@
 package com.pinkyudeer.wthaigd.core;
 
-import com.pinkyudeer.wthaigd.helper.ModFileHelper;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import java.io.File;
+import java.io.IOException;
+
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
-import java.io.File;
-import java.io.IOException;
+import com.pinkyudeer.wthaigd.helper.ModFileHelper;
+
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class EventHandler {
 
@@ -59,6 +61,7 @@ public class EventHandler {
         public void onWorldSave(WorldEvent.Save event) {
             if (!event.world.provider.isSurfaceWorld()) return;
 
+            Wthaigd.LOG.info("World save event triggered");
             // SQLiteHelper.checkAndSave();
         }
     }
