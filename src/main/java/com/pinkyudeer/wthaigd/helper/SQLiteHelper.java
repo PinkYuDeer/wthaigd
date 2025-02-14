@@ -1,127 +1,57 @@
 package com.pinkyudeer.wthaigd.helper;
 
+import com.pinkyudeer.wthaigd.core.Wthaigd;
+
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Objects;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class SQLiteHelper {
 
-    private static final Logger log = LogManager.getLogger(SQLiteHelper.class);
-    private static Connection connection;
-    private static final String MEMORY_DB_URL = "jdbc:sqlite::memory:";
-    private static final String FILE_NAME = "task_data.db";
-    private static final File DB_FILE = ModFileHelper.getFile(FILE_NAME, ModFileHelper.LocationType.WORLD);
-    private static final String FILE_DB_URL = "jdbc:sqlite:" + Objects.requireNonNull(DB_FILE)
-        .getAbsolutePath();
+    private static final String DB_URL = "jdbc:sqlite::memory:"; // 内存数据库
+    private Connection inMemoryConnection;
+    private Connection fileConnection;
 
-    // onServerStarting时初始化数据库
-    public static void initDatabase() {
-        // 控制是否为内存模式
-        boolean isMemoryMode = !Boolean.FALSE.equals(ConfigHelper.getBooleanConfig("isMemoryMode"));
+    public SQLiteHelper() {
+        initializeDatabases();
+    }
+
+    private void initializeDatabases() {
         try {
-            String dbUrl = isMemoryMode ? MEMORY_DB_URL : FILE_DB_URL;
-            connection = DriverManager.getConnection(dbUrl);
-            if (DB_FILE != null && isMemoryMode && DB_FILE.exists()) {
-                loadFromFile();
-            }
-
-            System.out.println("[Wthaigd] SQLite Database initialized successfully. Memory mode: " + isMemoryMode);
-        } catch (SQLException e) {
-            log.error("Failed to initialize SQLite database.", e);
-            throw new RuntimeException("Failed to initialize SQLite database.");
-        }
-    }
-
-    // 从文件加载到内存数据库
-    private static void loadFromFile() throws SQLException {
-        try (Statement stmt = connection.createStatement()) {
-            // 附加文件数据库
-            stmt.execute("ATTACH DATABASE '" + FILE_DB_URL + "' AS file_db");
-
-            // 获取所有表结构并复制（需要关闭外键约束）
-            stmt.execute("PRAGMA foreign_keys=OFF");
-            copySchema(connection, "file_db", "main");
-            copyData(connection, "file_db", "main");
-            stmt.execute("PRAGMA foreign_keys=ON");
-
-            stmt.execute("DETACH DATABASE file_db");
-        }
-    }
-
-    // 保存内存数据库到文件
-    @SuppressWarnings("unused")
-    private static void saveToFile() throws SQLException {
-        try (Statement stmt = connection.createStatement()) {
-            // 附加文件数据库
-            stmt.execute("ATTACH DATABASE '" + FILE_DB_URL + "' AS file_db");
-
-            // 复制内存数据到文件（需要关闭外键约束）
-            stmt.execute("PRAGMA foreign_keys=OFF");
-            copySchema(connection, "main", "file_db");
-            copyData(connection, "main", "file_db");
-            stmt.execute("PRAGMA foreign_keys=ON");
-
-            stmt.execute("DETACH DATABASE file_db");
-
-            // 保存文件
-            if (DB_FILE != null) {
-                ModFileHelper.saveFile(DB_FILE, ModFileHelper.LocationType.WORLD, true);
+            // 初始化内存数据库连接
+            inMemoryConnection = DriverManager.getConnection(DB_URL);
+            // 初始化文件数据库连接
+            String fileName = "task.db";
+            File dbFile = ModFileHelper.getWorldFile(fileName, false);
+            fileConnection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
+            // 如果文件数据库不存在，创建表并初始化，否则加载数据到内存数据库
+            if (!dbFile.exists()) {
+                initializeDatabase();
             } else {
-                log.error("DB_FILE is null, cannot save to file.");
+                loadDataFromFileToMemory();
             }
-        }
-    }
-
-    // 复制表结构
-    private static void copySchema(Connection conn, String sourceSchema, String targetSchema) throws SQLException {
-        try (Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT sql FROM " + sourceSchema + ".sqlite_master WHERE type='table'")) {
-
-            while (rs.next()) {
-                String createTableSQL = rs.getString("sql");
-                conn.createStatement()
-                    .execute(createTableSQL.replace(sourceSchema, targetSchema));
-            }
-        }
-    }
-
-    // 复制表数据（支持事务批处理）
-    private static void copyData(Connection conn, String sourceSchema, String targetSchema) throws SQLException {
-        conn.setAutoCommit(false);
-        try (Statement stmt = conn.createStatement();
-            ResultSet rs = stmt
-                .executeQuery("SELECT name FROM " + sourceSchema + ".sqlite_master WHERE type='table'")) {
-
-            while (rs.next()) {
-                String tableName = rs.getString("name");
-                if (tableName.equals("sqlite_sequence")) continue; // 忽略自增序列表
-
-                // 使用批量插入提升性能
-                try (PreparedStatement pstmt = conn.prepareStatement(
-                    "INSERT INTO " + targetSchema
-                        + "."
-                        + tableName
-                        + " SELECT * FROM "
-                        + sourceSchema
-                        + "."
-                        + tableName)) {
-                    pstmt.executeUpdate();
-                }
-            }
-            conn.commit();
         } catch (SQLException e) {
-            conn.rollback();
-            throw e;
-        } finally {
-            conn.setAutoCommit(true);
+            Wthaigd.LOG.error("SQLite数据库初始化失败", e);
         }
     }
+
+    private void initializeDatabase() throws SQLException {
+        try (Statement stmt = fileConnection.createStatement()) {
+            // 创建数据库表结构
+            String createTableSQL = "CREATE TABLE IF NOT EXISTS your_table (" + "id INTEGER PRIMARY KEY, "
+                + "name TEXT NOT NULL, "
+                + "value INTEGER NOT NULL);";
+            stmt.execute(createTableSQL);
+        }
+    }
+
+    private void loadDataFromFileToMemory() {}
+
+    public void saveDataFromMemoryToFile() {}
+
+    // 下面是你在内存数据库中增删改查的操作
+
+    public void close() {}
 }

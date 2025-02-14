@@ -1,18 +1,14 @@
 package com.pinkyudeer.wthaigd.helper;
 
-import static com.pinkyudeer.wthaigd.core.Wthaigd.LOG;
-import static com.pinkyudeer.wthaigd.core.Wthaigd.MODID;
+import cpw.mods.fml.common.FMLCommonHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.server.MinecraftServer;
 
 import java.io.File;
 import java.io.IOException;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.world.WorldEvent;
-
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import static com.pinkyudeer.wthaigd.core.Wthaigd.LOG;
+import static com.pinkyudeer.wthaigd.core.Wthaigd.MODID;
 
 public class ModFileHelper {
 
@@ -37,7 +33,7 @@ public class ModFileHelper {
      */
     public static void init() {
         // 初始化基础路径
-        File baseDir = getFile();
+        File baseDir = getBaseDir();
 
         // 初始化派生路径
         savesDir = new File(baseDir, "saves");
@@ -45,17 +41,9 @@ public class ModFileHelper {
         modGlobalDir = new File(configDir, MODID);
         updateModWorldDir();
 
-        // 记录目录信息
-        LOG.info("基础目录: {}", baseDir);
-        LOG.info("存档目录: {}", savesDir);
-        LOG.info("配置目录: {}", configDir);
-        LOG.info("全局MOD数据目录: {}", modGlobalDir);
-
-        // 注册世界加载监听
-        MinecraftForge.EVENT_BUS.register(new WorldLoadHandler());
     }
 
-    private static File getFile() {
+    private static File getBaseDir() {
         boolean isServer = FMLCommonHandler.instance()
             .getSide()
             .isServer();
@@ -82,10 +70,24 @@ public class ModFileHelper {
     }
 
     /**
+     * 更新modWorldDir
+     */
+    public static void updateModWorldDir(File currentWorldDir) {
+        ModFileHelper.currentWorldDir = currentWorldDir;
+        updateModWorldDir();
+        // TODO: 发布前删除LOG
+        LOG.info("更新modWorldDir: {}", modWorldDir);
+    }
+
+    /**
      * 确保所有必要目录存在
      */
-    public static void ensureDirsExist() throws IOException {
+    public static void ensureBaseDirsExist() throws IOException {
         createDirIfNeeded(modGlobalDir);
+        createDirIfNeeded(modWorldDir);
+    }
+
+    public static void ensureWorldDirExist() throws IOException {
         createDirIfNeeded(modWorldDir);
     }
 
@@ -108,26 +110,55 @@ public class ModFileHelper {
      * @throws SecurityException 如果没有足够的权限
      */
     public static boolean saveFile(File sourceFile, LocationType locationType, boolean overwrite) {
-        File targetFile = getFile(sourceFile.getName(), locationType);
-        if (targetFile == null) return false;
+        // 参数校验
+        if (sourceFile == null) {
+            LOG.error("源文件不能为null");
+            return false;
+        }
 
-        if (!overwrite && targetFile.exists()) {
-            LOG.error("文件已存在且不允许覆盖: {}", targetFile);
+        // 获取目标文件路径
+        File targetFile = getFile(sourceFile.getName(), locationType, false);
+        if (targetFile == null) {
+            LOG.error("无法获取目标文件路径");
             return false;
         }
 
         try {
-            createDirIfNeeded(targetFile.getParentFile());
+            // 检查源文件
             if (!sourceFile.exists()) {
-                if (!sourceFile.createNewFile()) {
-                    throw new IOException("创建文件失败: " + sourceFile);
+                LOG.error("源文件不存在: {}", sourceFile);
+                return false;
+            }
+
+            if (!sourceFile.isFile()) {
+                LOG.error("源文件路径不是一个文件: {}", sourceFile);
+                return false;
+            }
+
+            // 检查目标文件
+            if (targetFile.exists()) {
+                if (!targetFile.isFile()) {
+                    LOG.error("目标路径已被目录占用: {}", targetFile);
+                    return false;
+                }
+                if (!overwrite) {
+                    LOG.error("文件已存在且不允许覆盖: {}", targetFile);
+                    return false;
                 }
             }
+
+            // 创建目标文件的父目录
+            createDirIfNeeded(targetFile.getParentFile());
+
+            // 复制文件
             java.nio.file.Files
                 .copy(sourceFile.toPath(), targetFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            LOG.debug("文件保存成功: {} -> {}", sourceFile, targetFile);
             return true;
+
         } catch (IOException e) {
-            LOG.error("保存文件失败: {}", targetFile, e);
+            LOG.error("保存文件失败: {} -> {}", sourceFile, targetFile, e);
             return false;
         }
     }
@@ -149,12 +180,13 @@ public class ModFileHelper {
     /**
      * 获取指定位置的文件
      *
-     * @param fileName     文件名（支持相对路径）
-     * @param locationType 文件位置类型
+     * @param fileName          文件名（支持相对路径）
+     * @param locationType      文件位置类型
+     * @param createIfNotExists 是否在不存在时创建文件
      * @return 文件对象，如果路径非法则返回null
      * @throws SecurityException 如果没有足够的权限
      */
-    public static File getFile(String fileName, LocationType locationType) {
+    public static File getFile(String fileName, LocationType locationType, boolean createIfNotExists) {
         File targetDir = switch (locationType) {
             case WORLD -> modWorldDir;
             case GLOBAL -> modGlobalDir;
@@ -167,6 +199,12 @@ public class ModFileHelper {
                 LOG.error("非法访问路径: {}", file);
                 return null;
             }
+            if (createIfNotExists && !file.exists()) {
+                createDirIfNeeded(file.getParentFile());
+                if (!file.createNewFile()) {
+                    throw new IOException("创建文件失败: " + file);
+                }
+            }
             return file;
         } catch (IOException e) {
             LOG.error("路径解析失败: {}", fileName, e);
@@ -177,15 +215,15 @@ public class ModFileHelper {
     /**
      * 快捷方法：获取世界目录中的文件
      */
-    public static File getWorldFile(String fileName) {
-        return getFile(fileName, LocationType.WORLD);
+    public static File getWorldFile(String fileName, boolean createIfNotExists) {
+        return getFile(fileName, LocationType.WORLD, createIfNotExists);
     }
 
     /**
      * 快捷方法：获取全局目录中的文件
      */
-    public static File getGlobalFile(String fileName) {
-        return getFile(fileName, LocationType.GLOBAL);
+    public static File getGlobalFile(String fileName, boolean createIfNotExists) {
+        return getFile(fileName, LocationType.GLOBAL, createIfNotExists);
     }
 
     /**
@@ -197,7 +235,7 @@ public class ModFileHelper {
      * @throws SecurityException 如果没有足够的权限
      */
     public static boolean deleteFile(String fileName, LocationType locationType) {
-        File file = getFile(fileName, locationType);
+        File file = getFile(fileName, locationType, false);
         if (file == null) return false;
 
         try {
@@ -244,40 +282,7 @@ public class ModFileHelper {
             .isServer() ? LocationType.WORLD : LocationType.GLOBAL;
     }
 
-    /**
-     * 世界加载事件处理
-     */
-    public static class WorldLoadHandler {
-
-        @SubscribeEvent
-        public void onWorldLoad(WorldEvent.Load event) throws IOException {
-            if (event.world.isRemote) return;
-            if (event.world.provider.dimensionId != 0) return;
-
-            if (FMLCommonHandler.instance()
-                .getSide()
-                .isServer()) {
-                currentWorldDir = event.world.getSaveHandler()
-                    .getWorldDirectory()
-                    .getCanonicalFile();
-            } else {
-                currentWorldDir = new File(
-                    savesDir,
-                    Minecraft.getMinecraft()
-                        .getIntegratedServer()
-                        .getFolderName());
-            }
-            updateModWorldDir();
-            LOG.info("世界MOD数据目录: {}", modWorldDir);
-        }
-
-        @SubscribeEvent
-        public void onWorldUnload(WorldEvent.Unload event) {
-            if (event.world.isRemote) return;
-            if (event.world.provider.dimensionId != 0) return;
-
-            modWorldDir = new File(configDir, MODID + "/inactive_world");
-            LOG.info("onWorldUnload，世界MOD数据目录初始化");
-        }
+    public static File getSavesDir() {
+        return savesDir;
     }
 }

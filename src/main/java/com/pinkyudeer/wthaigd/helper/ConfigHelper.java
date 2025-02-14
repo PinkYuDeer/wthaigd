@@ -1,18 +1,16 @@
 package com.pinkyudeer.wthaigd.helper;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.pinkyudeer.wthaigd.core.Wthaigd;
+import com.pinkyudeer.wthaigd.helper.entity.ConfigEntry;
+import cpw.mods.fml.client.event.ConfigChangedEvent;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.config.Configuration;
 
-import com.pinkyudeer.wthaigd.core.Wthaigd;
-import com.pinkyudeer.wthaigd.helper.entity.ConfigEntry;
-
-import cpw.mods.fml.client.event.ConfigChangedEvent;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConfigHelper {
 
@@ -36,7 +34,7 @@ public class ConfigHelper {
         CONFIG_ENTRIES.add(
             new ConfigEntry.BooleanConfigEntry(
                 "isMemoryMode",
-                false,
+                true,
                 "Whether to enable sqlite memory optimization mode",
                 "config.comment.isMemoryMode"));
         // CONFIG_ENTRIES.add(new IntConfigEntry("someInt", 50, "一个整数", "config.comment.someInt")); // 使用默认的最大最小值
