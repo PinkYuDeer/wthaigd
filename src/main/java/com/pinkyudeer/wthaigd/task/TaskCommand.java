@@ -20,7 +20,7 @@ public class TaskCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/task <add|remove|list|update> [任务名称] [任务描述]";
+        return "/task <add|remove|list|update|test> [任务名称] [任务描述]";
     }
 
     @Override

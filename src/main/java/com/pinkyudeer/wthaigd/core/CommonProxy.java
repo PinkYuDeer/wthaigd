@@ -3,9 +3,23 @@ package com.pinkyudeer.wthaigd.core;
 import com.pinkyudeer.wthaigd.Tags;
 import com.pinkyudeer.wthaigd.helper.ConfigHelper;
 import com.pinkyudeer.wthaigd.helper.ModFileHelper;
-import com.pinkyudeer.wthaigd.loader.*;
+import com.pinkyudeer.wthaigd.loader.BlockLoader;
+import com.pinkyudeer.wthaigd.loader.CommandLoader;
+import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
+import com.pinkyudeer.wthaigd.loader.ItemLoader;
+import com.pinkyudeer.wthaigd.loader.RecipeLoader;
+
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.event.*;
+import cpw.mods.fml.common.event.FMLConstructionEvent;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppedEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 
 @SuppressWarnings("EmptyMethod")
 public class CommonProxy {

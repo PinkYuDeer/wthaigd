@@ -1,14 +1,15 @@
 package com.pinkyudeer.wthaigd.helper;
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import net.minecraft.client.Minecraft;
-import net.minecraft.server.MinecraftServer;
+import static com.pinkyudeer.wthaigd.core.Wthaigd.LOG;
+import static com.pinkyudeer.wthaigd.core.Wthaigd.MODID;
 
 import java.io.File;
 import java.io.IOException;
 
-import static com.pinkyudeer.wthaigd.core.Wthaigd.LOG;
-import static com.pinkyudeer.wthaigd.core.Wthaigd.MODID;
+import net.minecraft.client.Minecraft;
+import net.minecraft.server.MinecraftServer;
+
+import cpw.mods.fml.common.FMLCommonHandler;
 
 public class ModFileHelper {
 

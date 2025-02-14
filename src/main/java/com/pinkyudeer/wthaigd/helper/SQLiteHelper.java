@@ -1,12 +1,12 @@
 package com.pinkyudeer.wthaigd.helper;
 
-import com.pinkyudeer.wthaigd.core.Wthaigd;
-
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import com.pinkyudeer.wthaigd.core.Wthaigd;
 
 public class SQLiteHelper {
 
@@ -38,6 +38,7 @@ public class SQLiteHelper {
     }
 
     private void initializeDatabase() throws SQLException {
+        Wthaigd.LOG.info("初始化SQLite数据库");
         try (Statement stmt = fileConnection.createStatement()) {
             // 创建数据库表结构
             String createTableSQL = "CREATE TABLE IF NOT EXISTS your_table (" + "id INTEGER PRIMARY KEY, "
@@ -47,11 +48,17 @@ public class SQLiteHelper {
         }
     }
 
-    private void loadDataFromFileToMemory() {}
+    private void loadDataFromFileToMemory() {
+        Wthaigd.LOG.info("加载数据到内存数据库");
+    }
 
-    public void saveDataFromMemoryToFile() {}
+    public void saveDataFromMemoryToFile() {
+        Wthaigd.LOG.info("将数据从内存数据库保存到文件数据库");
+    }
 
     // 下面是你在内存数据库中增删改查的操作
 
-    public void close() {}
+    public void close() {
+        Wthaigd.LOG.info("关闭SQLite数据库连接");
+    }
 }
