@@ -8,15 +8,15 @@ import net.minecraft.world.WorldSavedData;
 import net.minecraft.world.storage.MapStorage;
 
 import com.pinkyudeer.wthaigd.task.entity.Task;
+import com.pinkyudeer.wthaigd.task.entity.TaskTeam;
 import com.pinkyudeer.wthaigd.task.entity.TaskUser;
-import com.pinkyudeer.wthaigd.task.entity.TaskUserGroup;
 
 // 包含任务、玩家状态的文件【WIP，已被sqlite替代】
 public class TaskSavedData extends WorldSavedData {
 
     private static final String DATA_NAME = "wthaigd";
     @SuppressWarnings("unused")
-    private List<TaskUserGroup> userGroups; // 用户组列表
+    private List<TaskTeam> userGroups; // 用户组列表
     @SuppressWarnings("unused")
     private List<TaskUser> users; // 用户列表
     @SuppressWarnings("unused")

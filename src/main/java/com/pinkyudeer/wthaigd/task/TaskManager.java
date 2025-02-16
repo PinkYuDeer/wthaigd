@@ -19,19 +19,12 @@ public class TaskManager {
     }
 
     public boolean removeTask(String taskName) {
-        return tasks.removeIf(
-            task -> task.getTitle()
-                .equals(taskName));
+        // TODO 实现
+        return false;
     }
 
     public boolean updateTask(String taskName, String newDescription) {
-        for (Task task : tasks) {
-            if (task.getTitle()
-                .equals(taskName)) {
-                task.setDescription(newDescription);
-                return true;
-            }
-        }
+        // TODO 实现
         return false;
     }
 

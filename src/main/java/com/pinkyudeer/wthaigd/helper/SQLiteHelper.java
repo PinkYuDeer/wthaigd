@@ -4,8 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.sqlite.SQLiteConnection;
 
@@ -128,6 +134,35 @@ public class SQLiteHelper {
             }
         } catch (SQLException e) {
             Wthaigd.LOG.error("关闭SQLite数据库连接失败", e);
+        }
+    }
+
+    public static List<Map<String, Object>> executeSQL(String sql) {
+        Wthaigd.LOG.info("执行SQL: {}", sql);
+        if (sql == null || sql.trim()
+            .isEmpty()) {
+            throw new IllegalArgumentException("SQL语句不能为空");
+        }
+        List<Map<String, Object>> results = new ArrayList<>();
+        try {
+            Statement statement = inMemoryConnection.createStatement();
+            boolean hasResultSet = statement.execute(sql);
+            if (hasResultSet) {
+                ResultSet rs = statement.getResultSet();
+                ResultSetMetaData metaData = rs.getMetaData();
+                int columnCount = metaData.getColumnCount();
+                while (rs.next()) {
+                    Map<String, Object> row = new HashMap<>();
+                    for (int i = 1; i <= columnCount; i++) {
+                        row.put(metaData.getColumnName(i), rs.getObject(i));
+                    }
+                    results.add(row);
+                }
+            }
+            return results;
+        } catch (SQLException e) {
+            Wthaigd.LOG.error("执行SQL失败", e);
+            throw new RuntimeException(e);
         }
     }
 }
