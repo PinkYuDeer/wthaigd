@@ -10,7 +10,7 @@ import javax.annotation.Nonnull;
 public class User {
 
     @Nonnull
-    private UUID id = UUID.randomUUID();
+    private UUID id;
     @Nonnull
     private String username;
     private String displayName;

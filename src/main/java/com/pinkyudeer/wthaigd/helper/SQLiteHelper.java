@@ -23,6 +23,7 @@ public class SQLiteHelper {
     private static Connection inMemoryConnection;
     private static final File DATABASE_FILE = ModFileHelper.getWorldFile("task.db", false)
         .getAbsoluteFile();
+    public static boolean isWorldLoaded = false;
 
     private static final String CREATE_TASKS_TABLE = "CREATE TABLE IF NOT EXISTS tasks ("
         + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -46,6 +47,8 @@ public class SQLiteHelper {
         } catch (SQLException e) {
             Wthaigd.LOG.error("SQLite数据库初始化失败", e);
         }
+        Wthaigd.LOG.info("SQLite数据库初始化完成");
+        isWorldLoaded = true;
     }
 
     private static void initializeDatabase() {
@@ -96,6 +99,7 @@ public class SQLiteHelper {
     }
 
     public static void saveDataFromMemoryToFile() {
+        if (!isWorldLoaded) return;
         Wthaigd.LOG.info("将数据从内存数据库保存到文件数据库");
         SQLiteConnection mem;
         try {
@@ -127,6 +131,7 @@ public class SQLiteHelper {
     // 下面是你在内存数据库中增删改查的操作
 
     public static void close() {
+        saveDataFromMemoryToFile();
         Wthaigd.LOG.info("关闭SQLite数据库连接");
         try {
             if (inMemoryConnection != null) {
@@ -135,9 +140,13 @@ public class SQLiteHelper {
         } catch (SQLException e) {
             Wthaigd.LOG.error("关闭SQLite数据库连接失败", e);
         }
+        isWorldLoaded = false;
     }
 
     public static List<Map<String, Object>> executeSQL(String sql) {
+        if (!isWorldLoaded) {
+            throw new IllegalStateException("SQLite数据库未初始化或已关闭");
+        }
         Wthaigd.LOG.info("执行SQL: {}", sql);
         if (sql == null || sql.trim()
             .isEmpty()) {

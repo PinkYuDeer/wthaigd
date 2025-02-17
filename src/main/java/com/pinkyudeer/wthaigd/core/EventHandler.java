@@ -2,8 +2,11 @@ package com.pinkyudeer.wthaigd.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.stats.StatisticsFile;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
@@ -12,13 +15,12 @@ import com.pinkyudeer.wthaigd.helper.SQLiteHelper;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
 
 public class EventHandler {
 
-    private static final WorldHandler WORLD_HANDLER = new WorldHandler();
-
     public static void registerCommonEvents() {
-        MinecraftForge.EVENT_BUS.register(WORLD_HANDLER);
+        MinecraftForge.EVENT_BUS.register(new WorldHandler());
     }
 
     /**
@@ -38,6 +40,12 @@ public class EventHandler {
                     .getWorldDirectory()
                     .getCanonicalFile();
             } else {
+                // 如果是加入服务器，则返回
+                if (Minecraft.getMinecraft()
+                    .getIntegratedServer() == null) {
+                    return;
+                }
+
                 currentWorldDir = new File(
                     ModFileHelper.getSavesDir(),
                     Minecraft.getMinecraft()
@@ -55,7 +63,7 @@ public class EventHandler {
 
             ModFileHelper.updateModWorldDir(null);
 
-            SQLiteHelper.saveDataFromMemoryToFile();
+            SQLiteHelper.close();
         }
 
         @SubscribeEvent
@@ -64,7 +72,39 @@ public class EventHandler {
 
             Wthaigd.LOG.info("World save event triggered");
 
-            SQLiteHelper.close();
+            SQLiteHelper.saveDataFromMemoryToFile();
+        }
+    }
+
+    public static class playerHandler {
+
+        @SubscribeEvent
+        public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) throws NoSuchFieldException {
+            Wthaigd.LOG.info("Player logged in: {}", event.player.getDisplayName());
+            Class<? extends EntityPlayer> player = event.player.getClass();
+            player.getDeclaredField("field_147103_bO")
+                .setAccessible(true);
+            try {
+                Field field = player.getDeclaredField("field_147103_bO");
+                field.setAccessible(true);
+                StatisticsFile statsFile = (StatisticsFile) field.get(event.player);
+                Wthaigd.LOG.info("Player stats: {}", statsFile.toString());
+                Class<? extends StatisticsFile> statsFileClass = statsFile.getClass();
+                field = statsFileClass.getDeclaredField("field_150887_d");
+                field.setAccessible(true);
+                Wthaigd.LOG.info(
+                    "Player stats file: {}",
+                    field.get(statsFile)
+                        .toString());
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
+        @SubscribeEvent
+        public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+            Wthaigd.LOG.info("Player logged out: {}", event.player.getDisplayName());
         }
     }
 }

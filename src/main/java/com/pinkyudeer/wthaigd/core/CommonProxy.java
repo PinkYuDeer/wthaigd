@@ -45,6 +45,9 @@ public class CommonProxy {
     public void init(FMLInitializationEvent event) {
         RecipeLoader.init();
         EventHandler.registerCommonEvents();
+        FMLCommonHandler.instance()
+            .bus()
+            .register(new EventHandler.playerHandler());
     }
 
     // 模组间交互（如获取其他模组内容）、覆盖原版逻辑。
