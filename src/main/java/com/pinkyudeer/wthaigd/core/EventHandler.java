@@ -81,10 +81,8 @@ public class EventHandler {
         @SubscribeEvent
         public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) throws NoSuchFieldException {
             Wthaigd.LOG.info("Player logged in: {}", event.player.getDisplayName());
-            Class<? extends EntityPlayer> player = event.player.getClass();
-            player.getDeclaredField("field_147103_bO")
-                .setAccessible(true);
             try {
+                Class<? extends EntityPlayer> player = event.player.getClass();
                 Field field = player.getDeclaredField("field_147103_bO");
                 field.setAccessible(true);
                 StatisticsFile statsFile = (StatisticsFile) field.get(event.player);
