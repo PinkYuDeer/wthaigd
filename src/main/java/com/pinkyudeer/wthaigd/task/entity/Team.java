@@ -67,7 +67,7 @@ public class Team {
 
     // 时间信息
     @Nonnull
-    public LocalDateTime createTime = LocalDateTime.now(); // 创建时间
+    public final LocalDateTime createTime = LocalDateTime.now(); // 创建时间
     @Nonnull
     public LocalDateTime updateTime = LocalDateTime.now(); // 更新时间
     @Nullable
