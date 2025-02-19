@@ -28,10 +28,9 @@ This project aims to provide a collaborative task list for multiplayer environme
 * Localization language files completed
 * Command-based functionalities: easy creation, modification, and deletion of work items
 * Configuration file completion and testing along with file management tools and player status utilities
-* Data structure design finalized
+* Data structure design finalized, Complete data entities according to design specifications
 
 ## Future Plans
-* Complete data entities according to design specifications
 * Implement functions related to table operations in taskSQLite: create tables; add, delete, modify & query records
 * Set work item statuses via commands: priority levels; states; parent-child relationships among tasks; completion times; creation times; responsible parties; followers etc.
 * Design GUI interface for work items

@@ -8,11 +8,11 @@ import javax.annotation.Nonnull;
 public abstract class BaseRecord {
 
     @Nonnull
-    protected UUID recordId;
+    private UUID recordId;
     @Nonnull
-    protected LocalDateTime createTime;
+    private LocalDateTime createTime;
     @Nonnull
-    protected UUID operatorId;
+    private UUID operatorId;
 
     public BaseRecord(@Nonnull UUID operatorId) {
         this.recordId = UUID.randomUUID();
@@ -23,6 +23,33 @@ public abstract class BaseRecord {
     public BaseRecord(@Nonnull LocalDateTime createdAt, @Nonnull UUID operatorId) {
         this.recordId = UUID.randomUUID();
         this.createTime = createdAt;
+        this.operatorId = operatorId;
+    }
+
+    @Nonnull
+    public UUID getRecordId() {
+        return recordId;
+    }
+
+    public void setRecordId(@Nonnull UUID recordId) {
+        this.recordId = recordId;
+    }
+
+    @Nonnull
+    public LocalDateTime getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(@Nonnull LocalDateTime createTime) {
+        this.createTime = createTime;
+    }
+
+    @Nonnull
+    public UUID getOperatorId() {
+        return operatorId;
+    }
+
+    public void setOperatorId(@Nonnull UUID operatorId) {
         this.operatorId = operatorId;
     }
 }

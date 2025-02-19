@@ -10,37 +10,37 @@ public class Tag {
 
     // 基础属性
     @Nonnull
-    public UUID id = UUID.randomUUID();
+    private UUID id = UUID.randomUUID(); // 标签唯一标识符
     @Nonnull
-    public String name; // 标签名称
+    private String name; // 标签名称
     @Nullable
-    public String description; // 标签描述
+    private String description; // 标签描述
     @Nonnull
-    public String colorCode = "#FFFFFF"; // 标签颜色
+    private String colorCode = "#FFFFFF"; // 标签颜色
     @Nonnull
-    public String fontColorCode = "#000000"; // 标签字体颜色
+    private String fontColorCode = "#000000"; // 标签字体颜色
     @Nonnull
-    public Boolean isDefault = false; // 是否为默认标签
+    private Boolean isDefault = false; // 是否为默认标签
 
     // 关联统计
     @Nonnull
-    public transient Integer linkedTaskCount = 0; // 关联任务数
+    private transient Integer linkedTaskCount = 0; // 关联任务数
     @Nonnull
-    public transient Integer linkedTeamCount = 0; // 关联团队数
+    private transient Integer linkedTeamCount = 0; // 关联团队数
     @Nonnull
-    public transient Integer linkedPlayerCount = 0; // 关联玩家数
+    private transient Integer linkedPlayerCount = 0; // 关联玩家数
 
     // 权限控制
     @Nonnull
-    public TagScope scope = TagScope.PUBLIC; // 标签可见范围
+    private TagScope scope = TagScope.PUBLIC; // 标签可见范围
     @Nullable
-    public UUID ownerId; // 私有标签拥有者
+    private UUID ownerId; // 私有标签拥有者
 
     // 时间戳
     @Nonnull
-    public LocalDateTime createTime = LocalDateTime.now();
+    private LocalDateTime createTime = LocalDateTime.now(); // 创建时间
     @Nonnull
-    public LocalDateTime updateTime = LocalDateTime.now();
+    private LocalDateTime updateTime = LocalDateTime.now(); // 更新时间
 
     public enum TagScope {
         SYSTEM, // 系统预置标签
@@ -74,5 +74,122 @@ public class Tag {
         this(name, description);
         this.colorCode = colorCode;
         this.fontColorCode = fontColorCode;
+    }
+
+    @Nonnull
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(@Nonnull UUID id) {
+        this.id = id;
+    }
+
+    @Nonnull
+    public String getName() {
+        return name;
+    }
+
+    public void setName(@Nonnull String name) {
+        this.name = name;
+    }
+
+    @Nullable
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(@Nullable String description) {
+        this.description = description;
+    }
+
+    @Nonnull
+    public String getColorCode() {
+        return colorCode;
+    }
+
+    public void setColorCode(@Nonnull String colorCode) {
+        this.colorCode = colorCode;
+    }
+
+    @Nonnull
+    public String getFontColorCode() {
+        return fontColorCode;
+    }
+
+    public void setFontColorCode(@Nonnull String fontColorCode) {
+        this.fontColorCode = fontColorCode;
+    }
+
+    @Nonnull
+    public Boolean getIsDefault() {
+        return isDefault;
+    }
+
+    public void setIsDefault(@Nonnull Boolean isDefault) {
+        this.isDefault = isDefault;
+    }
+
+    @Nonnull
+    public Integer getLinkedTaskCount() {
+        return linkedTaskCount;
+    }
+
+    public void setLinkedTaskCount(@Nonnull Integer linkedTaskCount) {
+        this.linkedTaskCount = linkedTaskCount;
+    }
+
+    @Nonnull
+    public Integer getLinkedTeamCount() {
+        return linkedTeamCount;
+    }
+
+    public void setLinkedTeamCount(@Nonnull Integer linkedTeamCount) {
+        this.linkedTeamCount = linkedTeamCount;
+    }
+
+    @Nonnull
+    public Integer getLinkedPlayerCount() {
+        return linkedPlayerCount;
+    }
+
+    public void setLinkedPlayerCount(@Nonnull Integer linkedPlayerCount) {
+        this.linkedPlayerCount = linkedPlayerCount;
+    }
+
+    @Nonnull
+    public TagScope getScope() {
+        return scope;
+    }
+
+    public void setScope(@Nonnull TagScope scope) {
+        this.scope = scope;
+    }
+
+    @Nullable
+    public UUID getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(@Nullable UUID ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    @Nonnull
+    public LocalDateTime getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(@Nonnull LocalDateTime createTime) {
+        this.createTime = createTime;
+    }
+
+    @Nonnull
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(@Nonnull LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 }

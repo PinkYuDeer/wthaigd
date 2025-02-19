@@ -13,27 +13,27 @@ public class StatusChangeRecord extends BaseRecord {
 
     // 核心状态变更信息
     @Nonnull
-    public UUID taskId; // 关联的任务ID
+    private UUID taskId; // 关联的任务ID
     @Nonnull
-    public Task.TaskStatus oldStatus; // 变更前状态
+    private Task.TaskStatus oldStatus; // 变更前状态
     @Nonnull
-    public Task.TaskStatus newStatus; // 变更后状态
+    private Task.TaskStatus newStatus; // 变更后状态
 
     // 变更上下文信息
     @Nullable
-    public String reason; // 状态变更原因（可选）
+    private String reason; // 状态变更原因（可选）
     @Nonnull
-    public Boolean isAutomatic = false; // 是否自动触发（如超时自动关闭）
+    private Boolean isAutomatic = false; // 是否自动触发（如超时自动关闭）
     @Nullable
-    public UUID relatedTeamId; // 关联团队ID（当变更涉及团队操作时）
+    private UUID relatedTeamId; // 关联团队ID（当变更涉及团队操作时）
 
     // 变更来源追踪
     @Nonnull
-    public SourceType sourceType = SourceType.SYSTEM; // 变更来源（复用Notification的SourceType）
+    private SourceType sourceType = SourceType.SYSTEM; // 变更来源（复用Notification的SourceType）
 
     // 扩展信息（可存储JSON格式的附加数据）
     @Nullable
-    public String metadata; // 附加信息（如审批流程ID、阻塞原因等）
+    private String metadata; // 附加信息（如审批流程ID、阻塞原因等）
 
     public StatusChangeRecord(@Nonnull UUID operatorId, @Nonnull UUID taskId, @Nonnull Task.TaskStatus oldStatus,
         @Nonnull Task.TaskStatus newStatus) {
@@ -52,10 +52,12 @@ public class StatusChangeRecord extends BaseRecord {
         private final UUID operatorId;
 
         // 可选参数带默认值
+        private UUID recordId;
+        private LocalDateTime createTime;
         private String reason;
-        private Boolean isAutomatic = false;
+        private Boolean isAutomatic;
         private UUID relatedTeamId;
-        private SourceType sourceType = SourceType.SYSTEM;
+        private SourceType sourceType;
         private String metadata;
 
         public Builder(@Nonnull UUID taskId, @Nonnull Task.TaskStatus oldStatus, @Nonnull Task.TaskStatus newStatus,
@@ -97,18 +99,87 @@ public class StatusChangeRecord extends BaseRecord {
                 this.taskId,
                 this.oldStatus,
                 this.newStatus);
-            record.recordId = UUID.randomUUID();
-            record.createTime = LocalDateTime.now();
-            record.taskId = this.taskId;
-            record.oldStatus = this.oldStatus;
-            record.newStatus = this.newStatus;
-            record.operatorId = this.operatorId;
-            record.reason = this.reason;
-            record.isAutomatic = this.isAutomatic;
-            record.relatedTeamId = this.relatedTeamId;
-            record.sourceType = this.sourceType;
-            record.metadata = this.metadata;
+            if (this.recordId != null) record.setRecordId(this.recordId);
+            if (this.createTime != null) record.setCreateTime(this.createTime);
+            if (this.reason != null) record.setReason(this.reason);
+            if (this.isAutomatic != null) record.setIsAutomatic(this.isAutomatic);
+            if (this.relatedTeamId != null) record.setRelatedTeamId(this.relatedTeamId);
+            if (this.sourceType != null) record.setSourceType(this.sourceType);
+            if (this.metadata != null) record.setMetadata(this.metadata);
             return record;
         }
+    }
+
+    // Getter and Setter methods
+    @Nonnull
+    public UUID getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(@Nonnull UUID taskId) {
+        this.taskId = taskId;
+    }
+
+    @Nonnull
+    public Task.TaskStatus getOldStatus() {
+        return oldStatus;
+    }
+
+    public void setOldStatus(@Nonnull Task.TaskStatus oldStatus) {
+        this.oldStatus = oldStatus;
+    }
+
+    @Nonnull
+    public Task.TaskStatus getNewStatus() {
+        return newStatus;
+    }
+
+    public void setNewStatus(@Nonnull Task.TaskStatus newStatus) {
+        this.newStatus = newStatus;
+    }
+
+    @Nullable
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(@Nullable String reason) {
+        this.reason = reason;
+    }
+
+    @Nonnull
+    public Boolean getIsAutomatic() {
+        return isAutomatic;
+    }
+
+    public void setIsAutomatic(@Nonnull Boolean isAutomatic) {
+        this.isAutomatic = isAutomatic;
+    }
+
+    @Nullable
+    public UUID getRelatedTeamId() {
+        return relatedTeamId;
+    }
+
+    public void setRelatedTeamId(@Nullable UUID relatedTeamId) {
+        this.relatedTeamId = relatedTeamId;
+    }
+
+    @Nonnull
+    public SourceType getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(@Nonnull SourceType sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    @Nullable
+    public String getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(@Nullable String metadata) {
+        this.metadata = metadata;
     }
 }

@@ -10,39 +10,39 @@ public class TeamRequest extends BaseRecord {
 
     // 请求类型
     @Nonnull
-    public RequestType requestType; // JOIN-申请加入，INVITE-邀请加入
+    private RequestType requestType; // JOIN-申请加入，INVITE-邀请加入
 
     // 核心关联
     @Nonnull
-    public UUID teamId; // 目标团队ID
+    private UUID teamId; // 目标团队ID
     @Nonnull
-    public UUID applicantId; // 申请人/被邀请人ID
+    private UUID applicantId; // 申请人/被邀请人ID
     @Nullable
-    public UUID inviterId; // 邀请人ID（仅INVITE类型）
+    private UUID inviterId; // 邀请人ID（仅INVITE类型）
 
     // 请求内容
     @Nullable
-    public String reason; // 申请/邀请理由
+    private String reason; // 申请/邀请理由
     @Nullable
-    public LocalDateTime expireTime; // 过期时间
+    private LocalDateTime expireTime; // 过期时间
 
     // 处理状态
     @Nonnull
-    public RequestStatus status = RequestStatus.PENDING; // 请求状态
+    private RequestStatus status = RequestStatus.PENDING; // 请求状态
     @Nullable
-    public UUID handlerId; // 处理人ID
+    private UUID handlerId; // 处理人ID
     @Nullable
-    public String handleReason; // 处理理由
+    private String handleReason; // 处理理由
     @Nullable
-    public LocalDateTime handleTime; // 处理时间
+    private LocalDateTime handleTime; // 处理时间
 
     // 来源追踪
     @Nonnull
-    public Notification.SourceType sourceType; // 请求来源
+    private Notification.SourceType sourceType; // 请求来源
 
     // 元数据
     @Nullable
-    public String metadata; // 附加信息（如邀请码使用情况）
+    private String metadata; // 附加信息（如邀请码使用情况）
 
     public TeamRequest(@Nonnull RequestType requestType, @Nonnull UUID teamId, @Nonnull UUID applicantId,
         @Nonnull Notification.SourceType sourceType, @Nonnull UUID operatorId) {
@@ -75,12 +75,12 @@ public class TeamRequest extends BaseRecord {
         private final UUID operatorId;
 
         // 带默认值的可选参数
-        private UUID recordId = UUID.randomUUID();
-        private LocalDateTime createTime = LocalDateTime.now();
+        private UUID recordId;
+        private LocalDateTime createTime;
         private UUID inviterId;
         private String reason;
         private LocalDateTime expireTime;
-        private RequestStatus status = RequestStatus.PENDING;
+        private RequestStatus status;
         private UUID handlerId;
         private String handleReason;
         private LocalDateTime handleTime;
@@ -152,22 +152,126 @@ public class TeamRequest extends BaseRecord {
                 this.applicantId,
                 this.sourceType,
                 this.operatorId);
-            request.recordId = this.recordId;
-            request.createTime = this.createTime;
-
-            request.requestType = this.requestType;
-            request.teamId = this.teamId;
-            request.applicantId = this.applicantId;
-            request.inviterId = this.inviterId;
-            request.reason = this.reason;
-            request.expireTime = this.expireTime;
-            request.status = this.status;
-            request.handlerId = this.handlerId;
-            request.handleReason = this.handleReason;
-            request.handleTime = this.handleTime;
-            request.sourceType = this.sourceType;
-            request.metadata = this.metadata;
+            if (this.recordId != null) request.setRecordId(this.recordId);
+            if (this.createTime != null) request.setCreateTime(this.createTime);
+            if (this.inviterId != null) request.setInviterId(this.inviterId);
+            if (this.reason != null) request.setReason(this.reason);
+            if (this.expireTime != null) request.setExpireTime(this.expireTime);
+            if (this.status != null) request.setStatus(this.status);
+            if (this.handlerId != null) request.setHandlerId(this.handlerId);
+            if (this.handleReason != null) request.setHandleReason(this.handleReason);
+            if (this.handleTime != null) request.setHandleTime(this.handleTime);
+            if (this.metadata != null) request.setMetadata(this.metadata);
             return request;
         }
+    }
+
+    // getter和setter方法
+    @Nonnull
+    public RequestType getRequestType() {
+        return requestType;
+    }
+
+    public void setRequestType(@Nonnull RequestType requestType) {
+        this.requestType = requestType;
+    }
+
+    @Nonnull
+    public UUID getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(@Nonnull UUID teamId) {
+        this.teamId = teamId;
+    }
+
+    @Nonnull
+    public UUID getApplicantId() {
+        return applicantId;
+    }
+
+    public void setApplicantId(@Nonnull UUID applicantId) {
+        this.applicantId = applicantId;
+    }
+
+    @Nullable
+    public UUID getInviterId() {
+        return inviterId;
+    }
+
+    public void setInviterId(@Nullable UUID inviterId) {
+        this.inviterId = inviterId;
+    }
+
+    @Nullable
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(@Nullable String reason) {
+        this.reason = reason;
+    }
+
+    @Nullable
+    public LocalDateTime getExpireTime() {
+        return expireTime;
+    }
+
+    public void setExpireTime(@Nullable LocalDateTime expireTime) {
+        this.expireTime = expireTime;
+    }
+
+    @Nonnull
+    public RequestStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(@Nonnull RequestStatus status) {
+        this.status = status;
+    }
+
+    @Nullable
+    public UUID getHandlerId() {
+        return handlerId;
+    }
+
+    public void setHandlerId(@Nullable UUID handlerId) {
+        this.handlerId = handlerId;
+    }
+
+    @Nullable
+    public String getHandleReason() {
+        return handleReason;
+    }
+
+    public void setHandleReason(@Nullable String handleReason) {
+        this.handleReason = handleReason;
+    }
+
+    @Nullable
+    public LocalDateTime getHandleTime() {
+        return handleTime;
+    }
+
+    public void setHandleTime(@Nullable LocalDateTime handleTime) {
+        this.handleTime = handleTime;
+    }
+
+    @Nonnull
+    public Notification.SourceType getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(@Nonnull Notification.SourceType sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    @Nullable
+    public String getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(@Nullable String metadata) {
+        this.metadata = metadata;
     }
 }

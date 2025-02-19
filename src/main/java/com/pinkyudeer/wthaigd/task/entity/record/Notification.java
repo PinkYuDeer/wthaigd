@@ -12,47 +12,47 @@ public class Notification extends BaseRecord {
 
     // 基础属性
     @Nonnull
-    public NotificationType type; // 通知类型（枚举）
+    private NotificationType type; // 通知类型（枚举）
     @Nonnull
-    public String title; // 通知标题
+    private String title; // 通知标题
     @Nullable
-    public String content; // 详细内容（可包含富文本）
+    private String content; // 详细内容（可包含富文本）
     @Nonnull
-    public NotificationStatus notificationStatus = NotificationStatus.UNREAD; // 通知状态
+    private NotificationStatus notificationStatus = NotificationStatus.UNREAD; // 通知状态
 
     // 关联属性
     @Nonnull
-    public UUID receiverId; // 接收者ID（Player/TEAM）
+    private UUID receiverId; // 接收者ID（Player/TEAM）
     @Nullable
-    public UUID triggerPlayerId; // 触发通知的玩家
+    private UUID triggerPlayerId; // 触发通知的玩家
     @Nullable
-    public UUID relatedTaskId; // 关联的任务ID
+    private UUID relatedTaskId; // 关联的任务ID
     @Nullable
-    public UUID relatedTeamId; // 关联的团队ID
+    private UUID relatedTeamId; // 关联的团队ID
     @Nullable
-    public UUID relatedRecordId; // 关联的记录ID（如互动记录）
+    private UUID relatedRecordId; // 关联的记录ID（如互动记录）
 
     // 时间属性
     @Nullable
-    public LocalDateTime expireTime; // 过期时间（临时通知）
+    private LocalDateTime expireTime; // 过期时间（临时通知）
     @Nullable
-    public LocalDateTime readTime; // 阅读时间
+    private LocalDateTime readTime; // 阅读时间
 
     // 统计与追踪
     @Nonnull
-    public SourceType sourceType; // 通知来源
+    private SourceType sourceType; // 通知来源
     @Nonnull
-    public NotificationPriority priority = NotificationPriority.NORMAL; // 优先级
+    private NotificationPriority priority = NotificationPriority.NORMAL; // 优先级
     @Nullable
-    public String actionType; // 触发动作类型（如"TASK_ASSIGN"）
+    private String actionType; // 触发动作类型（如"TASK_ASSIGN"）
 
     // 界面相关
     @Nullable
-    public String jumpLink; // 跳转链接（如任务详情页）
+    private String jumpLink; // 跳转链接（如任务详情页）
     @Nonnull
-    public RelatedEntityType relatedEntityType = RelatedEntityType.DEFAULT; // 关联实体类型
+    private RelatedEntityType relatedEntityType = RelatedEntityType.DEFAULT; // 关联实体类型
     @Nullable
-    public String categoryTag; // 分类标签
+    private String categoryTag; // 分类标签
 
     public Notification(@Nonnull NotificationType type, @Nonnull String title, @Nonnull UUID receiverId,
         @Nonnull SourceType sourceType, @Nonnull UUID operatorId) {
@@ -71,11 +71,11 @@ public class Notification extends BaseRecord {
         private final SourceType sourceType;
         private final UUID operatorId;
 
-        private UUID recordId = UUID.randomUUID();
-        private NotificationStatus status = NotificationStatus.UNREAD;
-        private LocalDateTime createTime = LocalDateTime.now();
-        private NotificationPriority priority = NotificationPriority.NORMAL;
-        private RelatedEntityType relatedEntityType = RelatedEntityType.DEFAULT;
+        private UUID recordId;
+        private NotificationStatus status;
+        private LocalDateTime createTime;
+        private NotificationPriority priority;
+        private RelatedEntityType relatedEntityType;
         private UUID relatedTeamId;
         private UUID relatedRecordId;
         private LocalDateTime expireTime;
@@ -173,23 +173,177 @@ public class Notification extends BaseRecord {
 
         public Notification build() {
             Notification notification = new Notification(type, title, receiverId, sourceType, operatorId);
-            notification.recordId = this.recordId;
-            notification.notificationStatus = this.status;
-            notification.createTime = this.createTime;
-            notification.priority = this.priority;
-            notification.relatedEntityType = this.relatedEntityType;
-            notification.content = this.content;
-            notification.triggerPlayerId = this.triggerPlayerId;
-            notification.relatedTaskId = this.relatedTaskId;
-            notification.relatedTeamId = this.relatedTeamId;
-            notification.relatedRecordId = this.relatedRecordId;
-            notification.expireTime = this.expireTime;
-            notification.readTime = this.readTime;
-            notification.actionType = this.actionType;
-            notification.jumpLink = this.jumpLink;
-            notification.categoryTag = this.categoryTag;
+            if (this.recordId != null) notification.setRecordId(this.recordId);
+            if (this.status != null) notification.setNotificationStatus(this.status);
+            if (this.createTime != null) notification.setCreateTime(this.createTime);
+            if (this.priority != null) notification.setPriority(this.priority);
+            if (this.relatedEntityType != null) notification.setRelatedEntityType(this.relatedEntityType);
+            if (this.content != null) notification.setContent(this.content);
+            if (this.triggerPlayerId != null) notification.setTriggerPlayerId(this.triggerPlayerId);
+            if (this.relatedTaskId != null) notification.setRelatedTaskId(this.relatedTaskId);
+            if (this.relatedTeamId != null) notification.setRelatedTeamId(this.relatedTeamId);
+            if (this.relatedRecordId != null) notification.setRelatedRecordId(this.relatedRecordId);
+            if (this.expireTime != null) notification.setExpireTime(this.expireTime);
+            if (this.readTime != null) notification.setReadTime(this.readTime);
+            if (this.actionType != null) notification.setActionType(this.actionType);
+            if (this.jumpLink != null) notification.setJumpLink(this.jumpLink);
+            if (this.categoryTag != null) notification.setCategoryTag(this.categoryTag);
             return notification;
         }
+    }
+
+    // getter和setter方法
+    @Nonnull
+    public NotificationType getType() {
+        return type;
+    }
+
+    public void setType(@Nonnull NotificationType type) {
+        this.type = type;
+    }
+
+    @Nonnull
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(@Nonnull String title) {
+        this.title = title;
+    }
+
+    @Nullable
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(@Nullable String content) {
+        this.content = content;
+    }
+
+    @Nonnull
+    public NotificationStatus getNotificationStatus() {
+        return notificationStatus;
+    }
+
+    public void setNotificationStatus(@Nonnull NotificationStatus notificationStatus) {
+        this.notificationStatus = notificationStatus;
+    }
+
+    @Nonnull
+    public UUID getReceiverId() {
+        return receiverId;
+    }
+
+    public void setReceiverId(@Nonnull UUID receiverId) {
+        this.receiverId = receiverId;
+    }
+
+    @Nullable
+    public UUID getTriggerPlayerId() {
+        return triggerPlayerId;
+    }
+
+    public void setTriggerPlayerId(@Nullable UUID triggerPlayerId) {
+        this.triggerPlayerId = triggerPlayerId;
+    }
+
+    @Nullable
+    public UUID getRelatedTaskId() {
+        return relatedTaskId;
+    }
+
+    public void setRelatedTaskId(@Nullable UUID relatedTaskId) {
+        this.relatedTaskId = relatedTaskId;
+    }
+
+    @Nullable
+    public UUID getRelatedTeamId() {
+        return relatedTeamId;
+    }
+
+    public void setRelatedTeamId(@Nullable UUID relatedTeamId) {
+        this.relatedTeamId = relatedTeamId;
+    }
+
+    @Nullable
+    public UUID getRelatedRecordId() {
+        return relatedRecordId;
+    }
+
+    public void setRelatedRecordId(@Nullable UUID relatedRecordId) {
+        this.relatedRecordId = relatedRecordId;
+    }
+
+    @Nullable
+    public LocalDateTime getExpireTime() {
+        return expireTime;
+    }
+
+    public void setExpireTime(@Nullable LocalDateTime expireTime) {
+        this.expireTime = expireTime;
+    }
+
+    @Nullable
+    public LocalDateTime getReadTime() {
+        return readTime;
+    }
+
+    public void setReadTime(@Nullable LocalDateTime readTime) {
+        this.readTime = readTime;
+    }
+
+    @Nonnull
+    public SourceType getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(@Nonnull SourceType sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    @Nonnull
+    public NotificationPriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(@Nonnull NotificationPriority priority) {
+        this.priority = priority;
+    }
+
+    @Nullable
+    public String getActionType() {
+        return actionType;
+    }
+
+    public void setActionType(@Nullable String actionType) {
+        this.actionType = actionType;
+    }
+
+    @Nullable
+    public String getJumpLink() {
+        return jumpLink;
+    }
+
+    public void setJumpLink(@Nullable String jumpLink) {
+        this.jumpLink = jumpLink;
+    }
+
+    @Nonnull
+    public RelatedEntityType getRelatedEntityType() {
+        return relatedEntityType;
+    }
+
+    public void setRelatedEntityType(@Nonnull RelatedEntityType relatedEntityType) {
+        this.relatedEntityType = relatedEntityType;
+    }
+
+    @Nullable
+    public String getCategoryTag() {
+        return categoryTag;
+    }
+
+    public void setCategoryTag(@Nullable String categoryTag) {
+        this.categoryTag = categoryTag;
     }
 
     // 枚举定义

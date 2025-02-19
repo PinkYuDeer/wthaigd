@@ -11,75 +11,72 @@ public class Task {
 
     // task 基础属性
     @Nonnull
-    public String id = UUID.randomUUID()
+    private String id = UUID.randomUUID()
         .toString(); // 任务的唯一标识符，用 UUID
     @Nonnull
-    public String title; // 任务标题
+    private String title; // 任务标题
     @Nonnull
-    public String description; // 任务描述
+    private String description; // 任务描述
     @Nonnull
-    public Integer version = 0; // 修订次数
+    private Integer version = 0; // 修订次数
     @Nonnull
-    public PrivacyLevel visibility = PrivacyLevel.PRIVATE; // 隐私级别（枚举类型）
+    private PrivacyLevel visibility = PrivacyLevel.PRIVATE; // 隐私级别（枚举类型）
     @Nullable
-    public TaskType taskType; // 任务类型
+    private TaskType taskType; // 任务类型
 
     // task 参与者属性
     @Nonnull
-    public UUID creator; // 创建者
+    private UUID creator; // 创建者
     @Nullable
-    public Integer assigneeCount; // 负责人个数
+    private Integer assigneeCount; // 负责人个数
     @Nullable
-    public UUID teamId; // 所属团队ID
+    private UUID teamId; // 所属团队ID
     @Nonnull
-    public Integer followerCount = 0; // 关注者数量
+    private Integer followerCount = 0; // 关注者数量
     @Nonnull
-    public Integer likeCount = 0; // 点赞数量
+    private Integer likeCount = 0; // 点赞数量
     @Nonnull
-    public Integer commentCount = 0; // 评论数量
+    private Integer commentCount = 0; // 评论数量
     @Nullable
-    public UUID lastOperator; // 最后操作人
+    private UUID lastOperator; // 最后操作人
 
     // task 状态属性
     @Nonnull
-    public Priority priority; // 优先级（枚举类型）
+    private Priority priority; // 优先级（枚举类型）
     @Nonnull
-    public Importance importance = Importance.UNDEFINED; // 重要程度（枚举类型）
+    private Importance importance = Importance.UNDEFINED; // 重要程度（枚举类型）
     @Nonnull
-    public Urgency urgency = Urgency.UNDEFINED; // 紧急程度（枚举类型）
+    private Urgency urgency = Urgency.UNDEFINED; // 紧急程度（枚举类型）
     @Nonnull
-    public TaskStatus status = TaskStatus.UnClaimed; // 状态（枚举类型）
+    private TaskStatus status = TaskStatus.UnClaimed; // 状态（枚举类型）
 
     // task 时间属性
     @Nonnull
-    public LocalDateTime createTime = LocalDateTime.now(); // 创建时间
+    private LocalDateTime createTime = LocalDateTime.now(); // 创建时间
     @Nullable
-    public LocalDateTime startTime; // 开始时间.
+    private LocalDateTime startTime; // 开始时间.
     @Nullable
-    public LocalDateTime endTime; // 完成时间
+    private LocalDateTime endTime; // 完成时间
     @Nonnull
-    public LocalDateTime updateTime = LocalDateTime.now(); // 更新时间
+    private LocalDateTime updateTime = LocalDateTime.now(); // 更新时间
     @Nullable
-    public LocalDateTime deadline; // 截止时间
+    private LocalDateTime deadline; // 截止时间
     @Nullable
-    public Duration estimatedDuration; // 预估耗时
+    private Duration estimatedDuration; // 预估耗时
     @Nullable
-    public Duration actualDuration; // 实际耗时
+    private Duration actualDuration; // 实际耗时
     @Nullable
-    public LocalDateTime reminderTime; // 提醒时间
+    private LocalDateTime reminderTime; // 提醒时间
     @Nullable
-    public String recurrenceRule; // 国际标准的RRule,例如"FREQ=WEEKLY;INTERVAL=2;COUNT=5"
+    private String recurrenceRule; // 国际标准的RRule,例如"FREQ=WEEKLY;INTERVAL=2;COUNT=5"
     @Nullable
-    public LocalDateTime repeatTime; // 重复时间
+    private LocalDateTime repeatTime; // 重复时间
     @Nullable
-    public Duration repeatInterval; // 重复时间间隔
+    private Duration repeatInterval; // 重复时间间隔
     @Nullable
-    public LocalDateTime repeatEndTime; // 重复结束时间
+    private LocalDateTime repeatEndTime; // 重复结束时间
     @Nullable
-    public Integer repeatCount; // 重复次数
-
-    // 优化优先级计算逻辑（添加缓存机制）
-    private transient Priority cachedPriority;
+    private Integer repeatCount; // 重复次数
 
     // 构造函数
     public Task(@Nonnull String title, @Nonnull String description, @Nonnull UUID creator) {
@@ -131,13 +128,6 @@ public class Task {
         P8, // 优先级 8
         P9, // 优先级 9
         UNDEFINED, // 未定义
-    }
-
-    public Priority getPriority() {
-        if (cachedPriority == null) {
-            cachedPriority = calculatePriority(importance, urgency);
-        }
-        return cachedPriority;
     }
 
     private static Priority calculatePriority(Importance importance, Urgency urgency) {
@@ -211,5 +201,276 @@ public class Task {
         CHALLENGE, // 挑战任务
         QUEST_FINISH // 任务书补全
         // TODO: 允许用户自定义任务类型
+    }
+
+    // getter和setter方法
+    @Nonnull
+    public String getId() {
+        return id;
+    }
+
+    public void setId(@Nonnull String id) {
+        this.id = id;
+    }
+
+    @Nonnull
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(@Nonnull String title) {
+        this.title = title;
+    }
+
+    @Nonnull
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(@Nonnull String description) {
+        this.description = description;
+    }
+
+    @Nonnull
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(@Nonnull Integer version) {
+        this.version = version;
+    }
+
+    @Nonnull
+    public PrivacyLevel getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(@Nonnull PrivacyLevel visibility) {
+        this.visibility = visibility;
+    }
+
+    @Nullable
+    public TaskType getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskType(@Nullable TaskType taskType) {
+        this.taskType = taskType;
+    }
+
+    @Nonnull
+    public UUID getCreator() {
+        return creator;
+    }
+
+    public void setCreator(@Nonnull UUID creator) {
+        this.creator = creator;
+    }
+
+    @Nullable
+    public Integer getAssigneeCount() {
+        return assigneeCount;
+    }
+
+    public void setAssigneeCount(@Nullable Integer assigneeCount) {
+        this.assigneeCount = assigneeCount;
+    }
+
+    @Nullable
+    public UUID getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(@Nullable UUID teamId) {
+        this.teamId = teamId;
+    }
+
+    @Nonnull
+    public Integer getFollowerCount() {
+        return followerCount;
+    }
+
+    public void setFollowerCount(@Nonnull Integer followerCount) {
+        this.followerCount = followerCount;
+    }
+
+    @Nonnull
+    public Integer getLikeCount() {
+        return likeCount;
+    }
+
+    public void setLikeCount(@Nonnull Integer likeCount) {
+        this.likeCount = likeCount;
+    }
+
+    @Nonnull
+    public Integer getCommentCount() {
+        return commentCount;
+    }
+
+    public void setCommentCount(@Nonnull Integer commentCount) {
+        this.commentCount = commentCount;
+    }
+
+    @Nullable
+    public UUID getLastOperator() {
+        return lastOperator;
+    }
+
+    public void setLastOperator(@Nullable UUID lastOperator) {
+        this.lastOperator = lastOperator;
+    }
+
+    @Nonnull
+    public Priority getPriority() {
+        return this.priority;
+    }
+
+    public void setPriority(@Nonnull Priority priority) {
+        this.priority = priority;
+    }
+
+    @Nonnull
+    public Importance getImportance() {
+        return importance;
+    }
+
+    public void setImportance(@Nonnull Importance importance) {
+        this.importance = importance;
+    }
+
+    @Nonnull
+    public Urgency getUrgency() {
+        return urgency;
+    }
+
+    public void setUrgency(@Nonnull Urgency urgency) {
+        this.urgency = urgency;
+    }
+
+    @Nonnull
+    public TaskStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(@Nonnull TaskStatus status) {
+        this.status = status;
+    }
+
+    @Nonnull
+    public LocalDateTime getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(@Nonnull LocalDateTime createTime) {
+        this.createTime = createTime;
+    }
+
+    @Nullable
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(@Nullable LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    @Nullable
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(@Nullable LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    @Nonnull
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(@Nonnull LocalDateTime updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    @Nullable
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(@Nullable LocalDateTime deadline) {
+        this.deadline = deadline;
+    }
+
+    @Nullable
+    public Duration getEstimatedDuration() {
+        return estimatedDuration;
+    }
+
+    public void setEstimatedDuration(@Nullable Duration estimatedDuration) {
+        this.estimatedDuration = estimatedDuration;
+    }
+
+    @Nullable
+    public Duration getActualDuration() {
+        return actualDuration;
+    }
+
+    public void setActualDuration(@Nullable Duration actualDuration) {
+        this.actualDuration = actualDuration;
+    }
+
+    @Nullable
+    public LocalDateTime getReminderTime() {
+        return reminderTime;
+    }
+
+    public void setReminderTime(@Nullable LocalDateTime reminderTime) {
+        this.reminderTime = reminderTime;
+    }
+
+    @Nullable
+    public String getRecurrenceRule() {
+        return recurrenceRule;
+    }
+
+    public void setRecurrenceRule(@Nullable String recurrenceRule) {
+        this.recurrenceRule = recurrenceRule;
+    }
+
+    @Nullable
+    public LocalDateTime getRepeatTime() {
+        return repeatTime;
+    }
+
+    public void setRepeatTime(@Nullable LocalDateTime repeatTime) {
+        this.repeatTime = repeatTime;
+    }
+
+    @Nullable
+    public Duration getRepeatInterval() {
+        return repeatInterval;
+    }
+
+    public void setRepeatInterval(@Nullable Duration repeatInterval) {
+        this.repeatInterval = repeatInterval;
+    }
+
+    @Nullable
+    public LocalDateTime getRepeatEndTime() {
+        return repeatEndTime;
+    }
+
+    public void setRepeatEndTime(@Nullable LocalDateTime repeatEndTime) {
+        this.repeatEndTime = repeatEndTime;
+    }
+
+    @Nullable
+    public Integer getRepeatCount() {
+        return repeatCount;
+    }
+
+    public void setRepeatCount(@Nullable Integer repeatCount) {
+        this.repeatCount = repeatCount;
     }
 }

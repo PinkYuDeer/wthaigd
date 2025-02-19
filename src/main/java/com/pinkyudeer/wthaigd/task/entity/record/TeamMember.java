@@ -13,31 +13,31 @@ public class TeamMember extends BaseRecord {
 
     // 核心关联
     @Nonnull
-    public UUID teamId; // 所属团队ID
+    private UUID teamId; // 所属团队ID
     @Nonnull
-    public UUID playerId; // 玩家ID
+    private UUID playerId; // 玩家ID
 
     // 成员属性
     @Nonnull
-    public LocalDateTime joinTime = LocalDateTime.now(); // 加入时间
+    private LocalDateTime joinTime = LocalDateTime.now(); // 加入时间
     @Nonnull
-    public Team.TeamRole role = Team.TeamRole.MEMBER; // 成员角色
+    private Team.TeamRole role = Team.TeamRole.MEMBER; // 成员角色
     @Nonnull
-    public MemberStatus status = MemberStatus.ACTIVE; // 成员状态
+    private MemberStatus status = MemberStatus.ACTIVE; // 成员状态
 
     // 贡献统计
     @Nonnull
-    public Integer completedTasks = 0; // 完成任务数
+    private Integer completedTasks = 0; // 完成任务数
     @Nonnull
-    public Long contributionPoints = 0L; // 贡献积分
+    private Long contributionPoints = 0L; // 贡献积分
     @Nonnull
-    public Duration totalDuration = Duration.ZERO; // 累计贡献时长
+    private Duration totalDuration = Duration.ZERO; // 累计贡献时长
 
     // 操作记录
     @Nullable
-    public LocalDateTime lastOperationTime; // 最后操作时间
+    private LocalDateTime lastOperationTime; // 最后操作时间
     @Nullable
-    public UUID lastOperatorId; // 最后操作人（用于权限变更记录）
+    private UUID lastOperatorId; // 最后操作人（用于权限变更记录）
 
     public TeamMember(@Nonnull UUID teamId, @Nonnull UUID playerId, @Nonnull UUID operatorId) {
         super(operatorId);
@@ -58,14 +58,14 @@ public class TeamMember extends BaseRecord {
         private final UUID operatorId;
 
         // 带默认值的可选参数
-        private UUID recordId = UUID.randomUUID();
-        private LocalDateTime createTime = LocalDateTime.now();
-        private LocalDateTime joinTime = LocalDateTime.now();
-        private Team.TeamRole role = Team.TeamRole.MEMBER;
-        private MemberStatus status = MemberStatus.ACTIVE;
-        private Integer completedTasks = 0;
-        private Long contributionPoints = 0L;
-        private Duration totalDuration = Duration.ZERO;
+        private UUID recordId;
+        private LocalDateTime createTime;
+        private LocalDateTime joinTime;
+        private Team.TeamRole role;
+        private MemberStatus status;
+        private Integer completedTasks;
+        private Long contributionPoints;
+        private Duration totalDuration;
         private LocalDateTime lastOperationTime;
         private UUID lastOperatorId;
 
@@ -127,19 +127,108 @@ public class TeamMember extends BaseRecord {
 
         public TeamMember build() {
             TeamMember member = new TeamMember(this.teamId, this.playerId, this.operatorId);
-            member.recordId = this.recordId;
-            member.createTime = this.createTime;
-            member.teamId = this.teamId;
-            member.playerId = this.playerId;
-            member.joinTime = this.joinTime;
-            member.role = this.role;
-            member.status = this.status;
-            member.completedTasks = this.completedTasks;
-            member.contributionPoints = this.contributionPoints;
-            member.totalDuration = this.totalDuration;
-            member.lastOperationTime = this.lastOperationTime;
-            member.lastOperatorId = this.lastOperatorId;
+            if (this.recordId != null) member.setRecordId(this.recordId);
+            if (this.createTime != null) member.setCreateTime(this.createTime);
+            if (this.joinTime != null) member.setJoinTime(this.joinTime);
+            if (this.role != null) member.setRole(this.role);
+            if (this.status != null) member.setStatus(this.status);
+            if (this.completedTasks != null) member.setCompletedTasks(this.completedTasks);
+            if (this.contributionPoints != null) member.setContributionPoints(this.contributionPoints);
+            if (this.totalDuration != null) member.setTotalDuration(this.totalDuration);
+            if (this.lastOperationTime != null) member.setLastOperationTime(this.lastOperationTime);
+            if (this.lastOperatorId != null) member.setLastOperatorId(this.lastOperatorId);
             return member;
         }
+    }
+
+    // getter和setter方法
+    @Nonnull
+    public UUID getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(@Nonnull UUID teamId) {
+        this.teamId = teamId;
+    }
+
+    @Nonnull
+    public UUID getPlayerId() {
+        return playerId;
+    }
+
+    public void setPlayerId(@Nonnull UUID playerId) {
+        this.playerId = playerId;
+    }
+
+    @Nonnull
+    public LocalDateTime getJoinTime() {
+        return joinTime;
+    }
+
+    public void setJoinTime(@Nonnull LocalDateTime joinTime) {
+        this.joinTime = joinTime;
+    }
+
+    @Nonnull
+    public Team.TeamRole getRole() {
+        return role;
+    }
+
+    public void setRole(@Nonnull Team.TeamRole role) {
+        this.role = role;
+    }
+
+    @Nonnull
+    public MemberStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(@Nonnull MemberStatus status) {
+        this.status = status;
+    }
+
+    @Nonnull
+    public Integer getCompletedTasks() {
+        return completedTasks;
+    }
+
+    public void setCompletedTasks(@Nonnull Integer completedTasks) {
+        this.completedTasks = completedTasks;
+    }
+
+    @Nonnull
+    public Long getContributionPoints() {
+        return contributionPoints;
+    }
+
+    public void setContributionPoints(@Nonnull Long contributionPoints) {
+        this.contributionPoints = contributionPoints;
+    }
+
+    @Nonnull
+    public Duration getTotalDuration() {
+        return totalDuration;
+    }
+
+    public void setTotalDuration(@Nonnull Duration totalDuration) {
+        this.totalDuration = totalDuration;
+    }
+
+    @Nullable
+    public LocalDateTime getLastOperationTime() {
+        return lastOperationTime;
+    }
+
+    public void setLastOperationTime(@Nullable LocalDateTime lastOperationTime) {
+        this.lastOperationTime = lastOperationTime;
+    }
+
+    @Nullable
+    public UUID getLastOperatorId() {
+        return lastOperatorId;
+    }
+
+    public void setLastOperatorId(@Nullable UUID lastOperatorId) {
+        this.lastOperatorId = lastOperatorId;
     }
 }
