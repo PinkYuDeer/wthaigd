@@ -255,14 +255,6 @@ public class TaskSqlHelper {
                     CONSTRAINT idx_tag_create_time CREATE INDEX IF NOT EXISTS idx_tags_create_time ON tags(create_time),
                     CONSTRAINT idx_tag_name CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name COLLATE NOCASE)
                 );
-
-                -- 自动维护更新时间
-                CREATE TRIGGER IF NOT EXISTS update_tag_timestamp
-                AFTER UPDATE ON tags
-                BEGIN
-                    UPDATE tags SET update_time = CURRENT_TIMESTAMP
-                    WHERE id = NEW.id AND OLD.* IS NOT NEW.*;
-                END;
             """;
 
         // 通知记录表
@@ -312,16 +304,6 @@ public class TaskSqlHelper {
                     CONSTRAINT idx_notifications_source_priority CREATE INDEX IF NOT EXISTS idx_notifications_source_priority
                         ON notifications(source_type, priority)
                 );
-
-                -- 自动过期清理触发器
-                CREATE TRIGGER IF NOT EXISTS clean_expired_notifications
-                AFTER INSERT ON notifications
-                WHEN NEW.expire_time IS NOT NULL
-                BEGIN
-                    DELETE FROM notifications
-                    WHERE id = NEW.id
-                    AND datetime('now') >= NEW.expire_time;
-                END;
             """;
 
         // 标签关联表（多对多关系）
@@ -367,14 +349,6 @@ public class TaskSqlHelper {
                     CONSTRAINT idx_create_time CREATE INDEX IF NOT EXISTS idx_tag_links_create_time
                         ON tag_links(create_time DESC)
                 );
-
-                -- 自动维护更新时间
-                CREATE TRIGGER IF NOT EXISTS update_tag_link_timestamp
-                AFTER UPDATE ON tag_links
-                BEGIN
-                    UPDATE tag_links SET update_time = CURRENT_TIMESTAMP
-                    WHERE id = NEW.id AND OLD.* IS NOT NEW.*;
-                END;
             """;
 
         // 团队请求表
@@ -423,18 +397,6 @@ public class TaskSqlHelper {
                     CONSTRAINT idx_team_requests_composite CREATE INDEX IF NOT EXISTS idx_team_requests_composite
                         ON team_requests(request_type, source_type, status)
                 );
-
-                -- 自动过期处理触发器
-                CREATE TRIGGER IF NOT EXISTS expire_team_requests
-                AFTER INSERT ON team_requests
-                WHEN NEW.expire_time IS NOT NULL
-                BEGIN
-                    UPDATE team_requests
-                    SET status = 'EXPIRED'
-                    WHERE id = NEW.id
-                    AND datetime('now') >= NEW.expire_time
-                    AND status = 'PENDING';
-                END;
             """;
 
         // 团队成员表
@@ -480,14 +442,6 @@ public class TaskSqlHelper {
                     CONSTRAINT idx_last_operation CREATE INDEX IF NOT EXISTS idx_team_members_last_operation
                         ON team_members(last_operation_time DESC)
                 );
-
-                -- 自动维护更新时间
-                CREATE TRIGGER IF NOT EXISTS update_team_member_timestamp
-                AFTER UPDATE ON team_members
-                BEGIN
-                    UPDATE team_members SET update_time = CURRENT_TIMESTAMP
-                    WHERE id = NEW.id AND OLD.* IS NOT NEW.*;
-                END;
             """;
 
         // 玩家互动表
@@ -539,14 +493,6 @@ public class TaskSqlHelper {
                     CONSTRAINT idx_interaction_visibility CREATE INDEX IF NOT EXISTS idx_interaction_visibility
                         ON player_interactions(visibility)
                 );
-
-                -- 自动维护更新时间
-                CREATE TRIGGER IF NOT EXISTS update_interaction_timestamp
-                AFTER UPDATE ON player_interactions
-                BEGIN
-                    UPDATE player_interactions SET update_time = CURRENT_TIMESTAMP
-                    WHERE id = NEW.id AND OLD.* IS NOT NEW.*;
-                END;
             """;
 
         // 任务互动表
@@ -601,24 +547,6 @@ public class TaskSqlHelper {
                     CONSTRAINT idx_task_interaction_progress CREATE INDEX IF NOT EXISTS idx_task_interactions_progress
                         ON task_interactions(progress_percentage)
                 );
-
-                -- 自动维护父任务关系（当关联子任务时）
-                CREATE TRIGGER IF NOT EXISTS update_parent_task_relation
-                AFTER INSERT ON task_interactions
-                WHEN NEW.type = 'LINK_SUBTASK' AND NEW.parent_task_id IS NOT NULL
-                BEGIN
-                    UPDATE tasks SET subtask_count = subtask_count + 1
-                    WHERE id = NEW.parent_task_id;
-                END;
-
-                -- 自动解除父任务关系
-                CREATE TRIGGER IF NOT EXISTS remove_parent_task_relation
-                AFTER UPDATE ON task_interactions
-                WHEN NEW.type = 'UNLINK_SUBTASK' AND OLD.parent_task_id IS NOT NULL
-                BEGIN
-                    UPDATE tasks SET subtask_count = subtask_count - 1
-                    WHERE id = OLD.parent_task_id;
-                END;
             """;
 
         // 任务状态变更历史表
@@ -663,14 +591,6 @@ public class TaskSqlHelper {
                     CONSTRAINT idx_operator_history CREATE INDEX IF NOT EXISTS idx_operator_history
                         ON task_histories(operator_id, create_time DESC)
                 );
-
-                -- 自动维护任务最后状态时间（需要与tasks表联动）
-                CREATE TRIGGER IF NOT EXISTS update_task_last_status_time
-                AFTER INSERT ON task_histories
-                BEGIN
-                    UPDATE tasks SET last_status_time = NEW.create_time
-                    WHERE id = NEW.task_id;
-                END;
             """;
 
         // 按顺序创建一个sql String数组
