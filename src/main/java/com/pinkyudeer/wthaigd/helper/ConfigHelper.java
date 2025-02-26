@@ -1,18 +1,17 @@
 package com.pinkyudeer.wthaigd.helper;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.pinkyudeer.wthaigd.core.Wthaigd;
+import com.pinkyudeer.wthaigd.helper.entity.ConfigEntry;
+import cpw.mods.fml.client.event.ConfigChangedEvent;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.config.Configuration;
 
-import com.pinkyudeer.wthaigd.core.Wthaigd;
-import com.pinkyudeer.wthaigd.helper.entity.ConfigEntry;
-
-import cpw.mods.fml.client.event.ConfigChangedEvent;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConfigHelper {
 
@@ -128,18 +127,7 @@ public class ConfigHelper {
         Wthaigd.LOG.info("当前配置项列表:");
         CONFIG_ENTRIES.forEach(entry -> {
             if (detailed) {
-                String details = String.format(
-                    "配置项: %s | 类别: %s | 当前值: %s | 默认值: %s | 描述: %s | 国际化键: %s",
-                    entry.key,
-                    entry.category,
-                    entry.value,
-                    entry.defaultValue,
-                    entry.comment,
-                    entry.langKey);
-
-                if (entry instanceof ConfigEntry.IntConfigEntry intEntry) {
-                    details += String.format(" | 最小值: %d | 最大值: %d", intEntry.minValue, intEntry.maxValue);
-                }
+                String details = getConfigDetails(entry);
                 Wthaigd.LOG.info(details);
                 sender.addChatMessage(new ChatComponentText(details));
             } else {
@@ -147,6 +135,23 @@ public class ConfigHelper {
                 sender.addChatMessage(new ChatComponentText(entry.key + " = " + entry.value));
             }
         });
+    }
+
+    @Nonnull
+    private static String getConfigDetails(ConfigEntry<?> entry) {
+        String details = String.format(
+            "配置项: %s | 类别: %s | 当前值: %s | 默认值: %s | 描述: %s | 国际化键: %s",
+            entry.key,
+            entry.category,
+            entry.value,
+            entry.defaultValue,
+            entry.comment,
+            entry.langKey);
+
+        if (entry instanceof ConfigEntry.IntConfigEntry intEntry) {
+            details += String.format(" | 最小值: %d | 最大值: %d", intEntry.minValue, intEntry.maxValue);
+        }
+        return details;
     }
 
     // TODO:使服务器可以动态修改配置

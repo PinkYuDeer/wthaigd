@@ -1,17 +1,15 @@
 package com.pinkyudeer.wthaigd.task.entity;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import com.pinkyudeer.wthaigd.annotation.Column;
 import com.pinkyudeer.wthaigd.annotation.FieldCheck;
 import com.pinkyudeer.wthaigd.annotation.Reference;
 import com.pinkyudeer.wthaigd.annotation.Table;
-
 import lombok.Data;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Table(name = "teams")

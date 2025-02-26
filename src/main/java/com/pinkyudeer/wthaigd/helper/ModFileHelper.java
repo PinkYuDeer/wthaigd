@@ -1,18 +1,19 @@
 package com.pinkyudeer.wthaigd.helper;
 
-import static com.pinkyudeer.wthaigd.core.Wthaigd.LOG;
-import static com.pinkyudeer.wthaigd.core.Wthaigd.MODID;
+import cpw.mods.fml.common.FMLCommonHandler;
+import lombok.Getter;
+import net.minecraft.client.Minecraft;
+import net.minecraft.server.MinecraftServer;
 
 import java.io.File;
 import java.io.IOException;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.server.MinecraftServer;
-
-import cpw.mods.fml.common.FMLCommonHandler;
+import static com.pinkyudeer.wthaigd.core.Wthaigd.LOG;
+import static com.pinkyudeer.wthaigd.core.Wthaigd.MODID;
 
 public class ModFileHelper {
 
+    @Getter
     private static File savesDir; // baseDir/saves
     private static File configDir; // baseDir/config
     private static File currentWorldDir; // 服务器: baseDir/world 客户端: savesDir/<world_name>
@@ -283,7 +284,4 @@ public class ModFileHelper {
             .isServer() ? LocationType.WORLD : LocationType.GLOBAL;
     }
 
-    public static File getSavesDir() {
-        return savesDir;
-    }
 }

@@ -8,7 +8,6 @@ import com.pinkyudeer.wthaigd.loader.CommandLoader;
 import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
 import com.pinkyudeer.wthaigd.loader.ItemLoader;
 import com.pinkyudeer.wthaigd.loader.RecipeLoader;
-
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLConstructionEvent;
 import cpw.mods.fml.common.event.FMLInitializationEvent;

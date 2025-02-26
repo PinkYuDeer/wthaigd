@@ -1,8 +1,7 @@
 package com.pinkyudeer.wthaigd.item;
 
-import net.minecraft.item.Item;
-
 import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
+import net.minecraft.item.Item;
 
 public class ItemDebugStick extends Item {
 

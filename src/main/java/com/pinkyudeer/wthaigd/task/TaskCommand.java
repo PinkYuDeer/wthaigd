@@ -1,16 +1,15 @@
 package com.pinkyudeer.wthaigd.task;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
+import com.pinkyudeer.wthaigd.core.Wthaigd;
+import com.pinkyudeer.wthaigd.helper.ConfigHelper;
+import com.pinkyudeer.wthaigd.helper.SQLiteHelper;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 
-import com.pinkyudeer.wthaigd.core.Wthaigd;
-import com.pinkyudeer.wthaigd.helper.ConfigHelper;
-import com.pinkyudeer.wthaigd.helper.SQLiteHelper;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 public class TaskCommand extends CommandBase {
 

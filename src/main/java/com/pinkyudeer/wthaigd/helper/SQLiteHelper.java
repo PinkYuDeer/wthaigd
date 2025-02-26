@@ -1,5 +1,9 @@
 package com.pinkyudeer.wthaigd.helper;
 
+import com.pinkyudeer.wthaigd.core.Wthaigd;
+import com.pinkyudeer.wthaigd.task.TaskSqlHelper;
+import org.sqlite.SQLiteConnection;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -12,11 +16,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.sqlite.SQLiteConnection;
-
-import com.pinkyudeer.wthaigd.core.Wthaigd;
-import com.pinkyudeer.wthaigd.task.TaskSqlHelper;
 
 public class SQLiteHelper {
 

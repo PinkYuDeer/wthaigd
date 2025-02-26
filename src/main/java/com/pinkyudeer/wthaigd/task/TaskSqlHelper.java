@@ -1,12 +1,5 @@
 package com.pinkyudeer.wthaigd.task;
 
-import java.lang.reflect.Field;
-import java.util.*;
-
-import javax.annotation.Nonnull;
-
-import org.reflections.Reflections;
-
 import com.pinkyudeer.wthaigd.annotation.Column;
 import com.pinkyudeer.wthaigd.annotation.FieldCheck;
 import com.pinkyudeer.wthaigd.annotation.Reference;
@@ -16,6 +9,20 @@ import com.pinkyudeer.wthaigd.task.entity.Player;
 import com.pinkyudeer.wthaigd.task.entity.Tag;
 import com.pinkyudeer.wthaigd.task.entity.Task;
 import com.pinkyudeer.wthaigd.task.entity.Team;
+import org.reflections.Reflections;
+
+import javax.annotation.Nonnull;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 
 public class TaskSqlHelper {
 
