@@ -6,6 +6,11 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class TaskInteraction extends BaseRecord {
 
     // 核心关联字段
@@ -105,7 +110,7 @@ public class TaskInteraction extends BaseRecord {
         private final UUID operatorId;
 
         // 可选参数
-        private UUID recordId;
+        private UUID id;
         private LocalDateTime createTime;
         private Integer assignerCount;
         private UUID commentId;
@@ -125,8 +130,8 @@ public class TaskInteraction extends BaseRecord {
         }
 
         // ... 各字段的链式方法 ...
-        public Builder recordId(UUID val) {
-            recordId = val;
+        public Builder id(UUID val) {
+            id = val;
             return this;
         }
 
@@ -177,7 +182,7 @@ public class TaskInteraction extends BaseRecord {
 
         public TaskInteraction build() {
             TaskInteraction interaction = new TaskInteraction(type, taskId, playerId, operatorId);
-            if (this.recordId != null) interaction.setRecordId(this.recordId);
+            if (this.id != null) interaction.setId(this.id);
             if (this.createTime != null) interaction.setCreateTime(this.createTime);
             if (this.assignerCount != null) interaction.setAssignerCount(this.assignerCount);
             if (this.commentId != null) interaction.setCommentId(this.commentId);
@@ -189,105 +194,5 @@ public class TaskInteraction extends BaseRecord {
             if (this.metadata != null) interaction.setMetadata(this.metadata);
             return interaction;
         }
-    }
-
-    // getter和setter方法
-    @Nonnull
-    public InteractionType getType() {
-        return type;
-    }
-
-    public void setType(@Nonnull InteractionType type) {
-        this.type = type;
-    }
-
-    @Nonnull
-    public UUID getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(@Nonnull UUID taskId) {
-        this.taskId = taskId;
-    }
-
-    @Nonnull
-    public UUID getPlayerId() {
-        return playerId;
-    }
-
-    public void setPlayerId(@Nonnull UUID playerId) {
-        this.playerId = playerId;
-    }
-
-    @Nullable
-    public Integer getAssignerCount() {
-        return assignerCount;
-    }
-
-    public void setAssignerCount(@Nullable Integer assignerCount) {
-        this.assignerCount = assignerCount;
-    }
-
-    @Nullable
-    public UUID getCommentId() {
-        return commentId;
-    }
-
-    public void setCommentId(@Nullable UUID commentId) {
-        this.commentId = commentId;
-    }
-
-    @Nullable
-    public UUID getParentTaskId() {
-        return parentTaskId;
-    }
-
-    public void setParentTaskId(@Nullable UUID parentTaskId) {
-        this.parentTaskId = parentTaskId;
-    }
-
-    @Nullable
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(@Nullable String content) {
-        this.content = content;
-    }
-
-    @Nonnull
-    public InteractionStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(@Nonnull InteractionStatus status) {
-        this.status = status;
-    }
-
-    @Nullable
-    public LocalDateTime getReminderTime() {
-        return reminderTime;
-    }
-
-    public void setReminderTime(@Nullable LocalDateTime reminderTime) {
-        this.reminderTime = reminderTime;
-    }
-
-    @Nullable
-    public Integer getProgressPercentage() {
-        return progressPercentage;
-    }
-
-    public void setProgressPercentage(@Nullable Integer progressPercentage) {
-        this.progressPercentage = progressPercentage;
-    }
-
-    @Nullable
-    public String getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(@Nullable String metadata) {
-        this.metadata = metadata;
     }
 }

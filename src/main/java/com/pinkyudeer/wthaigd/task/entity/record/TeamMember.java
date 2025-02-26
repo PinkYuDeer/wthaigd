@@ -9,6 +9,11 @@ import javax.annotation.Nullable;
 
 import com.pinkyudeer.wthaigd.task.entity.Team;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class TeamMember extends BaseRecord {
 
     // 核心关联
@@ -58,7 +63,7 @@ public class TeamMember extends BaseRecord {
         private final UUID operatorId;
 
         // 带默认值的可选参数
-        private UUID recordId;
+        private UUID id;
         private LocalDateTime createTime;
         private LocalDateTime joinTime;
         private Team.TeamRole role;
@@ -75,8 +80,8 @@ public class TeamMember extends BaseRecord {
             this.operatorId = operatorId;
         }
 
-        public Builder recordId(UUID val) {
-            recordId = val;
+        public Builder id(UUID val) {
+            id = val;
             return this;
         }
 
@@ -127,7 +132,7 @@ public class TeamMember extends BaseRecord {
 
         public TeamMember build() {
             TeamMember member = new TeamMember(this.teamId, this.playerId, this.operatorId);
-            if (this.recordId != null) member.setRecordId(this.recordId);
+            if (this.id != null) member.setId(this.id);
             if (this.createTime != null) member.setCreateTime(this.createTime);
             if (this.joinTime != null) member.setJoinTime(this.joinTime);
             if (this.role != null) member.setRole(this.role);
@@ -139,96 +144,5 @@ public class TeamMember extends BaseRecord {
             if (this.lastOperatorId != null) member.setLastOperatorId(this.lastOperatorId);
             return member;
         }
-    }
-
-    // getter和setter方法
-    @Nonnull
-    public UUID getTeamId() {
-        return teamId;
-    }
-
-    public void setTeamId(@Nonnull UUID teamId) {
-        this.teamId = teamId;
-    }
-
-    @Nonnull
-    public UUID getPlayerId() {
-        return playerId;
-    }
-
-    public void setPlayerId(@Nonnull UUID playerId) {
-        this.playerId = playerId;
-    }
-
-    @Nonnull
-    public LocalDateTime getJoinTime() {
-        return joinTime;
-    }
-
-    public void setJoinTime(@Nonnull LocalDateTime joinTime) {
-        this.joinTime = joinTime;
-    }
-
-    @Nonnull
-    public Team.TeamRole getRole() {
-        return role;
-    }
-
-    public void setRole(@Nonnull Team.TeamRole role) {
-        this.role = role;
-    }
-
-    @Nonnull
-    public MemberStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(@Nonnull MemberStatus status) {
-        this.status = status;
-    }
-
-    @Nonnull
-    public Integer getCompletedTasks() {
-        return completedTasks;
-    }
-
-    public void setCompletedTasks(@Nonnull Integer completedTasks) {
-        this.completedTasks = completedTasks;
-    }
-
-    @Nonnull
-    public Long getContributionPoints() {
-        return contributionPoints;
-    }
-
-    public void setContributionPoints(@Nonnull Long contributionPoints) {
-        this.contributionPoints = contributionPoints;
-    }
-
-    @Nonnull
-    public Duration getTotalDuration() {
-        return totalDuration;
-    }
-
-    public void setTotalDuration(@Nonnull Duration totalDuration) {
-        this.totalDuration = totalDuration;
-    }
-
-    @Nullable
-    public LocalDateTime getLastOperationTime() {
-        return lastOperationTime;
-    }
-
-    public void setLastOperationTime(@Nullable LocalDateTime lastOperationTime) {
-        this.lastOperationTime = lastOperationTime;
-    }
-
-    @Nullable
-    public UUID getLastOperatorId() {
-        return lastOperatorId;
-    }
-
-    public void setLastOperatorId(@Nullable UUID lastOperatorId) {
-        this.lastOperatorId = lastOperatorId;
     }
 }

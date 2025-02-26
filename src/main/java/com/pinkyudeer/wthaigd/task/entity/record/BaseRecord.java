@@ -5,51 +5,32 @@ import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
+import com.pinkyudeer.wthaigd.annotation.FieldCheck;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
 public abstract class BaseRecord {
 
     @Nonnull
-    private UUID recordId;
+    @FieldCheck(type = FieldCheck.Type.UUID, dataType = UUID.class)
+    private UUID id;
     @Nonnull
     private LocalDateTime createTime;
     @Nonnull
     private UUID operatorId;
 
     public BaseRecord(@Nonnull UUID operatorId) {
-        this.recordId = UUID.randomUUID();
+        this.id = UUID.randomUUID();
         this.createTime = LocalDateTime.now();
         this.operatorId = operatorId;
     }
 
     public BaseRecord(@Nonnull LocalDateTime createdAt, @Nonnull UUID operatorId) {
-        this.recordId = UUID.randomUUID();
+        this.id = UUID.randomUUID();
         this.createTime = createdAt;
-        this.operatorId = operatorId;
-    }
-
-    @Nonnull
-    public UUID getRecordId() {
-        return recordId;
-    }
-
-    public void setRecordId(@Nonnull UUID recordId) {
-        this.recordId = recordId;
-    }
-
-    @Nonnull
-    public LocalDateTime getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(@Nonnull LocalDateTime createTime) {
-        this.createTime = createTime;
-    }
-
-    @Nonnull
-    public UUID getOperatorId() {
-        return operatorId;
-    }
-
-    public void setOperatorId(@Nonnull UUID operatorId) {
         this.operatorId = operatorId;
     }
 }

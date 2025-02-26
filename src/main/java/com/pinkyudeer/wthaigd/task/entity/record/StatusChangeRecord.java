@@ -9,6 +9,11 @@ import javax.annotation.Nullable;
 import com.pinkyudeer.wthaigd.task.entity.Task;
 import com.pinkyudeer.wthaigd.task.entity.record.Notification.SourceType;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class StatusChangeRecord extends BaseRecord {
 
     // 核心状态变更信息
@@ -52,7 +57,7 @@ public class StatusChangeRecord extends BaseRecord {
         private final UUID operatorId;
 
         // 可选参数带默认值
-        private UUID recordId;
+        private UUID id;
         private LocalDateTime createTime;
         private String reason;
         private Boolean isAutomatic;
@@ -99,7 +104,7 @@ public class StatusChangeRecord extends BaseRecord {
                 this.taskId,
                 this.oldStatus,
                 this.newStatus);
-            if (this.recordId != null) record.setRecordId(this.recordId);
+            if (this.id != null) record.setId(this.id);
             if (this.createTime != null) record.setCreateTime(this.createTime);
             if (this.reason != null) record.setReason(this.reason);
             if (this.isAutomatic != null) record.setIsAutomatic(this.isAutomatic);
@@ -108,78 +113,5 @@ public class StatusChangeRecord extends BaseRecord {
             if (this.metadata != null) record.setMetadata(this.metadata);
             return record;
         }
-    }
-
-    // Getter and Setter methods
-    @Nonnull
-    public UUID getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(@Nonnull UUID taskId) {
-        this.taskId = taskId;
-    }
-
-    @Nonnull
-    public Task.TaskStatus getOldStatus() {
-        return oldStatus;
-    }
-
-    public void setOldStatus(@Nonnull Task.TaskStatus oldStatus) {
-        this.oldStatus = oldStatus;
-    }
-
-    @Nonnull
-    public Task.TaskStatus getNewStatus() {
-        return newStatus;
-    }
-
-    public void setNewStatus(@Nonnull Task.TaskStatus newStatus) {
-        this.newStatus = newStatus;
-    }
-
-    @Nullable
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(@Nullable String reason) {
-        this.reason = reason;
-    }
-
-    @Nonnull
-    public Boolean getIsAutomatic() {
-        return isAutomatic;
-    }
-
-    public void setIsAutomatic(@Nonnull Boolean isAutomatic) {
-        this.isAutomatic = isAutomatic;
-    }
-
-    @Nullable
-    public UUID getRelatedTeamId() {
-        return relatedTeamId;
-    }
-
-    public void setRelatedTeamId(@Nullable UUID relatedTeamId) {
-        this.relatedTeamId = relatedTeamId;
-    }
-
-    @Nonnull
-    public SourceType getSourceType() {
-        return sourceType;
-    }
-
-    public void setSourceType(@Nonnull SourceType sourceType) {
-        this.sourceType = sourceType;
-    }
-
-    @Nullable
-    public String getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(@Nullable String metadata) {
-        this.metadata = metadata;
     }
 }

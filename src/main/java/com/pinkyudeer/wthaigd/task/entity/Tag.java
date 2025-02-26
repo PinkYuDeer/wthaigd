@@ -6,6 +6,12 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.annotation.Table;
+
+import lombok.Data;
+
+@Data
+@Table(name = "tags")
 public class Tag {
 
     // 基础属性
@@ -74,122 +80,5 @@ public class Tag {
         this(name, description);
         this.colorCode = colorCode;
         this.fontColorCode = fontColorCode;
-    }
-
-    @Nonnull
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(@Nonnull UUID id) {
-        this.id = id;
-    }
-
-    @Nonnull
-    public String getName() {
-        return name;
-    }
-
-    public void setName(@Nonnull String name) {
-        this.name = name;
-    }
-
-    @Nullable
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(@Nullable String description) {
-        this.description = description;
-    }
-
-    @Nonnull
-    public String getColorCode() {
-        return colorCode;
-    }
-
-    public void setColorCode(@Nonnull String colorCode) {
-        this.colorCode = colorCode;
-    }
-
-    @Nonnull
-    public String getFontColorCode() {
-        return fontColorCode;
-    }
-
-    public void setFontColorCode(@Nonnull String fontColorCode) {
-        this.fontColorCode = fontColorCode;
-    }
-
-    @Nonnull
-    public Boolean getIsDefault() {
-        return isDefault;
-    }
-
-    public void setIsDefault(@Nonnull Boolean isDefault) {
-        this.isDefault = isDefault;
-    }
-
-    @Nonnull
-    public Integer getLinkedTaskCount() {
-        return linkedTaskCount;
-    }
-
-    public void setLinkedTaskCount(@Nonnull Integer linkedTaskCount) {
-        this.linkedTaskCount = linkedTaskCount;
-    }
-
-    @Nonnull
-    public Integer getLinkedTeamCount() {
-        return linkedTeamCount;
-    }
-
-    public void setLinkedTeamCount(@Nonnull Integer linkedTeamCount) {
-        this.linkedTeamCount = linkedTeamCount;
-    }
-
-    @Nonnull
-    public Integer getLinkedPlayerCount() {
-        return linkedPlayerCount;
-    }
-
-    public void setLinkedPlayerCount(@Nonnull Integer linkedPlayerCount) {
-        this.linkedPlayerCount = linkedPlayerCount;
-    }
-
-    @Nonnull
-    public TagScope getScope() {
-        return scope;
-    }
-
-    public void setScope(@Nonnull TagScope scope) {
-        this.scope = scope;
-    }
-
-    @Nullable
-    public UUID getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(@Nullable UUID ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    @Nonnull
-    public LocalDateTime getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(@Nonnull LocalDateTime createTime) {
-        this.createTime = createTime;
-    }
-
-    @Nonnull
-    public LocalDateTime getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(@Nonnull LocalDateTime updateTime) {
-        this.updateTime = updateTime;
     }
 }

@@ -6,6 +6,14 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.annotation.Table;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Table(name = "player_interactions")
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class PlayerInteraction extends BaseRecord {
 
     // 核心关联字段
@@ -84,7 +92,7 @@ public class PlayerInteraction extends BaseRecord {
         private final UUID operatorId;
 
         // 可选参数带默认值
-        private UUID recordId;
+        private UUID id;
         private LocalDateTime createTime;
         private UUID relatedTaskId;
         private UUID relatedCommentId;
@@ -102,8 +110,8 @@ public class PlayerInteraction extends BaseRecord {
             this.operatorId = operatorId;
         }
 
-        public Builder recordId(UUID val) {
-            recordId = val;
+        public Builder id(UUID val) {
+            id = val;
             return this;
         }
 
@@ -149,7 +157,7 @@ public class PlayerInteraction extends BaseRecord {
 
         public PlayerInteraction build() {
             PlayerInteraction interaction = new PlayerInteraction(type, initiatorId, receiverId, operatorId);
-            if (this.recordId != null) interaction.setRecordId(this.recordId);
+            if (this.id != null) interaction.setId(this.id);
             if (this.createTime != null) interaction.setCreateTime(this.createTime);
             if (this.relatedTaskId != null) interaction.setRelatedTaskId(this.relatedTaskId);
             if (this.relatedCommentId != null) interaction.setRelatedCommentId(this.relatedCommentId);
@@ -160,96 +168,5 @@ public class PlayerInteraction extends BaseRecord {
             if (this.metadata != null) interaction.setMetadata(this.metadata);
             return interaction;
         }
-    }
-
-    // Getter and Setter methods
-    @Nonnull
-    public InteractionType getType() {
-        return type;
-    }
-
-    public void setType(@Nonnull InteractionType type) {
-        this.type = type;
-    }
-
-    @Nonnull
-    public UUID getInitiatorId() {
-        return initiatorId;
-    }
-
-    public void setInitiatorId(@Nonnull UUID initiatorId) {
-        this.initiatorId = initiatorId;
-    }
-
-    @Nonnull
-    public UUID getReceiverId() {
-        return receiverId;
-    }
-
-    public void setReceiverId(@Nonnull UUID receiverId) {
-        this.receiverId = receiverId;
-    }
-
-    @Nullable
-    public UUID getRelatedTaskId() {
-        return relatedTaskId;
-    }
-
-    public void setRelatedTaskId(@Nullable UUID relatedTaskId) {
-        this.relatedTaskId = relatedTaskId;
-    }
-
-    @Nullable
-    public UUID getRelatedCommentId() {
-        return relatedCommentId;
-    }
-
-    public void setRelatedCommentId(@Nullable UUID relatedCommentId) {
-        this.relatedCommentId = relatedCommentId;
-    }
-
-    @Nullable
-    public UUID getRelatedInteractionId() {
-        return relatedInteractionId;
-    }
-
-    public void setRelatedInteractionId(@Nullable UUID relatedInteractionId) {
-        this.relatedInteractionId = relatedInteractionId;
-    }
-
-    @Nullable
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(@Nullable String content) {
-        this.content = content;
-    }
-
-    @Nonnull
-    public InteractionStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(@Nonnull InteractionStatus status) {
-        this.status = status;
-    }
-
-    @Nonnull
-    public VisibilityLevel getVisibility() {
-        return visibility;
-    }
-
-    public void setVisibility(@Nonnull VisibilityLevel visibility) {
-        this.visibility = visibility;
-    }
-
-    @Nullable
-    public String getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(@Nullable String metadata) {
-        this.metadata = metadata;
     }
 }

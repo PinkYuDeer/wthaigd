@@ -10,6 +10,11 @@ import com.pinkyudeer.wthaigd.task.entity.Task;
 import com.pinkyudeer.wthaigd.task.entity.record.Notification.RelatedEntityType;
 import com.pinkyudeer.wthaigd.task.entity.record.Notification.SourceType;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class TagLink extends BaseRecord {
 
     // 核心关联字段
@@ -50,7 +55,7 @@ public class TagLink extends BaseRecord {
         private final UUID entityId;
 
         // 可选参数带默认值
-        private UUID recordId;
+        private UUID id;
         private LocalDateTime createTime;
         private SourceType sourceType;
         private Task.PrivacyLevel visibility;
@@ -65,8 +70,8 @@ public class TagLink extends BaseRecord {
             this.entityId = entityId;
         }
 
-        public Builder recordId(UUID val) {
-            recordId = val;
+        public Builder id(UUID val) {
+            id = val;
             return this;
         }
 
@@ -97,7 +102,7 @@ public class TagLink extends BaseRecord {
 
         public TagLink build() {
             TagLink link = new TagLink(tagId, entityType, entityId, operatorId);
-            if (this.recordId != null) link.setRecordId(this.recordId);
+            if (this.id != null) link.setId(this.id);
             if (this.createTime != null) link.setCreateTime(this.createTime);
             if (this.sourceType != null) link.setSourceType(this.sourceType);
             if (this.visibility != null) link.setVisibility(this.visibility);
@@ -105,69 +110,5 @@ public class TagLink extends BaseRecord {
             if (this.isActive != null) link.setIsActive(this.isActive);
             return link;
         }
-    }
-
-    // Getter and Setter methods
-    @Nonnull
-    public UUID getTagId() {
-        return tagId;
-    }
-
-    public void setTagId(@Nonnull UUID tagId) {
-        this.tagId = tagId;
-    }
-
-    @Nonnull
-    public RelatedEntityType getEntityType() {
-        return entityType;
-    }
-
-    public void setEntityType(@Nonnull RelatedEntityType entityType) {
-        this.entityType = entityType;
-    }
-
-    @Nonnull
-    public UUID getEntityId() {
-        return entityId;
-    }
-
-    public void setEntityId(@Nonnull UUID entityId) {
-        this.entityId = entityId;
-    }
-
-    @Nonnull
-    public SourceType getSourceType() {
-        return sourceType;
-    }
-
-    public void setSourceType(@Nonnull SourceType sourceType) {
-        this.sourceType = sourceType;
-    }
-
-    @Nonnull
-    public Task.PrivacyLevel getVisibility() {
-        return visibility;
-    }
-
-    public void setVisibility(@Nonnull Task.PrivacyLevel visibility) {
-        this.visibility = visibility;
-    }
-
-    @Nullable
-    public String getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(@Nullable String metadata) {
-        this.metadata = metadata;
-    }
-
-    @Nonnull
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(@Nonnull Boolean isActive) {
-        this.isActive = isActive;
     }
 }

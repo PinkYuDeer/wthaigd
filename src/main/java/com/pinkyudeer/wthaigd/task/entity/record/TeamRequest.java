@@ -6,6 +6,11 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class TeamRequest extends BaseRecord {
 
     // 请求类型
@@ -75,7 +80,7 @@ public class TeamRequest extends BaseRecord {
         private final UUID operatorId;
 
         // 带默认值的可选参数
-        private UUID recordId;
+        private UUID id;
         private LocalDateTime createTime;
         private UUID inviterId;
         private String reason;
@@ -95,8 +100,8 @@ public class TeamRequest extends BaseRecord {
             this.operatorId = operatorId;
         }
 
-        public Builder recordId(UUID val) {
-            recordId = val;
+        public Builder id(UUID val) {
+            id = val;
             return this;
         }
 
@@ -152,7 +157,7 @@ public class TeamRequest extends BaseRecord {
                 this.applicantId,
                 this.sourceType,
                 this.operatorId);
-            if (this.recordId != null) request.setRecordId(this.recordId);
+            if (this.id != null) request.setId(this.id);
             if (this.createTime != null) request.setCreateTime(this.createTime);
             if (this.inviterId != null) request.setInviterId(this.inviterId);
             if (this.reason != null) request.setReason(this.reason);
@@ -164,114 +169,5 @@ public class TeamRequest extends BaseRecord {
             if (this.metadata != null) request.setMetadata(this.metadata);
             return request;
         }
-    }
-
-    // getter和setter方法
-    @Nonnull
-    public RequestType getRequestType() {
-        return requestType;
-    }
-
-    public void setRequestType(@Nonnull RequestType requestType) {
-        this.requestType = requestType;
-    }
-
-    @Nonnull
-    public UUID getTeamId() {
-        return teamId;
-    }
-
-    public void setTeamId(@Nonnull UUID teamId) {
-        this.teamId = teamId;
-    }
-
-    @Nonnull
-    public UUID getApplicantId() {
-        return applicantId;
-    }
-
-    public void setApplicantId(@Nonnull UUID applicantId) {
-        this.applicantId = applicantId;
-    }
-
-    @Nullable
-    public UUID getInviterId() {
-        return inviterId;
-    }
-
-    public void setInviterId(@Nullable UUID inviterId) {
-        this.inviterId = inviterId;
-    }
-
-    @Nullable
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(@Nullable String reason) {
-        this.reason = reason;
-    }
-
-    @Nullable
-    public LocalDateTime getExpireTime() {
-        return expireTime;
-    }
-
-    public void setExpireTime(@Nullable LocalDateTime expireTime) {
-        this.expireTime = expireTime;
-    }
-
-    @Nonnull
-    public RequestStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(@Nonnull RequestStatus status) {
-        this.status = status;
-    }
-
-    @Nullable
-    public UUID getHandlerId() {
-        return handlerId;
-    }
-
-    public void setHandlerId(@Nullable UUID handlerId) {
-        this.handlerId = handlerId;
-    }
-
-    @Nullable
-    public String getHandleReason() {
-        return handleReason;
-    }
-
-    public void setHandleReason(@Nullable String handleReason) {
-        this.handleReason = handleReason;
-    }
-
-    @Nullable
-    public LocalDateTime getHandleTime() {
-        return handleTime;
-    }
-
-    public void setHandleTime(@Nullable LocalDateTime handleTime) {
-        this.handleTime = handleTime;
-    }
-
-    @Nonnull
-    public Notification.SourceType getSourceType() {
-        return sourceType;
-    }
-
-    public void setSourceType(@Nonnull Notification.SourceType sourceType) {
-        this.sourceType = sourceType;
-    }
-
-    @Nullable
-    public String getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(@Nullable String metadata) {
-        this.metadata = metadata;
     }
 }

@@ -6,8 +6,15 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-// ... existing package and imports ...
+import com.pinkyudeer.wthaigd.annotation.Table;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+// ... existing package and imports ...
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Table(name = "notifications")
 public class Notification extends BaseRecord {
 
     // 基础属性
@@ -71,7 +78,7 @@ public class Notification extends BaseRecord {
         private final SourceType sourceType;
         private final UUID operatorId;
 
-        private UUID recordId;
+        private UUID id;
         private NotificationStatus status;
         private LocalDateTime createTime;
         private NotificationPriority priority;
@@ -97,7 +104,7 @@ public class Notification extends BaseRecord {
         }
 
         public Builder id(UUID val) {
-            recordId = val;
+            id = val;
             return this;
         }
 
@@ -173,7 +180,7 @@ public class Notification extends BaseRecord {
 
         public Notification build() {
             Notification notification = new Notification(type, title, receiverId, sourceType, operatorId);
-            if (this.recordId != null) notification.setRecordId(this.recordId);
+            if (this.id != null) notification.setId(this.id);
             if (this.status != null) notification.setNotificationStatus(this.status);
             if (this.createTime != null) notification.setCreateTime(this.createTime);
             if (this.priority != null) notification.setPriority(this.priority);
@@ -190,160 +197,6 @@ public class Notification extends BaseRecord {
             if (this.categoryTag != null) notification.setCategoryTag(this.categoryTag);
             return notification;
         }
-    }
-
-    // getter和setter方法
-    @Nonnull
-    public NotificationType getType() {
-        return type;
-    }
-
-    public void setType(@Nonnull NotificationType type) {
-        this.type = type;
-    }
-
-    @Nonnull
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(@Nonnull String title) {
-        this.title = title;
-    }
-
-    @Nullable
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(@Nullable String content) {
-        this.content = content;
-    }
-
-    @Nonnull
-    public NotificationStatus getNotificationStatus() {
-        return notificationStatus;
-    }
-
-    public void setNotificationStatus(@Nonnull NotificationStatus notificationStatus) {
-        this.notificationStatus = notificationStatus;
-    }
-
-    @Nonnull
-    public UUID getReceiverId() {
-        return receiverId;
-    }
-
-    public void setReceiverId(@Nonnull UUID receiverId) {
-        this.receiverId = receiverId;
-    }
-
-    @Nullable
-    public UUID getTriggerPlayerId() {
-        return triggerPlayerId;
-    }
-
-    public void setTriggerPlayerId(@Nullable UUID triggerPlayerId) {
-        this.triggerPlayerId = triggerPlayerId;
-    }
-
-    @Nullable
-    public UUID getRelatedTaskId() {
-        return relatedTaskId;
-    }
-
-    public void setRelatedTaskId(@Nullable UUID relatedTaskId) {
-        this.relatedTaskId = relatedTaskId;
-    }
-
-    @Nullable
-    public UUID getRelatedTeamId() {
-        return relatedTeamId;
-    }
-
-    public void setRelatedTeamId(@Nullable UUID relatedTeamId) {
-        this.relatedTeamId = relatedTeamId;
-    }
-
-    @Nullable
-    public UUID getRelatedRecordId() {
-        return relatedRecordId;
-    }
-
-    public void setRelatedRecordId(@Nullable UUID relatedRecordId) {
-        this.relatedRecordId = relatedRecordId;
-    }
-
-    @Nullable
-    public LocalDateTime getExpireTime() {
-        return expireTime;
-    }
-
-    public void setExpireTime(@Nullable LocalDateTime expireTime) {
-        this.expireTime = expireTime;
-    }
-
-    @Nullable
-    public LocalDateTime getReadTime() {
-        return readTime;
-    }
-
-    public void setReadTime(@Nullable LocalDateTime readTime) {
-        this.readTime = readTime;
-    }
-
-    @Nonnull
-    public SourceType getSourceType() {
-        return sourceType;
-    }
-
-    public void setSourceType(@Nonnull SourceType sourceType) {
-        this.sourceType = sourceType;
-    }
-
-    @Nonnull
-    public NotificationPriority getPriority() {
-        return priority;
-    }
-
-    public void setPriority(@Nonnull NotificationPriority priority) {
-        this.priority = priority;
-    }
-
-    @Nullable
-    public String getActionType() {
-        return actionType;
-    }
-
-    public void setActionType(@Nullable String actionType) {
-        this.actionType = actionType;
-    }
-
-    @Nullable
-    public String getJumpLink() {
-        return jumpLink;
-    }
-
-    public void setJumpLink(@Nullable String jumpLink) {
-        this.jumpLink = jumpLink;
-    }
-
-    @Nonnull
-    public RelatedEntityType getRelatedEntityType() {
-        return relatedEntityType;
-    }
-
-    public void setRelatedEntityType(@Nonnull RelatedEntityType relatedEntityType) {
-        this.relatedEntityType = relatedEntityType;
-    }
-
-    @Nullable
-    public String getCategoryTag() {
-        return categoryTag;
-    }
-
-    public void setCategoryTag(@Nullable String categoryTag) {
-        this.categoryTag = categoryTag;
     }
 
     // 枚举定义

@@ -11,4 +11,11 @@ public class TaskEntityManager {
             SQLiteHelper.executeSQL(sql);
         }
     }
+
+    public class add {
+
+        public void addTask() {
+
+        }
+    }
 }
