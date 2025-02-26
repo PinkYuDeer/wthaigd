@@ -6,45 +6,64 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.annotation.Column;
+import com.pinkyudeer.wthaigd.annotation.Reference;
+import com.pinkyudeer.wthaigd.annotation.Table;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Table(name = "task_interactions")
 public class TaskInteraction extends BaseRecord {
 
     // 核心关联字段
     @Nonnull
+    @Column(name = "type")
     private InteractionType type; // 互动类型
     @Nonnull
+    @Column(name = "task_id")
+    @Reference(referenceType = Reference.Type.TASK)
     private UUID taskId; // 关联的任务ID
     @Nonnull
+    @Column(name = "player_id")
+    @Reference(referenceType = Reference.Type.PLAYER)
     private UUID playerId; // 操作玩家ID
 
     // 关联上下文
     @Nullable
+    @Column(name = "assigner_count")
     private Integer assignerCount; // 分配者数量（用于CLAIM、ASSIGN类型）
     @Nullable
-    private UUID commentId; // 关联的评论ID
+    @Column(name = "comment_id")
+    private UUID commentId; // 关联的评论ID, 用于回复
     @Nullable
+    @Column(name = "parent_task_id")
+    @Reference(referenceType = Reference.Type.TASK)
     private UUID parentTaskId; // 父任务ID（用于子任务关联）
 
     // 互动内容
     @Nullable
+    @Column(name = "content")
     private String content; // 评论内容/举报原因等
     @Nonnull
+    @Column(name = "status", defaultValue = "'ACTIVE'")
     private InteractionStatus status = InteractionStatus.ACTIVE;
 
     // 时间控制
     @Nullable
+    @Column(name = "reminder_time")
     private LocalDateTime reminderTime; // 提醒时间（用于REMINDER类型）
 
     // 进度跟踪
     @Nullable
+    @Column(name = "progress_percentage")
     private Integer progressPercentage; // 进度百分比（用于PROGRESS_UPDATE）
 
     // 扩展信息
     @Nullable
+    @Column(name = "metadata")
     private String metadata; // 附加数据（如点赞位置、@信息等）
 
     public TaskInteraction(@Nonnull InteractionType type, @Nonnull UUID taskId, @Nonnull UUID playerId,

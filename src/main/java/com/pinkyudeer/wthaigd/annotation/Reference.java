@@ -15,12 +15,6 @@ public @interface Reference {
         PLAYER,
         TEAM,
         TASK,
-        TAG,
-        PLAYER_INTERACTION,
-        TASK_INTERACTION,
-        NOTIFICATION,
-        TEAM_REQUEST,
-        TEAM_MEMBER,
-        TASK_HISTORY
+        TAG
     }
 }

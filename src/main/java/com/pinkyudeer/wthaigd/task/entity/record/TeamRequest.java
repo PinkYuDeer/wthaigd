@@ -6,47 +6,68 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.annotation.Column;
+import com.pinkyudeer.wthaigd.annotation.Reference;
+import com.pinkyudeer.wthaigd.annotation.Table;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Table(name = "team_requests")
 public class TeamRequest extends BaseRecord {
 
     // 请求类型
     @Nonnull
+    @Column(name = "request_type")
     private RequestType requestType; // JOIN-申请加入，INVITE-邀请加入
 
     // 核心关联
     @Nonnull
+    @Column(name = "team_id")
+    @Reference(referenceType = Reference.Type.TASK)
     private UUID teamId; // 目标团队ID
     @Nonnull
+    @Column(name = "applicant_id")
+    @Reference(referenceType = Reference.Type.PLAYER)
     private UUID applicantId; // 申请人/被邀请人ID
     @Nullable
+    @Column(name = "inviter_id")
+    @Reference(referenceType = Reference.Type.PLAYER)
     private UUID inviterId; // 邀请人ID（仅INVITE类型）
 
     // 请求内容
     @Nullable
+    @Column(name = "reason")
     private String reason; // 申请/邀请理由
     @Nullable
+    @Column(name = "expire_time")
     private LocalDateTime expireTime; // 过期时间
 
     // 处理状态
     @Nonnull
+    @Column(name = "status", defaultValue = "'PENDING'")
     private RequestStatus status = RequestStatus.PENDING; // 请求状态
     @Nullable
+    @Column(name = "handler_id")
+    @Reference(referenceType = Reference.Type.PLAYER)
     private UUID handlerId; // 处理人ID
     @Nullable
+    @Column(name = "handle_reason")
     private String handleReason; // 处理理由
     @Nullable
+    @Column(name = "handle_time")
     private LocalDateTime handleTime; // 处理时间
 
     // 来源追踪
     @Nonnull
+    @Column(name = "source_type")
     private Notification.SourceType sourceType; // 请求来源
 
     // 元数据
     @Nullable
+    @Column(name = "metadata")
     private String metadata; // 附加信息（如邀请码使用情况）
 
     public TeamRequest(@Nonnull RequestType requestType, @Nonnull UUID teamId, @Nonnull UUID applicantId,

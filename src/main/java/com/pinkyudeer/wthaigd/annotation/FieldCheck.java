@@ -26,9 +26,6 @@ public @interface FieldCheck {
     // 正则表达式
     String regex() default ""; // 用于字符串字段
 
-    // 枚举类
-    Class<?> enumClass() default Enum.class; // 用于枚举字段
-
     // 数据类型校验类型
     Type type(); // 默认校验字段是否为空
 

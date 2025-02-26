@@ -6,12 +6,13 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.annotation.Column;
+import com.pinkyudeer.wthaigd.annotation.Reference;
 import com.pinkyudeer.wthaigd.annotation.Table;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-// ... existing package and imports ...
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Table(name = "notifications")
@@ -19,46 +20,67 @@ public class Notification extends BaseRecord {
 
     // 基础属性
     @Nonnull
+    @Column(name = "type")
     private NotificationType type; // 通知类型（枚举）
     @Nonnull
+    @Column(name = "title")
     private String title; // 通知标题
     @Nullable
+    @Column(name = "content")
     private String content; // 详细内容（可包含富文本）
     @Nonnull
+    @Column(name = "status", defaultValue = "'UNREAD'", index = { "idx_notifications_status" })
     private NotificationStatus notificationStatus = NotificationStatus.UNREAD; // 通知状态
 
     // 关联属性
     @Nonnull
+    @Column(name = "receiver_id", index = { "idx_notifications_receiver_id" })
+    @Reference(referenceType = Reference.Type.PLAYER)
     private UUID receiverId; // 接收者ID（Player/TEAM）
     @Nullable
+    @Column(name = "trigger_player_id")
+    @Reference(referenceType = Reference.Type.PLAYER)
     private UUID triggerPlayerId; // 触发通知的玩家
     @Nullable
+    @Column(name = "related_task_id")
+    @Reference(referenceType = Reference.Type.TASK)
     private UUID relatedTaskId; // 关联的任务ID
     @Nullable
+    @Column(name = "related_team_id")
+    @Reference(referenceType = Reference.Type.TEAM)
     private UUID relatedTeamId; // 关联的团队ID
     @Nullable
+    @Column(name = "related_record_id")
     private UUID relatedRecordId; // 关联的记录ID（如互动记录）
 
     // 时间属性
     @Nullable
+    @Column(name = "expire_time", index = { "idx_notifications_expire_time DESC" })
     private LocalDateTime expireTime; // 过期时间（临时通知）
     @Nullable
+    @Column(name = "read_time")
     private LocalDateTime readTime; // 阅读时间
 
     // 统计与追踪
     @Nonnull
+    @Column(name = "source_type")
     private SourceType sourceType; // 通知来源
     @Nonnull
+    @Column(name = "priority", defaultValue = "'NORMAL'")
     private NotificationPriority priority = NotificationPriority.NORMAL; // 优先级
     @Nullable
+    @Column(name = "action_type")
     private String actionType; // 触发动作类型（如"TASK_ASSIGN"）
 
     // 界面相关
     @Nullable
+    @Column(name = "jump_link")
     private String jumpLink; // 跳转链接（如任务详情页）
     @Nonnull
+    @Column(name = "related_entity_type", defaultValue = "'DEFAULT'")
     private RelatedEntityType relatedEntityType = RelatedEntityType.DEFAULT; // 关联实体类型
     @Nullable
+    @Column(name = "category_tag")
     private String categoryTag; // 分类标签
 
     public Notification(@Nonnull NotificationType type, @Nonnull String title, @Nonnull UUID receiverId,

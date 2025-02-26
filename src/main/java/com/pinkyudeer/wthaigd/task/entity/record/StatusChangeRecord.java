@@ -6,6 +6,9 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.annotation.Column;
+import com.pinkyudeer.wthaigd.annotation.Reference;
+import com.pinkyudeer.wthaigd.annotation.Table;
 import com.pinkyudeer.wthaigd.task.entity.Task;
 import com.pinkyudeer.wthaigd.task.entity.record.Notification.SourceType;
 
@@ -14,30 +17,41 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Table(name = "task_histories")
 public class StatusChangeRecord extends BaseRecord {
 
     // 核心状态变更信息
     @Nonnull
+    @Column(name = "task_id")
+    @Reference(referenceType = Reference.Type.TASK)
     private UUID taskId; // 关联的任务ID
     @Nonnull
+    @Column(name = "old_status")
     private Task.TaskStatus oldStatus; // 变更前状态
     @Nonnull
+    @Column(name = "new_status")
     private Task.TaskStatus newStatus; // 变更后状态
 
     // 变更上下文信息
     @Nullable
+    @Column(name = "reason")
     private String reason; // 状态变更原因（可选）
     @Nonnull
+    @Column(name = "is_automatic", defaultValue = "false")
     private Boolean isAutomatic = false; // 是否自动触发（如超时自动关闭）
     @Nullable
+    @Column(name = "related_team_id")
+    @Reference(referenceType = Reference.Type.TEAM)
     private UUID relatedTeamId; // 关联团队ID（当变更涉及团队操作时）
 
     // 变更来源追踪
     @Nonnull
+    @Column(name = "source_type")
     private SourceType sourceType = SourceType.SYSTEM; // 变更来源（复用Notification的SourceType）
 
     // 扩展信息（可存储JSON格式的附加数据）
     @Nullable
+    @Column(name = "metadata")
     private String metadata; // 附加信息（如审批流程ID、阻塞原因等）
 
     public StatusChangeRecord(@Nonnull UUID operatorId, @Nonnull UUID taskId, @Nonnull Task.TaskStatus oldStatus,

@@ -6,6 +6,9 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.annotation.Column;
+import com.pinkyudeer.wthaigd.annotation.Reference;
+import com.pinkyudeer.wthaigd.annotation.Table;
 import com.pinkyudeer.wthaigd.task.entity.Task;
 import com.pinkyudeer.wthaigd.task.entity.record.Notification.RelatedEntityType;
 import com.pinkyudeer.wthaigd.task.entity.record.Notification.SourceType;
@@ -15,28 +18,37 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Table(name = "tag_links")
 public class TagLink extends BaseRecord {
 
     // 核心关联字段
     @Nonnull
+    @Column(name = "tag_id")
+    @Reference(referenceType = Reference.Type.TAG)
     private UUID tagId; // 关联的标签ID
     @Nonnull
+    @Column(name = "entity_type")
     private RelatedEntityType entityType; // 关联实体类型（复用Notification的枚举）
     @Nonnull
+    @Column(name = "entity_id")
     private UUID entityId; // 关联的实体ID（任务/玩家/团队等）
 
     // 上下文信息
     @Nonnull
+    @Column(name = "source_type", defaultValue = "'SYSTEM'")
     private SourceType sourceType = SourceType.SYSTEM; // 关联来源（复用Notification的SourceType）
 
     // 权限控制
     @Nonnull
+    @Column(name = "visibility", defaultValue = "'TEAM'")
     private Task.PrivacyLevel visibility = Task.PrivacyLevel.TEAM; // 可见性设置
 
     // 扩展信息
     @Nullable
+    @Column(name = "metadata")
     private String metadata; // 附加信息（JSON格式存储额外数据）
     @Nonnull
+    @Column(name = "is_active", defaultValue = "true")
     private Boolean isActive = true; // 关联是否有效（软删除标志）
 
     public TagLink(@Nonnull UUID tagId, @Nonnull RelatedEntityType entityType, @Nonnull UUID entityId,

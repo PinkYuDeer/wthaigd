@@ -1,26 +1,21 @@
 package com.pinkyudeer.wthaigd.task;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
+import javax.annotation.Nonnull;
 
 import org.reflections.Reflections;
 
+import com.pinkyudeer.wthaigd.annotation.Column;
 import com.pinkyudeer.wthaigd.annotation.FieldCheck;
 import com.pinkyudeer.wthaigd.annotation.Reference;
 import com.pinkyudeer.wthaigd.annotation.Table;
+import com.pinkyudeer.wthaigd.helper.UtilHelper;
 import com.pinkyudeer.wthaigd.task.entity.Player;
 import com.pinkyudeer.wthaigd.task.entity.Tag;
 import com.pinkyudeer.wthaigd.task.entity.Task;
 import com.pinkyudeer.wthaigd.task.entity.Team;
-import com.pinkyudeer.wthaigd.task.entity.record.Notification;
-import com.pinkyudeer.wthaigd.task.entity.record.PlayerInteraction;
-import com.pinkyudeer.wthaigd.task.entity.record.StatusChangeRecord;
-import com.pinkyudeer.wthaigd.task.entity.record.TaskInteraction;
-import com.pinkyudeer.wthaigd.task.entity.record.TeamMember;
-import com.pinkyudeer.wthaigd.task.entity.record.TeamRequest;
 
 public class TaskSqlHelper {
 
@@ -574,66 +569,67 @@ public class TaskSqlHelper {
             CREATE_TASK_INTERACTION_TABLE, CREATE_TASK_HISTORY_TABLE };
 
         // 根据注解生成相应的 SQLite CHECK 约束
-        public static String generateCheckConstraint(Field field) {
+        public static String generateCheckConstraint(Field field, String columnName) {
+            StringBuilder checkConstraint = new StringBuilder();
+
             // 获取javax.annotation.Nonnull注解
             if (field.getAnnotation(javax.annotation.Nonnull.class) != null) {
-                return "NOT NULL";
+                checkConstraint.append("NOT NULL ");
             }
 
             // 获取 FieldCheck 注解
             FieldCheck fieldCheck = field.getAnnotation(FieldCheck.class);
             if (fieldCheck == null) return "";
 
-            StringBuilder checkConstraint = new StringBuilder();
-
             // 针对不同类型的校验
             switch (fieldCheck.type()) {
                 case NOT_VALUE -> checkConstraint.append("CHECK(")
-                    .append(field.getName())
+                    .append(columnName)
                     .append(" != ")
                     .append(fieldCheck.notValue())
                     .append(")");
                 case MIN -> checkConstraint.append("CHECK(")
-                    .append(field.getName())
+                    .append(columnName)
                     .append(" >= ")
                     .append(fieldCheck.min())
                     .append(")");
                 case MAX -> checkConstraint.append("CHECK(")
-                    .append(field.getName())
+                    .append(columnName)
                     .append(" <= ")
                     .append(fieldCheck.max())
                     .append(")");
                 case RANGE -> checkConstraint.append("CHECK(")
-                    .append(field.getName())
+                    .append(columnName)
                     .append(" BETWEEN ")
                     .append(fieldCheck.min())
                     .append(" AND ")
                     .append(fieldCheck.max())
                     .append(")");
                 case REGEX -> checkConstraint.append("CHECK(")
-                    .append(field.getName())
+                    .append(columnName)
                     .append(" REGEXP '")
                     .append(fieldCheck.regex())
                     .append("')");
                 case LENGTH -> checkConstraint.append("CHECK(LENGTH(")
-                    .append(field.getName())
+                    .append(columnName)
                     .append(") >= ")
                     .append(fieldCheck.min())
                     .append(" AND LENGTH(")
-                    .append(field.getName())
+                    .append(columnName)
                     .append(") <= ")
                     .append(fieldCheck.max())
                     .append(")");
                 case UUID -> checkConstraint.append("CHECK(LENGTH(")
-                    .append(field.getName())
+                    .append(columnName)
                     .append(") = 36)");
                 case ENUM -> {
-                    if (fieldCheck.enumClass() != Enum.class) {
+                    if (fieldCheck.dataType()
+                        .isEnum()) {
                         // 对于枚举类型，可以检查是否在指定的值中
                         checkConstraint.append("CHECK(")
-                            .append(field.getName())
+                            .append(columnName)
                             .append(" IN (")
-                            .append(getEnumValues(fieldCheck.enumClass()))
+                            .append(getEnumValues(fieldCheck.dataType()))
                             .append("))");
                     }
                 }
@@ -644,7 +640,8 @@ public class TaskSqlHelper {
         }
 
         // 约束
-        private static String generateIdReferences(Field field) {
+        private static String generateIdReferences(Field field, Map<String, List<String>> tableRefMap,
+            String tableName) {
             Reference reference = field.getAnnotation(Reference.class);
             if (reference == null) return null;
 
@@ -653,41 +650,15 @@ public class TaskSqlHelper {
                 .append(field.getName())
                 .append(") REFERENCES ");
 
-            Reference.Type ref_type = reference.referenceType();
-            switch (ref_type) {
-                case PLAYER -> references.append(
-                    Player.class.getAnnotation(Table.class)
-                        .name());
-                case TEAM -> references.append(
-                    Team.class.getAnnotation(Table.class)
-                        .name());
-                case TASK -> references.append(
-                    Task.class.getAnnotation(Table.class)
-                        .name());
-                case TAG -> references.append(
-                    Tag.class.getAnnotation(Table.class)
-                        .name());
-                case NOTIFICATION -> references.append(
-                    Notification.class.getAnnotation(Table.class)
-                        .name());
-                case TEAM_REQUEST -> references.append(
-                    TeamRequest.class.getAnnotation(Table.class)
-                        .name());
-                case TEAM_MEMBER -> references.append(
-                    TeamMember.class.getAnnotation(Table.class)
-                        .name());
-                case PLAYER_INTERACTION -> references.append(
-                    PlayerInteraction.class.getAnnotation(Table.class)
-                        .name());
-                case TASK_INTERACTION -> references.append(
-                    TaskInteraction.class.getAnnotation(Table.class)
-                        .name());
-                case TASK_HISTORY -> references.append(
-                    StatusChangeRecord.class.getAnnotation(Table.class)
-                        .name());
-                default -> throw new IllegalArgumentException("Unsupported reference type: " + ref_type);
-            }
+            String referencedTableName = getReferencedTableName(reference);
+            references.append(referencedTableName);
             references.append("(id) ON DELETE CASCADE ON UPDATE CASCADE;");
+
+            // 更新引用关系映射
+            List<String> referencingTables = tableRefMap.computeIfAbsent(referencedTableName, k -> new ArrayList<>());
+            if (!referencingTables.contains(tableName)) {
+                referencingTables.add(tableName);
+            }
             return references.toString();
         }
 
@@ -709,84 +680,262 @@ public class TaskSqlHelper {
         }
 
         // 生成 CREATE TABLE SQL
-        public static String generateCreateTableSql(Class<?> clazz) {
+        public static Map<String, List<String>> generateCreateTableSql(Class<?> clazz,
+            Map<String, List<String>> tableRefMap) {
             Table table = clazz.getAnnotation(Table.class);
             if (table == null) {
                 return null;
             }
             StringBuilder sql = new StringBuilder("CREATE TABLE IF NOT EXISTS ");
-            // 根据clazz上的 @Table 注解获取name当做表名
-            sql.append(
-                clazz.getAnnotation(Table.class)
-                    .name())
+            String tableName = table.name();
+            sql.append(tableName)
                 .append(" (");
 
-            List<String> columnDefinitions = new ArrayList<>();
-            List<Field> refer = new ArrayList<>();
-            for (Field field : clazz.getDeclaredFields()) {
-                StringBuilder columnDefinition = new StringBuilder();
-                columnDefinition.append(field.getName())
-                    .append(" ");
+            List<String> columnDefinitions = new ArrayList<>(); // 列定义构造器
+            List<Field> refer = new ArrayList<>(); // 有外键约束的字段
+            List<String> createTableSqlList = new ArrayList<>(); // 创建表语句列表
+            // 索引映射，String为索引名称，List<String>为所在索引列表。
+            Map<String, List<String>> indexMap = new HashMap<>();
 
-                // 根据字段类型生成 SQLite 数据类型
-                if (field.getType() == String.class) {
-                    columnDefinition.append("TEXT");
-                } else if (field.getType() == int.class || field.getType() == Integer.class) {
-                    columnDefinition.append("INTEGER");
-                } else if (field.getType() == long.class || field.getType() == Long.class) {
-                    columnDefinition.append("BIGINT");
-                } else if (field.getType() == double.class || field.getType() == Double.class) {
-                    columnDefinition.append("REAL");
-                } else if (field.getType() == boolean.class || field.getType() == Boolean.class) {
-                    columnDefinition.append("BOOLEAN");
-                } else if (field.getType() == java.util.Date.class) {
-                    columnDefinition.append("TIMESTAMP");
-                } else if (field.getType() == UUID.class) {
-                    columnDefinition.append("TEXT");
+            try {
+                for (Field field : UtilHelper.getAllFieldsReverse(clazz)) {
+                    Column column = field.getAnnotation(Column.class);
+                    if (column == null) continue;
+                    String columnName = column.name();
+                    StringBuilder columnDefinition = new StringBuilder();
+                    columnDefinition.append(columnName)
+                        .append(" ");
 
-                } else {
-                    throw new IllegalArgumentException("Unsupported field type: " + field.getType());
+                    // 根据字段类型生成 SQLite 数据类型
+                    switch (field.getType()
+                        .getSimpleName()) {
+                        case "String", "UUID" -> columnDefinition.append("TEXT");
+                        case "int", "Integer" -> columnDefinition.append("INTEGER");
+                        case "long", "Long" -> columnDefinition.append("BIGINT");
+                        case "double", "Double", "Duration" -> columnDefinition.append("REAL");
+                        case "boolean", "Boolean" -> columnDefinition.append("BOOLEAN");
+                        case "Date", "LocalDateTime" -> columnDefinition.append("TIMESTAMP");
+                        default -> {
+                            if (field.getType()
+                                .isEnum()) {
+                                columnDefinition.append("TEXT");
+                            } else {
+                                throw new IllegalArgumentException("Unsupported field type: " + field.getType());
+                            }
+                        }
+                    }
+
+                    // 如果column中的defaultValue不为空，则添加默认值
+                    if (!"".equals(column.defaultValue())) {
+                        columnDefinition.append(" DEFAULT ")
+                            .append(column.defaultValue());
+                    }
+
+                    // 获取字段的检查约束
+                    String checkConstraint = generateCheckConstraint(field, columnName);
+                    if (!checkConstraint.isEmpty()) {
+                        columnDefinition.append(" ")
+                            .append(checkConstraint);
+                    }
+                    columnDefinitions.add(columnDefinition.toString());
+
+                    // 检查字段是否有外键约束
+                    if (generateIdReferences(field, tableRefMap, tableName) != null) {
+                        refer.add(field);
+                    }
+
+                    // 检查字段是否有唯一约束
+                    if (column.isUnique()) {
+                        columnDefinitions.add(" UNIQUE");
+                    }
+
+                    // 检查字段是否有主键约束
+                    if (column.isPrimaryKey()) {
+                        columnDefinitions.add(" PRIMARY KEY");
+                    }
+
+                    // 检查字段是否有索引
+                    if (column.index().length > 0) {
+                        indexMap.put(columnName, Arrays.asList(column.index()));
+                    }
                 }
-
-                // 获取字段的检查约束
-                String checkConstraint = generateCheckConstraint(field);
-                if (!checkConstraint.isEmpty()) {
-                    columnDefinition.append(" ")
-                        .append(checkConstraint);
-                }
-                columnDefinitions.add(columnDefinition.toString());
-
-                // 检查字段是否有外键约束
-                if (generateIdReferences(field) != null) {
-                    refer.add(field);
-                }
+            } catch (Exception e) {
+                throw new RuntimeException("Error generating table SQL for " + clazz.getName(), e);
             }
 
             sql.append(String.join(", ", columnDefinitions));
             sql.append(");");
+            createTableSqlList.add(sql.toString());
 
             // 添加外键约束
             for (Field field : refer) {
-                sql.append(generateIdReferences(field));
+                String foreignKey = generateIdReferences(field, tableRefMap, tableName);
+                if (foreignKey != null) {
+                    createTableSqlList.add(foreignKey);
+                }
             }
 
-            return sql.toString();
+            // 添加索引
+            Map<String, List<String>> indexMapReverse = new HashMap<>();
+            for (Map.Entry<String, List<String>> entry : indexMap.entrySet()) {
+                String columnName = entry.getKey();
+                List<String> indexNames = entry.getValue();
+                for (String indexName : indexNames) {
+                    indexMapReverse.computeIfAbsent(indexName, k -> new ArrayList<>())
+                        .add(columnName);
+                }
+            }
+            for (Map.Entry<String, List<String>> entry : indexMapReverse.entrySet()) {
+                String indexName = entry.getKey();
+                List<String> columns = entry.getValue();
+                createTableSqlList.add(
+                    "CREATE INDEX IF NOT EXISTS " + indexName
+                        + " ON "
+                        + tableName
+                        + "("
+                        + String.join(", ", columns)
+                        + ");");
+            }
+
+            Map<String, List<String>> createTableSql = new HashMap<>();
+            createTableSql.put(tableName, createTableSqlList);
+            return createTableSql;
         }
 
         // 扫描task.entity包下的所有类generateCreateTableSql
-        public static List<String> generateAllCreateTableSql() {
+        public static Map<String, List<String>> generateAllCreateTableSql() {
             // 使用 Reflections 库扫描指定包
             Reflections reflections = new Reflections("com.pinkyudeer.wthaigd.task.entity");
-            Set<Class<?>> annotatedClasses = reflections.getSubTypesOf(Object.class);
-            List<String> createTableSqlList = new ArrayList<>();
+            Set<Class<?>> annotatedClasses = reflections.getTypesAnnotatedWith(Table.class);
+            Map<String, List<String>> createTableSqlList = new HashMap<>();
+            Map<String, List<String>> tableRefMap = new HashMap<>();
             for (Class<?> clazz : annotatedClasses) {
-                String createTableSql = generateCreateTableSql(clazz);
+                Map<String, List<String>> createTableSql = generateCreateTableSql(clazz, tableRefMap);
                 if (createTableSql != null) {
-                    createTableSqlList.add(createTableSql);
+                    createTableSqlList.putAll(createTableSql);
                 }
             }
+            createTableSqlList = sortSqlListByRef(tableRefMap, createTableSqlList);
             return createTableSqlList;
         }
+    }
+
+    @Nonnull
+    private static Map<String, List<String>> sortSqlListByRef(Map<String, List<String>> tableRefMap,
+        Map<String, List<String>> createTableSqlList) {
+        // 根据依赖关系对建表语句进行排序
+        Map<String, Integer> inDegree = new HashMap<>(); // 记录每个表的入度
+        Map<String, List<String>> graph = new HashMap<>(); // 邻接表表示依赖图
+
+        // 初始化入度和邻接表
+        for (Map.Entry<String, List<String>> entry : tableRefMap.entrySet()) {
+            String table = entry.getKey();
+            inDegree.putIfAbsent(table, 0);
+            graph.putIfAbsent(table, new ArrayList<>());
+
+            for (String dependent : entry.getValue()) {
+                inDegree.putIfAbsent(dependent, 0);
+                graph.putIfAbsent(dependent, new ArrayList<>());
+                graph.get(table)
+                    .add(dependent);
+                inDegree.put(dependent, inDegree.get(dependent) + 1);
+            }
+        }
+
+        // 拓扑排序
+        Queue<String> queue = new LinkedList<>();
+        List<String> sortedTables = new ArrayList<>();
+
+        // 将入度为0的表加入队列
+        for (Map.Entry<String, Integer> entry : inDegree.entrySet()) {
+            if (entry.getValue() == 0) {
+                queue.offer(entry.getKey());
+            }
+        }
+
+        while (!queue.isEmpty()) {
+            String table = queue.poll();
+            sortedTables.add(table);
+
+            for (String dependent : graph.get(table)) {
+                inDegree.put(dependent, inDegree.get(dependent) - 1);
+                if (inDegree.get(dependent) == 0) {
+                    queue.offer(dependent);
+                }
+            }
+        }
+        // 检查是否存在循环依赖
+        if (sortedTables.size() != inDegree.size()) {
+            // 找出循环依赖的具体路径
+            List<String> cyclePath = new ArrayList<>();
+            Set<String> visited = new HashSet<>();
+            Set<String> recursionStack = new HashSet<>();
+
+            // 从未处理的节点中找出循环
+            for (String table : inDegree.keySet()) {
+                if (!sortedTables.contains(table)) {
+                    findCycle(table, graph, visited, recursionStack, cyclePath);
+                    if (!cyclePath.isEmpty()) {
+                        // 将循环路径格式化为字符串
+                        String cycleStr = String.join(" -> ", cyclePath) + " -> " + cyclePath.get(0);
+                        throw new IllegalStateException("检测到循环依赖关系,循环路径为: " + cycleStr);
+                    }
+                }
+            }
+            throw new IllegalStateException("检测到循环依赖关系,请检查表之间的外键引用");
+        }
+
+        // 按照排序后的顺序重新组织建表语句
+        Map<String, List<String>> sortedCreateTableSqlList = new LinkedHashMap<>();
+        for (String tableName : sortedTables) {
+            if (createTableSqlList.containsKey(tableName)) {
+                sortedCreateTableSqlList.put(tableName, createTableSqlList.get(tableName));
+            }
+        }
+
+        // 将不在依赖关系中的表添加到最后
+        for (String tableName : createTableSqlList.keySet()) {
+            if (!sortedCreateTableSqlList.containsKey(tableName)) {
+                sortedCreateTableSqlList.put(tableName, createTableSqlList.get(tableName));
+            }
+        }
+        createTableSqlList = sortedCreateTableSqlList;
+        return createTableSqlList;
+    }
+
+    private static String getReferencedTableName(Reference reference) {
+        Reference.Type ref_type = reference.referenceType();
+        return switch (ref_type) {
+            case PLAYER -> Player.class.getAnnotation(Table.class)
+                .name();
+            case TEAM -> Team.class.getAnnotation(Table.class)
+                .name();
+            case TASK -> Task.class.getAnnotation(Table.class)
+                .name();
+            case TAG -> Tag.class.getAnnotation(Table.class)
+                .name();
+        };
+    }
+
+    private static boolean findCycle(String table, Map<String, List<String>> graph, Set<String> visited,
+        Set<String> recursionStack, List<String> cyclePath) {
+        visited.add(table);
+        recursionStack.add(table);
+
+        for (String dependent : graph.get(table)) {
+            if (!visited.contains(dependent)) {
+                if (findCycle(dependent, graph, visited, recursionStack, cyclePath)) {
+                    cyclePath.add(0, table);
+                    return true;
+                }
+            } else if (recursionStack.contains(dependent)) {
+                cyclePath.add(0, table);
+                return true;
+            }
+        }
+
+        recursionStack.remove(table);
+        return false;
     }
 
     public static class add {

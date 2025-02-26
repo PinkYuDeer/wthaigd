@@ -6,44 +6,56 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.annotation.Column;
+import com.pinkyudeer.wthaigd.annotation.Reference;
 import com.pinkyudeer.wthaigd.annotation.Table;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@Table(name = "player_interactions")
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Table(name = "player_interactions")
 public class PlayerInteraction extends BaseRecord {
 
     // 核心关联字段
     @Nonnull
+    @Column(name = "type")
     private InteractionType type; // 互动类型
     @Nonnull
+    @Column(name = "initiator_id")
+    @Reference(referenceType = Reference.Type.PLAYER)
     private UUID initiatorId; // 发起者ID
     @Nonnull
+    @Column(name = "receiver_id")
+    @Reference(referenceType = Reference.Type.PLAYER)
     private UUID receiverId; // 接收者ID
 
     // 关联实体（可选）
     @Nullable
+    @Reference(referenceType = Reference.Type.TASK)
+    @Column(name = "related_task_id")
     private UUID relatedTaskId; // 关联的任务ID
     @Nullable
-    private UUID relatedCommentId; // 关联的评论ID
-    @Nullable
-    private UUID relatedInteractionId; // 关联的互动ID（用于回复）
+    @Column(name = "related_record_id")
+    private UUID relatedRecordId; // 关联的互动ID
 
     // 互动内容
     @Nullable
+    @Column(name = "content")
     private String content; // 留言/私信内容
     @Nonnull
+    @Column(name = "status", defaultValue = "'ACTIVE'")
     private InteractionStatus status = InteractionStatus.ACTIVE; // 互动状态
 
     // 可见性控制
     @Nonnull
+    @Column(name = "visibility", defaultValue = "'FRIENDS'")
     private VisibilityLevel visibility = VisibilityLevel.FRIENDS; // 可见性级别
 
     // 扩展信息
     @Nullable
+    @Column(name = "metadata")
     private String metadata; // 附加数据（如表情包位置、@位置信息等）
 
     public PlayerInteraction(@Nonnull InteractionType type, @Nonnull UUID initiatorId, @Nonnull UUID receiverId,
@@ -95,8 +107,7 @@ public class PlayerInteraction extends BaseRecord {
         private UUID id;
         private LocalDateTime createTime;
         private UUID relatedTaskId;
-        private UUID relatedCommentId;
-        private UUID relatedInteractionId;
+        private UUID relatedRecordId;
         private String content;
         private InteractionStatus status;
         private VisibilityLevel visibility;
@@ -125,13 +136,8 @@ public class PlayerInteraction extends BaseRecord {
             return this;
         }
 
-        public Builder relatedCommentId(UUID val) {
-            relatedCommentId = val;
-            return this;
-        }
-
-        public Builder relatedInteractionId(UUID val) {
-            relatedInteractionId = val;
+        public Builder relatedRecordId(UUID val) {
+            relatedRecordId = val;
             return this;
         }
 
@@ -160,8 +166,7 @@ public class PlayerInteraction extends BaseRecord {
             if (this.id != null) interaction.setId(this.id);
             if (this.createTime != null) interaction.setCreateTime(this.createTime);
             if (this.relatedTaskId != null) interaction.setRelatedTaskId(this.relatedTaskId);
-            if (this.relatedCommentId != null) interaction.setRelatedCommentId(this.relatedCommentId);
-            if (this.relatedInteractionId != null) interaction.setRelatedInteractionId(this.relatedInteractionId);
+            if (this.relatedRecordId != null) interaction.setRelatedRecordId(this.relatedRecordId);
             if (this.content != null) interaction.setContent(this.content);
             if (this.status != null) interaction.setStatus(this.status);
             if (this.visibility != null) interaction.setVisibility(this.visibility);

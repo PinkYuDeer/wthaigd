@@ -7,6 +7,9 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.annotation.Column;
+import com.pinkyudeer.wthaigd.annotation.Reference;
+import com.pinkyudeer.wthaigd.annotation.Table;
 import com.pinkyudeer.wthaigd.task.entity.Team;
 
 import lombok.Data;
@@ -14,34 +17,48 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Table(name = "team_members")
 public class TeamMember extends BaseRecord {
 
     // 核心关联
     @Nonnull
+    @Column(name = "team_id")
+    @Reference(referenceType = Reference.Type.TASK)
     private UUID teamId; // 所属团队ID
     @Nonnull
+    @Column(name = "player_id")
+    @Reference(referenceType = Reference.Type.PLAYER)
     private UUID playerId; // 玩家ID
 
     // 成员属性
     @Nonnull
+    @Column(name = "join_time", defaultValue = "CURRENT_TIMESTAMP")
     private LocalDateTime joinTime = LocalDateTime.now(); // 加入时间
     @Nonnull
+    @Column(name = "role", defaultValue = "'MEMBER'")
     private Team.TeamRole role = Team.TeamRole.MEMBER; // 成员角色
     @Nonnull
+    @Column(name = "status", defaultValue = "'ACTIVE'")
     private MemberStatus status = MemberStatus.ACTIVE; // 成员状态
 
     // 贡献统计
     @Nonnull
+    @Column(name = "completed_tasks", defaultValue = "0")
     private Integer completedTasks = 0; // 完成任务数
     @Nonnull
+    @Column(name = "contribution_points", defaultValue = "0")
     private Long contributionPoints = 0L; // 贡献积分
     @Nonnull
+    @Column(name = "total_duration", defaultValue = "0")
     private Duration totalDuration = Duration.ZERO; // 累计贡献时长
 
     // 操作记录
     @Nullable
+    @Column(name = "last_operation_time")
     private LocalDateTime lastOperationTime; // 最后操作时间
     @Nullable
+    @Column(name = "last_operator_id")
+    @Reference(referenceType = Reference.Type.PLAYER)
     private UUID lastOperatorId; // 最后操作人（用于权限变更记录）
 
     public TeamMember(@Nonnull UUID teamId, @Nonnull UUID playerId, @Nonnull UUID operatorId) {

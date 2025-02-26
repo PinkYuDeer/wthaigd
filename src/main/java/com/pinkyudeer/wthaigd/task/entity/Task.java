@@ -7,6 +7,9 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.annotation.Column;
+import com.pinkyudeer.wthaigd.annotation.FieldCheck;
+import com.pinkyudeer.wthaigd.annotation.Reference;
 import com.pinkyudeer.wthaigd.annotation.Table;
 
 import lombok.Data;
@@ -17,71 +20,105 @@ public class Task {
 
     // task 基础属性
     @Nonnull
+    @FieldCheck(type = FieldCheck.Type.UUID, dataType = UUID.class)
+    @Column(name = "id", isPrimaryKey = true)
     private String id = UUID.randomUUID()
         .toString(); // 任务的唯一标识符，用 UUID
     @Nonnull
+    @Column(name = "title")
     private String title; // 任务标题
     @Nonnull
+    @Column(name = "description")
     private String description; // 任务描述
     @Nonnull
+    @Column(name = "version", defaultValue = "0")
     private Integer version = 0; // 修订次数
     @Nonnull
+    @Column(name = "visibility", defaultValue = "'PRIVATE'")
     private PrivacyLevel visibility = PrivacyLevel.PRIVATE; // 隐私级别（枚举类型）
     @Nullable
+    @Column(name = "task_type")
     private TaskType taskType; // 任务类型
 
     // task 参与者属性
     @Nonnull
+    @Column(name = "creator")
+    @Reference(referenceType = Reference.Type.PLAYER)
     private UUID creator; // 创建者
     @Nullable
+    @Column(name = "assignee_count", defaultValue = "0")
     private Integer assigneeCount; // 负责人个数
     @Nullable
+    @Column(name = "team_id")
+    @Reference(referenceType = Reference.Type.TEAM)
     private UUID teamId; // 所属团队ID
     @Nonnull
+    @Column(name = "follower_count", defaultValue = "0")
     private Integer followerCount = 0; // 关注者数量
     @Nonnull
+    @Column(name = "like_count", defaultValue = "0")
     private Integer likeCount = 0; // 点赞数量
     @Nonnull
+    @Column(name = "comment_count", defaultValue = "0")
     private Integer commentCount = 0; // 评论数量
     @Nullable
+    @Column(name = "last_operator")
+    @Reference(referenceType = Reference.Type.PLAYER)
     private UUID lastOperator; // 最后操作人
 
     // task 状态属性
     @Nonnull
+    @Column(name = "priority", defaultValue = "'UNDEFINED'")
     private Priority priority; // 优先级（枚举类型）
     @Nonnull
+    @Column(name = "importance", defaultValue = "'UNDEFINED'")
     private Importance importance = Importance.UNDEFINED; // 重要程度（枚举类型）
     @Nonnull
+    @Column(name = "urgency", defaultValue = "'UNDEFINED'")
     private Urgency urgency = Urgency.UNDEFINED; // 紧急程度（枚举类型）
     @Nonnull
+    @Column(name = "status", defaultValue = "'UnClaimed'")
     private TaskStatus status = TaskStatus.UnClaimed; // 状态（枚举类型）
 
     // task 时间属性
     @Nonnull
+    @Column(name = "create_time", defaultValue = "CURRENT_TIMESTAMP")
     private LocalDateTime createTime = LocalDateTime.now(); // 创建时间
     @Nullable
+    @Column(name = "start_time")
     private LocalDateTime startTime; // 开始时间.
     @Nullable
+    @Column(name = "end_time")
     private LocalDateTime endTime; // 完成时间
     @Nonnull
+    @Column(name = "update_time", defaultValue = "CURRENT_TIMESTAMP")
     private LocalDateTime updateTime = LocalDateTime.now(); // 更新时间
     @Nullable
+    @Column(name = "deadline")
     private LocalDateTime deadline; // 截止时间
     @Nullable
+    @Column(name = "estimated_duration")
     private Duration estimatedDuration; // 预估耗时
     @Nullable
+    @Column(name = "actual_duration")
     private Duration actualDuration; // 实际耗时
     @Nullable
+    @Column(name = "reminder_time")
     private LocalDateTime reminderTime; // 提醒时间
     @Nullable
+    @Column(name = "recurrence_rule")
     private String recurrenceRule; // 国际标准的RRule,例如"FREQ=WEEKLY;INTERVAL=2;COUNT=5"
     @Nullable
+    @Column(name = "repeat_time")
     private LocalDateTime repeatTime; // 重复时间
     @Nullable
+    @Column(name = "repeat_interval")
     private Duration repeatInterval; // 重复时间间隔
     @Nullable
+    @Column(name = "repeat_end_time")
     private LocalDateTime repeatEndTime; // 重复结束时间
     @Nullable
+    @Column(name = "repeat_count")
     private Integer repeatCount; // 重复次数
 
     // 构造函数

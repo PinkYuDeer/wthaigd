@@ -16,6 +16,7 @@ import java.util.Map;
 import org.sqlite.SQLiteConnection;
 
 import com.pinkyudeer.wthaigd.core.Wthaigd;
+import com.pinkyudeer.wthaigd.task.TaskSqlHelper;
 
 public class SQLiteHelper {
 
@@ -35,6 +36,7 @@ public class SQLiteHelper {
         + ")";
 
     public static void initializeDatabases() {
+        Map<String, List<String>> a = TaskSqlHelper.init.generateAllCreateTableSql();
         try {
             // 初始化内存数据库连接
             inMemoryConnection = DriverManager.getConnection(MEM_DB_URL);
@@ -53,6 +55,7 @@ public class SQLiteHelper {
 
     private static void initializeDatabase() {
         Wthaigd.LOG.info("初始化SQLite数据库");
+
         // 创建数据库表结构
         try (Statement memStmt = inMemoryConnection.createStatement()) {
             memStmt.executeUpdate(CREATE_TASKS_TABLE);
