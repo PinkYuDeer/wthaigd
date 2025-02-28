@@ -1,10 +1,12 @@
 package com.pinkyudeer.wthaigd.loader;
 
+import net.minecraft.item.Item;
+
 import com.pinkyudeer.wthaigd.item.ItemDebugStick;
 import com.pinkyudeer.wthaigd.item.ItemHandViewer;
+
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
-import net.minecraft.item.Item;
 
 public class ItemLoader {
 

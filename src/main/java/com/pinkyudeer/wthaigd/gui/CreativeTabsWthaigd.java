@@ -1,9 +1,10 @@
 package com.pinkyudeer.wthaigd.gui;
 
-import com.pinkyudeer.wthaigd.loader.BlockLoader;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+
+import com.pinkyudeer.wthaigd.loader.BlockLoader;
 
 public class CreativeTabsWthaigd extends CreativeTabs {
 

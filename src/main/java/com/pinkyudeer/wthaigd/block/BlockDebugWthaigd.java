@@ -1,8 +1,9 @@
 package com.pinkyudeer.wthaigd.block;
 
-import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+
+import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
 
 public class BlockDebugWthaigd extends Block {
 

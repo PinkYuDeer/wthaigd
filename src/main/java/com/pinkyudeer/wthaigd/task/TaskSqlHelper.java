@@ -1,17 +1,5 @@
 package com.pinkyudeer.wthaigd.task;
 
-import com.pinkyudeer.wthaigd.annotation.Column;
-import com.pinkyudeer.wthaigd.annotation.FieldCheck;
-import com.pinkyudeer.wthaigd.annotation.Reference;
-import com.pinkyudeer.wthaigd.annotation.Table;
-import com.pinkyudeer.wthaigd.helper.UtilHelper;
-import com.pinkyudeer.wthaigd.task.entity.Player;
-import com.pinkyudeer.wthaigd.task.entity.Tag;
-import com.pinkyudeer.wthaigd.task.entity.Task;
-import com.pinkyudeer.wthaigd.task.entity.Team;
-import org.reflections.Reflections;
-
-import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,7 +12,25 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
+import org.reflections.Reflections;
+
+import com.github.bsideup.jabel.Desugar;
+import com.pinkyudeer.wthaigd.annotation.Column;
+import com.pinkyudeer.wthaigd.annotation.FieldCheck;
+import com.pinkyudeer.wthaigd.annotation.Reference;
+import com.pinkyudeer.wthaigd.annotation.Table;
+import com.pinkyudeer.wthaigd.helper.UtilHelper;
+import com.pinkyudeer.wthaigd.task.entity.Player;
+import com.pinkyudeer.wthaigd.task.entity.Tag;
+import com.pinkyudeer.wthaigd.task.entity.Task;
+import com.pinkyudeer.wthaigd.task.entity.Team;
+
 public class TaskSqlHelper {
+
+    @Desugar
+    public record SqlParameter(String sql, List<Object> parameters) {}
 
     public static class init {
 
@@ -945,8 +951,47 @@ public class TaskSqlHelper {
         return false;
     }
 
+    private static String getTableName(Class<?> clazz) {
+        Table tableAnnotation = clazz.getAnnotation(Table.class);
+        if (tableAnnotation == null) {
+            throw new IllegalArgumentException("Entity must have @Table annotation.");
+        }
+        return tableAnnotation.name();
+    }
+
+    private static String getColumnName(Column columnAnnotation) {
+        if (columnAnnotation.name()
+            .isEmpty()) {
+            throw new IllegalArgumentException("Try to get empty column name from @Column");
+        }
+        return columnAnnotation.name();
+    }
+
     public static class add {
 
+        private static boolean shouldSkipField(Column columnAnnotation, Object value) {
+            if ("".equals(columnAnnotation.defaultValue())) return false;
+
+            String stringValue = convertToString(value);
+            return columnAnnotation.defaultValue()
+                .equals(stringValue);
+        }
+
+        private static String convertToString(Object value) {
+            if (value == null) return "null";
+            // 扩展点：可在此处添加日期/数字等特殊类型处理
+            return value.toString();
+        }
+
+        /**
+         * 根据传入的实体类向数据库插入数据
+         *
+         * @param entity 代表要插入到数据库中的实体类的Class对象
+         * @return 如果插入成功返回true，否则返回false
+         */
+        public static boolean autoInsert(Class<?> entity) {
+            return false;
+        }
     }
 
     public static class delete {

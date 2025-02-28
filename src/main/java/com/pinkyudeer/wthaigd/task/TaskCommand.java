@@ -1,15 +1,13 @@
 package com.pinkyudeer.wthaigd.task;
 
-import com.pinkyudeer.wthaigd.core.Wthaigd;
-import com.pinkyudeer.wthaigd.helper.ConfigHelper;
-import com.pinkyudeer.wthaigd.helper.SQLiteHelper;
+import java.util.List;
+
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import com.pinkyudeer.wthaigd.core.Wthaigd;
+import com.pinkyudeer.wthaigd.helper.ConfigHelper;
 
 public class TaskCommand extends CommandBase {
 
@@ -59,25 +57,6 @@ public class TaskCommand extends CommandBase {
                     case "sql" -> {
                         sender.addChatMessage(new ChatComponentText("进入SQL测试模块..."));
                         Wthaigd.LOG.info("进入SQL测试模块");
-                        if (args.length < 3) {
-                            sender.addChatMessage(new ChatComponentText("用法: /task test sql <SQL语句>"));
-                            return;
-                        }
-                        String sql = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
-                        try {
-                            List<Map<String, Object>> results = SQLiteHelper.executeSQL(sql);
-                            if (!results.isEmpty()) {
-                                sender.addChatMessage(new ChatComponentText("查询结果:"));
-                                for (Map<String, Object> row : results) {
-                                    sender.addChatMessage(new ChatComponentText(row.toString()));
-                                }
-                            }
-                            sender.addChatMessage(new ChatComponentText("SQL执行成功"));
-                            Wthaigd.LOG.info("SQL测试完成");
-                        } catch (Exception e) {
-                            sender.addChatMessage(new ChatComponentText("SQL执行失败: " + e.getMessage()));
-                            Wthaigd.LOG.error("SQL测试失败", e);
-                        }
                     }
                     case "config" -> {
                         sender.addChatMessage(new ChatComponentText("进入配置测试模块..."));

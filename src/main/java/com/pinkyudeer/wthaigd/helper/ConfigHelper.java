@@ -1,17 +1,20 @@
 package com.pinkyudeer.wthaigd.helper;
 
-import com.pinkyudeer.wthaigd.core.Wthaigd;
-import com.pinkyudeer.wthaigd.helper.entity.ConfigEntry;
-import cpw.mods.fml.client.event.ConfigChangedEvent;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Nonnull;
+
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.config.Configuration;
 
-import javax.annotation.Nonnull;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import com.pinkyudeer.wthaigd.core.Wthaigd;
+import com.pinkyudeer.wthaigd.helper.entity.ConfigEntry;
+
+import cpw.mods.fml.client.event.ConfigChangedEvent;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ConfigHelper {
 

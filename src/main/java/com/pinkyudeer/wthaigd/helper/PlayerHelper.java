@@ -1,6 +1,5 @@
 package com.pinkyudeer.wthaigd.helper;
 
-import com.mojang.authlib.GameProfile;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -8,6 +7,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.server.management.UserListOps;
 import net.minecraft.server.management.UserListOpsEntry;
+
+import com.mojang.authlib.GameProfile;
 
 public class PlayerHelper {
 

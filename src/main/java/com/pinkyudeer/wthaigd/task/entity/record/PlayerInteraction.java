@@ -1,15 +1,17 @@
 package com.pinkyudeer.wthaigd.task.entity.record;
 
-import com.pinkyudeer.wthaigd.annotation.Column;
-import com.pinkyudeer.wthaigd.annotation.Reference;
-import com.pinkyudeer.wthaigd.annotation.Table;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.time.LocalDateTime;
-import java.util.UUID;
+
+import com.pinkyudeer.wthaigd.annotation.Column;
+import com.pinkyudeer.wthaigd.annotation.Reference;
+import com.pinkyudeer.wthaigd.annotation.Table;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

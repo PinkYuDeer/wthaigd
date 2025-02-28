@@ -1,19 +1,21 @@
 package com.pinkyudeer.wthaigd.core;
 
-import com.pinkyudeer.wthaigd.helper.ModFileHelper;
-import com.pinkyudeer.wthaigd.helper.SQLiteHelper;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.stats.StatisticsFile;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
+import com.pinkyudeer.wthaigd.helper.ModFileHelper;
+import com.pinkyudeer.wthaigd.helper.SQLiteHelper;
+
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
 
 public class EventHandler {
 
