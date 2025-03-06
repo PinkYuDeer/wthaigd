@@ -11,7 +11,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.config.Configuration;
 
 import com.pinkyudeer.wthaigd.core.Wthaigd;
-import com.pinkyudeer.wthaigd.helper.entity.ConfigEntry;
+import com.pinkyudeer.wthaigd.entity.helper.ConfigEntry;
 
 import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;

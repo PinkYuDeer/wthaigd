@@ -1,15 +1,15 @@
-package com.pinkyudeer.wthaigd.helper.entity;
+package com.pinkyudeer.wthaigd.entity.helper;
 
 import net.minecraftforge.common.config.Configuration;
 
 public abstract class ConfigEntry<T> {
 
     public final String key; // 配置项的唯一标识符
-    public String category; // 配置项所属的类别
+    public final String category; // 配置项所属的类别
     public T value; // 配置项的值
-    public String comment; // 配置项的描述
-    public String langKey; // 配置项的国际化键
-    public T defaultValue; // 配置项的默认值
+    public final String comment; // 配置项的描述
+    public final String langKey; // 配置项的国际化键
+    public final T defaultValue; // 配置项的默认值
 
     ConfigEntry(String key, T defaultValue, String comment, String langKey) {
         this.key = key;

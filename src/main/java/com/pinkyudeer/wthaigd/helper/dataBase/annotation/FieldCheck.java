@@ -1,4 +1,4 @@
-package com.pinkyudeer.wthaigd.annotation;
+package com.pinkyudeer.wthaigd.helper.dataBase.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -20,14 +20,11 @@ public @interface FieldCheck {
 
     String max() default ""; // 默认无最大值
 
-    // 字符串长度
-    int minLength() default -1; // 默认无最小长度
-
-    // 正则表达式
-    String regex() default ""; // 用于字符串字段
-
     // 数据类型校验类型
     Type type(); // 默认校验字段是否为空
+
+    // GLOB
+    String glob() default ""; // 默认无GLOB
 
     // 不同的校验类型
     enum Type {
@@ -35,9 +32,9 @@ public @interface FieldCheck {
         MIN, // 最小值
         MAX, // 最大值
         RANGE, // 范围
-        REGEX, // 正则表达式
-        LENGTH, // 字符串长度
-        UUID, // 字符串长度
+        GLOB, // GLOB子句
+        LENGTH, // 字符串长度（用范围）
+        UUID, // UUID（36位长度校验）
         ENUM // 枚举值
     }
 }

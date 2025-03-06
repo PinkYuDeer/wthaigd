@@ -11,7 +11,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
 import com.pinkyudeer.wthaigd.helper.ModFileHelper;
-import com.pinkyudeer.wthaigd.helper.SQLiteHelper;
+import com.pinkyudeer.wthaigd.helper.dataBase.SQLiteManager;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -54,7 +54,7 @@ public class EventHandler {
             }
             ModFileHelper.updateModWorldDir(currentWorldDir);
 
-            SQLiteHelper.initializeDatabases();
+            SQLiteManager.initSqlite();
         }
 
         @SubscribeEvent
@@ -63,7 +63,7 @@ public class EventHandler {
 
             ModFileHelper.updateModWorldDir(null);
 
-            SQLiteHelper.close();
+            SQLiteManager.close();
         }
 
         @SubscribeEvent
@@ -72,7 +72,7 @@ public class EventHandler {
 
             Wthaigd.LOG.info("World save event triggered");
 
-            SQLiteHelper.saveDataFromMemoryToFile();
+            SQLiteManager.saveDataFromMemoryToFile();
         }
     }
 

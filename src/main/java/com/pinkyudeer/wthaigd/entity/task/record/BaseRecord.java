@@ -1,12 +1,12 @@
-package com.pinkyudeer.wthaigd.task.entity.record;
+package com.pinkyudeer.wthaigd.entity.task.record;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
-import com.pinkyudeer.wthaigd.annotation.Column;
-import com.pinkyudeer.wthaigd.annotation.FieldCheck;
+import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
+import com.pinkyudeer.wthaigd.helper.dataBase.annotation.FieldCheck;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,4 +1,4 @@
-package com.pinkyudeer.wthaigd.annotation;
+package com.pinkyudeer.wthaigd.helper.dataBase.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

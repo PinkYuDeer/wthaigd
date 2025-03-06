@@ -1,4 +1,4 @@
-package com.pinkyudeer.wthaigd.block;
+package com.pinkyudeer.wthaigd.entity.inGame.block;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;

@@ -1,4 +1,4 @@
-package com.pinkyudeer.wthaigd.task.entity.record;
+package com.pinkyudeer.wthaigd.entity.task.record;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -7,10 +7,10 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.pinkyudeer.wthaigd.annotation.Column;
-import com.pinkyudeer.wthaigd.annotation.Reference;
-import com.pinkyudeer.wthaigd.annotation.Table;
-import com.pinkyudeer.wthaigd.task.entity.Team;
+import com.pinkyudeer.wthaigd.entity.task.Team;
+import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
+import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Reference;
+import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Table;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

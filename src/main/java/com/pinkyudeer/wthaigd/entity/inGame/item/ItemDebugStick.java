@@ -1,4 +1,4 @@
-package com.pinkyudeer.wthaigd.item;
+package com.pinkyudeer.wthaigd.entity.inGame.item;
 
 import net.minecraft.item.Item;
 
