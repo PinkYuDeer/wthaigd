@@ -16,6 +16,7 @@ import javax.annotation.Nonnull;
 
 import org.reflections.Reflections;
 
+import com.github.bsideup.jabel.Desugar;
 import com.pinkyudeer.wthaigd.entity.task.Player;
 import com.pinkyudeer.wthaigd.entity.task.Tag;
 import com.pinkyudeer.wthaigd.entity.task.Task;
@@ -28,6 +29,7 @@ import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Table;
 
 public class TaskSqlHelper {
 
+    @Desugar
     public record SqlParameter(String sql, List<Object> parameters) {
 
         @Override
