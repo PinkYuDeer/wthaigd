@@ -21,6 +21,7 @@ import com.pinkyudeer.wthaigd.task.TaskSqlHelper;
 /**
  * SQLite 数据库管理类。
  * 负责连接、执行 SQL 和关闭数据库。
+ * 该类使用内存数据库作为缓存，并在需要时将数据持久化到文件。
  */
 public class SQLiteManager {
 
@@ -33,6 +34,7 @@ public class SQLiteManager {
     /**
      * 初始化内存数据库。
      * 若文件数据库存在则加载数据，否则创建新数据库。
+     *
      */
     public static void initSqlite() {
         try {
@@ -52,19 +54,22 @@ public class SQLiteManager {
 
     /**
      * 初始化新数据库并保存到文件。
+     * 创建必要的表结构并初始化基础数据。
      */
     private static void initNewDataBase() {
         Wthaigd.LOG.info("初始化新 SQLite 数据库");
 
         // 在这里添加初始化 SQL 语句
-        Map<String, List<Object>> stringListMap = executeAllSqlInMap(TaskSqlHelper.init.generateAllCreateTableSql());
-        Wthaigd.LOG.info("初始化结果: {}", stringListMap);// TODO: 这里的日志输出在正式发布前删除
+        TaskSqlHelper.initTaskDataBase();
 
         saveDataFromMemoryToFile();
     }
 
     /**
      * 从文件加载数据到内存数据库。
+     * 将持久化存储的数据恢复到内存中。
+     *
+     * @throws RuntimeException 当数据加载失败时抛出
      */
     private static void loadDataFromFileToMemory() {
         Wthaigd.LOG.info("加载文件数据到内存");
@@ -85,6 +90,9 @@ public class SQLiteManager {
 
     /**
      * 将内存数据库保存到文件。
+     * 将当前内存中的数据持久化到磁盘。
+     *
+     * @throws RuntimeException 当数据保存失败时抛出
      */
     public static void saveDataFromMemoryToFile() {
         if (!isWorldLoaded) return;
@@ -107,6 +115,7 @@ public class SQLiteManager {
 
     /**
      * 关闭数据库连接。
+     * 在关闭前会保存当前内存中的数据到文件。
      */
     public static void close() {
         saveDataFromMemoryToFile();
@@ -124,7 +133,8 @@ public class SQLiteManager {
     /**
      * 执行无参数 SQL。
      *
-     * @param sql SQL 语句
+     * @param sql    SQL 语句
+     * @param params SQL 参数列表
      * @return 执行结果, 若为查询则返回 ResultSet, 否则返回影响的行数
      */
     @SuppressWarnings("SqlSourceToSinkFlow")
@@ -163,7 +173,12 @@ public class SQLiteManager {
         return result;
     }
 
-    // 工具方法：解包 SQLiteConnection
+    /**
+     * 解包 SQLiteConnection。
+     *
+     * @return SQLiteConnection 实例
+     * @throws RuntimeException 当解包失败时抛出
+     */
     private static SQLiteConnection unwrapConnection() {
         try {
             return inMemoryConnection.unwrap(SQLiteConnection.class);
@@ -172,7 +187,13 @@ public class SQLiteManager {
         }
     }
 
-    // 工具方法：设置 PreparedStatement 参数
+    /**
+     * 设置 PreparedStatement 参数。
+     *
+     * @param ps     PreparedStatement 实例
+     * @param params 参数列表
+     * @throws SQLException 当设置参数失败时抛出
+     */
     private static void setParameters(PreparedStatement ps, List<Object> params) throws SQLException {
         if (params != null) {
             for (int i = 0; i < params.size(); i++) {

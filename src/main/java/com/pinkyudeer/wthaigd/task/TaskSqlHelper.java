@@ -1,496 +1,467 @@
 package com.pinkyudeer.wthaigd.task;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.sql.ResultSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
-
-import javax.annotation.Nonnull;
 
 import org.reflections.Reflections;
 
-import com.github.bsideup.jabel.Desugar;
+import com.pinkyudeer.wthaigd.core.Wthaigd;
 import com.pinkyudeer.wthaigd.entity.task.Player;
 import com.pinkyudeer.wthaigd.entity.task.Tag;
 import com.pinkyudeer.wthaigd.entity.task.Task;
 import com.pinkyudeer.wthaigd.entity.task.Team;
-import com.pinkyudeer.wthaigd.helper.UtilHelper;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.FieldCheck;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Reference;
+import com.pinkyudeer.wthaigd.entity.task.record.Notification;
+import com.pinkyudeer.wthaigd.entity.task.record.StatusChangeRecord;
+import com.pinkyudeer.wthaigd.entity.task.record.TagLink;
+import com.pinkyudeer.wthaigd.entity.task.record.TaskInteraction;
+import com.pinkyudeer.wthaigd.entity.task.record.TeamMember;
+import com.pinkyudeer.wthaigd.helper.dataBase.SQLHelper;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Table;
 
+/**
+ * 任务系统数据库操作助手类
+ * 提供任务相关实体的CRUD操作
+ */
 public class TaskSqlHelper {
 
-    @Desugar
-    public record SqlParameter(String sql, List<Object> parameters) {
-
-        @Override
-        public String toString() {
-            return "SqlParameter[" + "sql=" + sql + ", " + "parameters=" + parameters + ']';
+    /**
+     * 初始化任务数据库
+     * 扫描并创建所有任务相关的表
+     */
+    public static void initTaskDataBase() {
+        Reflections reflections = new Reflections("com.pinkyudeer.wthaigd.task.entity");
+        Set<Class<?>> annotatedClasses = reflections.getTypesAnnotatedWith(Table.class);
+        if (SQLHelper.createTables(annotatedClasses)
+            .execute() == 0) {
+            throw new RuntimeException("初始化数据库失败");
         }
+        Wthaigd.LOG.info("初始化任务数据库，共创建 {} 张表", annotatedClasses.size());
     }
 
-    public static class init {
-
-        // 根据注解生成相应的 SQLite CHECK 约束
-        public static String generateCheckConstraint(Field field, String columnName) {
-            StringBuilder checkConstraint = new StringBuilder();
-
-            // 获取javax.annotation.Nonnull注解
-            if (field.getAnnotation(javax.annotation.Nonnull.class) != null) {
-                checkConstraint.append("NOT NULL ");
-            }
-
-            // 获取 FieldCheck 注解
-            FieldCheck fieldCheck = field.getAnnotation(FieldCheck.class);
-            if (fieldCheck == null) return "";
-
-            // 针对不同类型的校验
-            switch (fieldCheck.type()) {
-                case NOT_VALUE:
-                    checkConstraint.append("CHECK(")
-                        .append(columnName)
-                        .append(" != ")
-                        .append(fieldCheck.notValue())
-                        .append(")");
-                    break;
-                case MIN:
-                    checkConstraint.append("CHECK(")
-                        .append(columnName)
-                        .append(" >= ")
-                        .append(fieldCheck.min())
-                        .append(")");
-                    break;
-                case MAX:
-                    checkConstraint.append("CHECK(")
-                        .append(columnName)
-                        .append(" <= ")
-                        .append(fieldCheck.max())
-                        .append(")");
-                    break;
-                case RANGE:
-                    checkConstraint.append("CHECK(")
-                        .append(columnName)
-                        .append(" BETWEEN ")
-                        .append(fieldCheck.min())
-                        .append(" AND ")
-                        .append(fieldCheck.max())
-                        .append(")");
-                    break;
-                case GLOB:
-                    checkConstraint.append("CHECK(")
-                        .append(columnName)
-                        .append(" GLOB '")
-                        .append(fieldCheck.glob())
-                        .append("')");
-                    break;
-                case LENGTH:
-                    checkConstraint.append("CHECK(LENGTH(")
-                        .append(columnName)
-                        .append(") >= ")
-                        .append(fieldCheck.min())
-                        .append(" AND LENGTH(")
-                        .append(columnName)
-                        .append(") <= ")
-                        .append(fieldCheck.max())
-                        .append(")");
-                    break;
-                case UUID:
-                    checkConstraint.append("CHECK(LENGTH(")
-                        .append(columnName)
-                        .append(") = 36)");
-                    break;
-                case ENUM:
-                    if (fieldCheck.dataType()
-                        .isEnum()) {
-                        // 对于枚举类型，可以检查是否在指定的值中
-                        checkConstraint.append("CHECK(")
-                            .append(columnName)
-                            .append(" IN (")
-                            .append(getEnumValues(fieldCheck.dataType()))
-                            .append("))");
-                    }
-                    break;
-            }
-
-            return checkConstraint.toString();
-        }
-
-        // 约束
-        private static String generateIdReferences(Field field, Map<String, List<String>> tableRefMap,
-            String tableName) {
-            Reference reference = field.getAnnotation(Reference.class);
-            if (reference == null) return null;
-
-            StringBuilder references = new StringBuilder();
-            references.append("FOREIGN KEY(")
-                .append(field.getName())
-                .append(") REFERENCES ");
-
-            String referencedTableName = getReferencedTableName(reference);
-            references.append(referencedTableName);
-            references.append("(id) ON DELETE CASCADE ON UPDATE CASCADE;");
-
-            // 更新引用关系映射
-            List<String> referencingTables = tableRefMap.computeIfAbsent(referencedTableName, k -> new ArrayList<>());
-            if (!referencingTables.contains(tableName)) {
-                referencingTables.add(tableName);
-            }
-            return references.toString();
-        }
-
-        // 获取枚举类的值
-        private static String getEnumValues(Class<?> enumClass) {
-            if (!enumClass.isEnum()) {
-                throw new IllegalArgumentException("Provided class is not an Enum");
-            }
-
-            StringBuilder values = new StringBuilder();
-            for (Object enumConstant : enumClass.getEnumConstants()) {
-                values.append("'")
-                    .append(((Enum<?>) enumConstant).name())
-                    .append("', ");
-            }
-
-            // 去掉最后的逗号和空格
-            return !(values.length() == 0) ? values.substring(0, values.length() - 2) : "";
-        }
-
-        // 生成 CREATE TABLE SQL
-        public static Map<String, List<String>> generateCreateTableSql(Class<?> clazz,
-            Map<String, List<String>> tableRefMap) {
-            Table table = clazz.getAnnotation(Table.class);
-            if (table == null) {
-                return null;
-            }
-            StringBuilder sql = new StringBuilder("CREATE TABLE IF NOT EXISTS ");
-            String tableName = table.name();
-            sql.append(tableName)
-                .append(" (");
-
-            List<String> columnDefinitions = new ArrayList<>(); // 列定义构造器
-            List<Field> refer = new ArrayList<>(); // 有外键约束的字段
-            List<String> createTableSqlList = new ArrayList<>(); // 创建表语句列表
-            // 索引映射，String为索引名称，List<String>为所在索引列表。
-            Map<String, List<String>> indexMap = new HashMap<>();
-
-            try {
-                for (Field field : UtilHelper.getAllFieldsReverse(clazz)) {
-                    Column column = field.getAnnotation(Column.class);
-                    if (column == null) continue;
-                    String columnName = column.name();
-                    StringBuilder columnDefinition = new StringBuilder();
-                    columnDefinition.append(columnName)
-                        .append(" ");
-
-                    // 根据字段类型生成 SQLite 数据类型
-                    switch (field.getType()
-                        .getSimpleName()) {
-                        case "String":
-                        case "UUID":
-                            columnDefinition.append("TEXT");
-                            break;
-                        case "int":
-                        case "Integer":
-                            columnDefinition.append("INTEGER");
-                            break;
-                        case "long":
-                        case "Long":
-                            columnDefinition.append("BIGINT");
-                            break;
-                        case "double":
-                        case "Double":
-                        case "Duration":
-                            columnDefinition.append("REAL");
-                            break;
-                        case "boolean":
-                        case "Boolean":
-                            columnDefinition.append("BOOLEAN");
-                            break;
-                        case "Date":
-                        case "LocalDateTime":
-                            columnDefinition.append("TIMESTAMP");
-                            break;
-                        default:
-                            if (field.getType()
-                                .isEnum()) {
-                                columnDefinition.append("TEXT");
-                            } else {
-                                throw new IllegalArgumentException("Unsupported field type: " + field.getType());
-                            }
-                            break;
-                    }
-
-                    // 如果column中的defaultValue不为空，则添加默认值
-                    if (!"".equals(column.defaultValue())) {
-                        columnDefinition.append(" DEFAULT ")
-                            .append(column.defaultValue());
-                    }
-
-                    // 获取字段的检查约束
-                    String checkConstraint = generateCheckConstraint(field, columnName);
-                    if (!checkConstraint.isEmpty()) {
-                        columnDefinition.append(" ")
-                            .append(checkConstraint);
-                    }
-                    columnDefinitions.add(columnDefinition.toString());
-
-                    // 检查字段是否有外键约束
-                    if (generateIdReferences(field, tableRefMap, tableName) != null) {
-                        refer.add(field);
-                    }
-
-                    // 检查字段是否有唯一约束
-                    if (column.isUnique()) {
-                        columnDefinitions.add(" UNIQUE");
-                    }
-
-                    // 检查字段是否有主键约束
-                    if (column.isPrimaryKey()) {
-                        columnDefinitions.add(" PRIMARY KEY");
-                    }
-
-                    // 检查字段是否有索引
-                    if (column.index().length > 0) {
-                        indexMap.put(columnName, Arrays.asList(column.index()));
-                    }
-                }
-            } catch (Exception e) {
-                throw new RuntimeException("Error generating table SQL for " + clazz.getName(), e);
-            }
-
-            sql.append(String.join(", ", columnDefinitions));
-            sql.append(");");
-            createTableSqlList.add(sql.toString());
-
-            // 添加外键约束
-            for (Field field : refer) {
-                String foreignKey = generateIdReferences(field, tableRefMap, tableName);
-                if (foreignKey != null) {
-                    createTableSqlList.add(foreignKey);
-                }
-            }
-
-            // 添加索引
-            Map<String, List<String>> indexMapReverse = new HashMap<>();
-            for (Map.Entry<String, List<String>> entry : indexMap.entrySet()) {
-                String columnName = entry.getKey();
-                List<String> indexNames = entry.getValue();
-                for (String indexName : indexNames) {
-                    indexMapReverse.computeIfAbsent(indexName, k -> new ArrayList<>())
-                        .add(columnName);
-                }
-            }
-            for (Map.Entry<String, List<String>> entry : indexMapReverse.entrySet()) {
-                String indexName = entry.getKey();
-                List<String> columns = entry.getValue();
-                createTableSqlList.add(
-                    "CREATE INDEX IF NOT EXISTS " + indexName
-                        + " ON "
-                        + tableName
-                        + "("
-                        + String.join(", ", columns)
-                        + ");");
-            }
-
-            Map<String, List<String>> createTableSql = new HashMap<>();
-            createTableSql.put(tableName, createTableSqlList);
-            return createTableSql;
-        }
-
-        // 扫描task.entity包下的所有类generateCreateTableSql
-        public static Map<String, List<String>> generateAllCreateTableSql() {
-            // 使用 Reflections 库扫描指定包
-            Reflections reflections = new Reflections("com.pinkyudeer.wthaigd.task.entity");
-            Set<Class<?>> annotatedClasses = reflections.getTypesAnnotatedWith(Table.class);
-            Map<String, List<String>> createTableSqlList = new HashMap<>();
-            Map<String, List<String>> tableRefMap = new HashMap<>();
-            for (Class<?> clazz : annotatedClasses) {
-                Map<String, List<String>> createTableSql = generateCreateTableSql(clazz, tableRefMap);
-                if (createTableSql != null) {
-                    createTableSqlList.putAll(createTableSql);
-                }
-            }
-            createTableSqlList = sortSqlListByRef(tableRefMap, createTableSqlList);
-            return createTableSqlList;
-        }
+    /**
+     * 创建实体操作构建器
+     * 
+     * @param entity 实体对象
+     * @param <T>    实体类型
+     * @return 操作构建器
+     */
+    public static <T> EntityBuilder<T> entity(T entity) {
+        return new EntityBuilder<>(entity);
     }
 
-    @Nonnull
-    private static Map<String, List<String>> sortSqlListByRef(Map<String, List<String>> tableRefMap,
-        Map<String, List<String>> createTableSqlList) {
-        // 根据依赖关系对建表语句进行排序
-        Map<String, Integer> inDegree = new HashMap<>(); // 记录每个表的入度
-        Map<String, List<String>> graph = new HashMap<>(); // 邻接表表示依赖图
-
-        // 初始化入度和邻接表
-        for (Map.Entry<String, List<String>> entry : tableRefMap.entrySet()) {
-            String table = entry.getKey();
-            inDegree.putIfAbsent(table, 0);
-            graph.putIfAbsent(table, new ArrayList<>());
-
-            for (String dependent : entry.getValue()) {
-                inDegree.putIfAbsent(dependent, 0);
-                graph.putIfAbsent(dependent, new ArrayList<>());
-                graph.get(table)
-                    .add(dependent);
-                inDegree.put(dependent, inDegree.get(dependent) + 1);
-            }
-        }
-
-        // 拓扑排序
-        Queue<String> queue = new LinkedList<>();
-        List<String> sortedTables = new ArrayList<>();
-
-        // 将入度为0的表加入队列
-        for (Map.Entry<String, Integer> entry : inDegree.entrySet()) {
-            if (entry.getValue() == 0) {
-                queue.offer(entry.getKey());
-            }
-        }
-
-        while (!queue.isEmpty()) {
-            String table = queue.poll();
-            sortedTables.add(table);
-
-            for (String dependent : graph.get(table)) {
-                inDegree.put(dependent, inDegree.get(dependent) - 1);
-                if (inDegree.get(dependent) == 0) {
-                    queue.offer(dependent);
-                }
-            }
-        }
-        // 检查是否存在循环依赖
-        if (sortedTables.size() != inDegree.size()) {
-            // 找出循环依赖的具体路径
-            List<String> cyclePath = new ArrayList<>();
-            Set<String> visited = new HashSet<>();
-            Set<String> recursionStack = new HashSet<>();
-
-            // 从未处理的节点中找出循环
-            for (String table : inDegree.keySet()) {
-                if (!sortedTables.contains(table)) {
-                    findCycle(table, graph, visited, recursionStack, cyclePath);
-                    if (!cyclePath.isEmpty()) {
-                        // 将循环路径格式化为字符串
-                        String cycleStr = String.join(" -> ", cyclePath) + " -> " + cyclePath.get(0);
-                        throw new IllegalStateException("检测到循环依赖关系,循环路径为: " + cycleStr);
-                    }
-                }
-            }
-            throw new IllegalStateException("检测到循环依赖关系,请检查表之间的外键引用");
-        }
-
-        // 按照排序后的顺序重新组织建表语句
-        Map<String, List<String>> sortedCreateTableSqlList = new LinkedHashMap<>();
-        for (String tableName : sortedTables) {
-            if (createTableSqlList.containsKey(tableName)) {
-                sortedCreateTableSqlList.put(tableName, createTableSqlList.get(tableName));
-            }
-        }
-
-        // 将不在依赖关系中的表添加到最后
-        for (String tableName : createTableSqlList.keySet()) {
-            if (!sortedCreateTableSqlList.containsKey(tableName)) {
-                sortedCreateTableSqlList.put(tableName, createTableSqlList.get(tableName));
-            }
-        }
-        createTableSqlList = sortedCreateTableSqlList;
-        return createTableSqlList;
+    /**
+     * 创建批量操作构建器
+     * 
+     * @param entities 实体列表
+     * @param <T>      实体类型
+     * @return 批量操作构建器
+     */
+    public static <T> BatchBuilder<T> batch(List<T> entities) {
+        return new BatchBuilder<>(entities);
     }
 
-    private static String getReferencedTableName(Reference reference) {
-        Reference.Type ref_type = reference.referenceType();
-        return switch (ref_type) {
-            case PLAYER -> Player.class.getAnnotation(Table.class)
-                .name();
-            case TEAM -> Team.class.getAnnotation(Table.class)
-                .name();
-            case TASK -> Task.class.getAnnotation(Table.class)
-                .name();
-            case TAG -> Tag.class.getAnnotation(Table.class)
-                .name();
-        };
+    /**
+     * 创建查询构建器
+     * 
+     * @param entityClass 实体类
+     * @param <T>         实体类型
+     * @return 查询构建器
+     */
+    public static <T> QueryBuilder<T> query(Class<T> entityClass) {
+        return new QueryBuilder<>(entityClass);
     }
 
-    private static boolean findCycle(String table, Map<String, List<String>> graph, Set<String> visited,
-        Set<String> recursionStack, List<String> cyclePath) {
-        visited.add(table);
-        recursionStack.add(table);
+    /**
+     * 实体操作构建器
+     * 支持单个实体的CRUD操作
+     */
+    public static class EntityBuilder<T> {
 
-        for (String dependent : graph.get(table)) {
-            if (!visited.contains(dependent)) {
-                if (findCycle(dependent, graph, visited, recursionStack, cyclePath)) {
-                    cyclePath.add(0, table);
-                    return true;
-                }
-            } else if (recursionStack.contains(dependent)) {
-                cyclePath.add(0, table);
-                return true;
-            }
-        }
+        private final T entity;
 
-        recursionStack.remove(table);
-        return false;
-    }
-
-    private static String getTableName(Class<?> clazz) {
-        Table tableAnnotation = clazz.getAnnotation(Table.class);
-        if (tableAnnotation == null) {
-            throw new IllegalArgumentException("Entity must have @Table annotation.");
-        }
-        return tableAnnotation.name();
-    }
-
-    private static String getColumnName(Column columnAnnotation) {
-        if (columnAnnotation.name()
-            .isEmpty()) {
-            throw new IllegalArgumentException("Try to get empty column name from @Column");
-        }
-        return columnAnnotation.name();
-    }
-
-    public static class add {
-
-        private static boolean shouldSkipField(Column columnAnnotation, Object value) {
-            if ("".equals(columnAnnotation.defaultValue())) return false;
-
-            String stringValue = convertToString(value);
-            return columnAnnotation.defaultValue()
-                .equals(stringValue);
-        }
-
-        private static String convertToString(Object value) {
-            if (value == null) return "null";
-            // 扩展点：可在此处添加日期/数字等特殊类型处理
-            return value.toString();
+        private EntityBuilder(T entity) {
+            this.entity = entity;
         }
 
         /**
-         * 根据传入的实体类向数据库插入数据
-         *
-         * @param entity 代表要插入到数据库中的实体类的Class对象
-         * @return 如果插入成功返回true，否则返回false
+         * 创建实体
+         * 
+         * @return 受影响的行数
          */
-        public static boolean autoInsert(Class<?> entity) {
-            return false;
+        public Integer create() {
+            return SQLHelper.insert(entity)
+                .execute();
+        }
+
+        /**
+         * 根据ID更新实体
+         * 
+         * @return 受影响的行数
+         */
+        public Integer updateById() {
+            return SQLHelper.update(entity)
+                .byId()
+                .execute();
+        }
+
+        /**
+         * 根据条件更新实体
+         * 
+         * @param conditions 更新条件
+         * @return 受影响的行数
+         */
+        @SafeVarargs
+        public final Integer update(QueryCondition<T>... conditions) {
+            if (conditions == null || conditions.length == 0) {
+                throw new IllegalArgumentException("更新条件不能为空");
+            }
+            T updateEntity = entity;
+            for (QueryCondition<T> condition : conditions) {
+                if (condition == null) {
+                    throw new IllegalArgumentException("更新条件不能为null");
+                }
+                condition.apply(updateEntity);
+            }
+            return SQLHelper.update(updateEntity)
+                .execute();
+        }
+
+        /**
+         * 根据ID删除实体
+         * 
+         * @return 受影响的行数
+         */
+        public Integer deleteById() {
+            return SQLHelper.delete(entity)
+                .byId()
+                .execute();
+        }
+
+        /**
+         * 根据条件删除实体
+         * 
+         * @param conditions 删除条件
+         * @return 受影响的行数
+         */
+        @SafeVarargs
+        public final Integer delete(QueryCondition<T>... conditions) {
+            if (conditions == null || conditions.length == 0) {
+                throw new IllegalArgumentException("删除条件不能为空");
+            }
+            T deleteEntity = entity;
+            for (QueryCondition<T> condition : conditions) {
+                if (condition == null) {
+                    throw new IllegalArgumentException("删除条件不能为null");
+                }
+                condition.apply(deleteEntity);
+            }
+            return SQLHelper.delete(deleteEntity)
+                .execute();
+        }
+
+        /**
+         * 查询实体
+         * 
+         * @return 查询结果
+         */
+        public ResultSet query() {
+            return SQLHelper.select(entity)
+                .execute();
         }
     }
 
-    public static class delete {
+    /**
+     * 批量操作构建器
+     * 支持多个实体的批量操作
+     */
+    public static class BatchBuilder<T> {
+
+        private final List<T> entities;
+
+        private BatchBuilder(List<T> entities) {
+            this.entities = entities;
+        }
+
+        /**
+         * 批量创建实体
+         * 
+         * @return 受影响的总行数
+         */
+        public Integer create() {
+            return entities.stream()
+                .mapToInt(
+                    entity -> SQLHelper.insert(entity)
+                        .execute())
+                .sum();
+        }
+
+        /**
+         * 批量根据ID更新实体
+         * 
+         * @return 受影响的总行数
+         */
+        public Integer updateById() {
+            return entities.stream()
+                .mapToInt(
+                    entity -> SQLHelper.update(entity)
+                        .byId()
+                        .execute())
+                .sum();
+        }
+
+        /**
+         * 批量根据条件更新实体
+         * 
+         * @param conditions 更新条件
+         * @return 受影响的总行数
+         */
+        @SafeVarargs
+        public final Integer update(QueryCondition<T>... conditions) {
+            if (conditions == null || conditions.length == 0) {
+                throw new IllegalArgumentException("更新条件不能为空");
+            }
+            return entities.stream()
+                .mapToInt(entity -> {
+                    for (QueryCondition<T> condition : conditions) {
+                        if (condition == null) {
+                            throw new IllegalArgumentException("更新条件不能为null");
+                        }
+                        condition.apply(entity);
+                    }
+                    return SQLHelper.update(entity)
+                        .execute();
+                })
+                .sum();
+        }
+
+        /**
+         * 批量根据ID删除实体
+         * 
+         * @return 受影响的总行数
+         */
+        public Integer deleteById() {
+            return entities.stream()
+                .mapToInt(
+                    entity -> SQLHelper.delete(entity)
+                        .byId()
+                        .execute())
+                .sum();
+        }
+
+        /**
+         * 批量根据条件删除实体
+         * 
+         * @param conditions 删除条件
+         * @return 受影响的总行数
+         */
+        @SafeVarargs
+        public final Integer delete(QueryCondition<T>... conditions) {
+            if (conditions == null || conditions.length == 0) {
+                throw new IllegalArgumentException("删除条件不能为空");
+            }
+            return entities.stream()
+                .mapToInt(entity -> {
+                    for (QueryCondition<T> condition : conditions) {
+                        if (condition == null) {
+                            throw new IllegalArgumentException("删除条件不能为null");
+                        }
+                        condition.apply(entity);
+                    }
+                    return SQLHelper.delete(entity)
+                        .execute();
+                })
+                .sum();
+        }
     }
 
-    public static class update {
+    /**
+     * 查询构建器
+     * 支持复杂的查询条件构建
+     */
+    public static class QueryBuilder<T> {
+
+        private final T queryEntity;
+
+        private QueryBuilder(Class<T> entityClass) {
+            try {
+                this.queryEntity = entityClass.getDeclaredConstructor()
+                    .newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException("无法创建查询实体实例", e);
+            }
+        }
+
+        /**
+         * 设置查询条件
+         * 
+         * @param condition 查询条件
+         * @return 当前构建器
+         */
+        public QueryBuilder<T> where(QueryCondition<T> condition) {
+            condition.apply(queryEntity);
+            return this;
+        }
+
+        /**
+         * 执行查询
+         * 
+         * @return 查询结果数量
+         */
+        public ResultSet execute() {
+            return SQLHelper.select(queryEntity)
+                .execute();
+        }
     }
 
-    public static class select {
+    /**
+     * 查询条件接口
+     */
+    @FunctionalInterface
+    public interface QueryCondition<T> {
+
+        void apply(T entity);
+    }
+
+    /**
+     * 便捷方法集合
+     * 提供各种实体的便捷操作方法
+     */
+    public static class ConvenienceMethods {
+
+        public static class Tasks {
+
+            public static EntityBuilder<Task> of(Task task) {
+                return entity(task);
+            }
+
+            public static BatchBuilder<Task> batch(List<Task> tasks) {
+                return TaskSqlHelper.batch(tasks);
+            }
+
+            public static QueryBuilder<Task> query() {
+                return TaskSqlHelper.query(Task.class);
+            }
+        }
+
+        public static class Players {
+
+            public static EntityBuilder<Player> of(Player player) {
+                return entity(player);
+            }
+
+            public static BatchBuilder<Player> batch(List<Player> players) {
+                return TaskSqlHelper.batch(players);
+            }
+
+            public static QueryBuilder<Player> query() {
+                return TaskSqlHelper.query(Player.class);
+            }
+        }
+
+        public static class Teams {
+
+            public static EntityBuilder<Team> of(Team team) {
+                return entity(team);
+            }
+
+            public static BatchBuilder<Team> batch(List<Team> teams) {
+                return TaskSqlHelper.batch(teams);
+            }
+
+            public static QueryBuilder<Team> query() {
+                return TaskSqlHelper.query(Team.class);
+            }
+        }
+
+        public static class Tags {
+
+            public static EntityBuilder<Tag> of(Tag tag) {
+                return entity(tag);
+            }
+
+            public static BatchBuilder<Tag> batch(List<Tag> tags) {
+                return TaskSqlHelper.batch(tags);
+            }
+
+            public static QueryBuilder<Tag> query() {
+                return TaskSqlHelper.query(Tag.class);
+            }
+        }
+
+        public static class TaskInteractions {
+
+            public static EntityBuilder<TaskInteraction> of(TaskInteraction interaction) {
+                return entity(interaction);
+            }
+
+            public static BatchBuilder<TaskInteraction> batch(List<TaskInteraction> interactions) {
+                return TaskSqlHelper.batch(interactions);
+            }
+
+            public static QueryBuilder<TaskInteraction> query() {
+                return TaskSqlHelper.query(TaskInteraction.class);
+            }
+        }
+
+        public static class StatusChangeRecords {
+
+            public static EntityBuilder<StatusChangeRecord> of(StatusChangeRecord record) {
+                return entity(record);
+            }
+
+            public static BatchBuilder<StatusChangeRecord> batch(List<StatusChangeRecord> records) {
+                return TaskSqlHelper.batch(records);
+            }
+
+            public static QueryBuilder<StatusChangeRecord> query() {
+                return TaskSqlHelper.query(StatusChangeRecord.class);
+            }
+        }
+
+        public static class Notifications {
+
+            public static EntityBuilder<Notification> of(Notification notification) {
+                return entity(notification);
+            }
+
+            public static BatchBuilder<Notification> batch(List<Notification> notifications) {
+                return TaskSqlHelper.batch(notifications);
+            }
+
+            public static QueryBuilder<Notification> query() {
+                return TaskSqlHelper.query(Notification.class);
+            }
+        }
+
+        public static class TagLinks {
+
+            public static EntityBuilder<TagLink> of(TagLink tagLink) {
+                return entity(tagLink);
+            }
+
+            public static BatchBuilder<TagLink> batch(List<TagLink> tagLinks) {
+                return TaskSqlHelper.batch(tagLinks);
+            }
+
+            public static QueryBuilder<TagLink> query() {
+                return TaskSqlHelper.query(TagLink.class);
+            }
+        }
+
+        public static class TeamMembers {
+
+            public static EntityBuilder<TeamMember> of(TeamMember teamMember) {
+                return entity(teamMember);
+            }
+
+            public static BatchBuilder<TeamMember> batch(List<TeamMember> teamMembers) {
+                return TaskSqlHelper.batch(teamMembers);
+            }
+
+            public static QueryBuilder<TeamMember> query() {
+                return TaskSqlHelper.query(TeamMember.class);
+            }
+        }
     }
 }
