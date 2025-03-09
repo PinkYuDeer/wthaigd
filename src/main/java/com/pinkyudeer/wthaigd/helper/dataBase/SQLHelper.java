@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,10 +18,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.pinkyudeer.wthaigd.entity.task.Player;
-import com.pinkyudeer.wthaigd.entity.task.Tag;
-import com.pinkyudeer.wthaigd.entity.task.Task;
-import com.pinkyudeer.wthaigd.entity.task.Team;
 import com.pinkyudeer.wthaigd.helper.UtilHelper;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.FieldCheck;
@@ -59,22 +56,13 @@ public class SQLHelper {
     }
 
     /**
-     * 创建批量DDL构建器。
-     *
-     * @return DDL构建器实例
-     */
-    public static DDLBuilder<?> createTables() {
-        return new DDLBuilder<>(null);
-    }
-
-    /**
      * 创建多个表的DDL构建器。
      *
      * @param entityClasses 实体类集合
      * @return DDL构建器实例
      */
-    public static DDLBuilder<?> createTables(Set<Class<?>> entityClasses) {
-        return createTables().addAll(entityClasses);
+    public static DDLBuilder<?> createTables(Collection<Class<?>> entityClasses) {
+        return new DDLBuilder<>(null).addAll(entityClasses);
     }
 
     /**
@@ -221,18 +209,7 @@ public class SQLHelper {
             String sql = "DELETE FROM " + getTableName();
             List<Object> executeParams = new ArrayList<>();
 
-            if (usePrimaryKey) {
-                // 使用主键删除
-                Pair<String, Object> primaryKeyCondition = buildPrimaryKeyCondition();
-                sql += " WHERE " + primaryKeyCondition.getLeft();
-                executeParams.add(primaryKeyCondition.getRight());
-            } else if (!whereClause.isEmpty()) {
-                // 使用自定义条件删除
-                sql += " WHERE " + whereClause;
-                executeParams.addAll(params);
-            } else {
-                throw new IllegalStateException("删除操作必须指定条件（使用byId()或where条件）");
-            }
+            sql = addWhereClause(sql, executeParams, true, "删除");
 
             return (Integer) SQLiteManager.executeSafeSQL(sql, executeParams);
         }
@@ -267,18 +244,7 @@ public class SQLHelper {
 
             String sql = String.format("UPDATE %s SET %s", getTableName(), setClause);
 
-            if (usePrimaryKey) {
-                // 使用主键更新
-                Pair<String, Object> primaryKeyCondition = buildPrimaryKeyCondition();
-                sql += " WHERE " + primaryKeyCondition.getLeft();
-                executeParams.add(primaryKeyCondition.getRight());
-            } else if (!whereClause.isEmpty()) {
-                // 使用自定义条件更新
-                sql += " WHERE " + whereClause;
-                executeParams.addAll(params);
-            } else {
-                throw new IllegalStateException("更新操作必须指定条件（使用byId()或where条件）");
-            }
+            sql = addWhereClause(sql, executeParams, true, "更新");
 
             return (Integer) SQLiteManager.executeSafeSQL(sql, executeParams);
         }
@@ -423,15 +389,17 @@ public class SQLHelper {
                 .append(getTableName());
 
             if (!joins.isEmpty()) query.append(joins);
-            String whereClause = buildWhereClause();
-            if (!whereClause.isEmpty()) {
-                query.append(" WHERE ")
-                    .append(whereClause);
-            }
+
+            List<Object> executeParams = new ArrayList<>();
+            query = new StringBuilder(addWhereClause(query.toString(), executeParams, false, "查询"));
+
             if (groupByFields != null && groupByFields.length > 0) query.append(" GROUP BY ")
                 .append(String.join(", ", groupByFields));
-            if (!havingClause.isEmpty()) query.append(" HAVING ")
-                .append(havingClause);
+            if (!havingClause.isEmpty()) {
+                query.append(" HAVING ")
+                    .append(havingClause);
+                executeParams.addAll(havingParams);
+            }
             if (orderByFields != null && orderByFields.length > 0) {
                 query.append(" ORDER BY ")
                     .append(String.join(", ", orderByFields))
@@ -443,9 +411,6 @@ public class SQLHelper {
                 if (offset > 0) query.append(" OFFSET ")
                     .append(offset);
             }
-
-            List<Object> executeParams = new ArrayList<>(params);
-            executeParams.addAll(havingParams);
 
             return (ResultSet) SQLiteManager.executeSafeSQL(query.toString(), executeParams);
         }
@@ -488,37 +453,51 @@ public class SQLHelper {
                 subGroups.add(group);
             }
 
-            public String buildClause() {
-                StringBuilder result = new StringBuilder();
-
+            /**
+             * 构建WHERE子句并收集所有参数
+             *
+             * @param clauseResult 存储WHERE子句的StringBuilder
+             * @param paramsResult 存储参数的列表
+             */
+            public void buildClauseAndCollectParams(StringBuilder clauseResult, List<Object> paramsResult) {
                 // 添加当前组的条件
                 if (!clause.isEmpty()) {
-                    result.append(clause);
+                    clauseResult.append(clause);
                 }
+
+                // 添加当前组的参数
+                paramsResult.addAll(groupParams);
 
                 // 添加子组
                 for (WhereGroup subGroup : subGroups) {
-                    if (result.length() > 0) {
-                        result.append(subGroup.isOr ? " OR " : " AND ");
+                    if (clauseResult.length() > 0) {
+                        clauseResult.append(subGroup.isOr ? " OR " : " AND ");
                     }
-                    result.append("(")
-                        .append(subGroup.buildClause())
-                        .append(")");
-                }
 
-                return result.toString();
-            }
-
-            public List<Object> getParams() {
-                List<Object> allParams = new ArrayList<>(groupParams);
-                for (WhereGroup subGroup : subGroups) {
-                    allParams.addAll(subGroup.getParams());
+                    clauseResult.append("(");
+                    StringBuilder subClause = new StringBuilder();
+                    subGroup.buildClauseAndCollectParams(subClause, paramsResult);
+                    clauseResult.append(subClause);
+                    clauseResult.append(")");
                 }
-                return allParams;
             }
         }
 
         protected WhereGroup currentGroup = new WhereGroup();
+
+        /**
+         * 开始一个新的条件组。
+         *
+         * @param isOr 是否为OR连接（true为OR，false为AND）
+         * @return 当前构建器实例
+         */
+        public B beginGroup(boolean isOr) {
+            WhereGroup newGroup = new WhereGroup();
+            newGroup.isOr = isOr;
+            currentGroup.addSubGroup(newGroup);
+            currentGroup = newGroup;
+            return self();
+        }
 
         /**
          * 开始一个新的AND条件组。
@@ -526,10 +505,7 @@ public class SQLHelper {
          * @return 当前构建器实例
          */
         public B beginGroup() {
-            WhereGroup newGroup = new WhereGroup();
-            currentGroup.addSubGroup(newGroup);
-            currentGroup = newGroup;
-            return self();
+            return beginGroup(false);
         }
 
         /**
@@ -538,11 +514,7 @@ public class SQLHelper {
          * @return 当前构建器实例
          */
         public B orBeginGroup() {
-            WhereGroup newGroup = new WhereGroup();
-            newGroup.isOr = true;
-            currentGroup.addSubGroup(newGroup);
-            currentGroup = newGroup;
-            return self();
+            return beginGroup(true);
         }
 
         /**
@@ -607,13 +579,40 @@ public class SQLHelper {
             return values;
         }
 
-        // 获取字段对应的列名
-        protected String getColumnName(Field field) {
+        /**
+         * 获取字段对应的列名，根据needFullName参数决定是否返回完整列名（表名.列名）
+         *
+         * @param field        字段
+         * @param needFullName 是否需要完整列名
+         * @return 列名或完整列名
+         */
+        protected String getColumnName(Field field, boolean needFullName) {
             Column column = field.getAnnotation(Column.class);
             if (column == null) {
                 throw new IllegalArgumentException("字段必须使用@Column注解: " + field.getName());
             }
-            return column.name();
+            String columnName = column.name();
+
+            if (needFullName) {
+                String tableName = getTableName();
+                return tableName + "." + columnName;
+            }
+
+            return columnName;
+        }
+
+        /**
+         * 获取字段对应的列名
+         */
+        protected String getColumnName(Field field) {
+            return getColumnName(field, false);
+        }
+
+        /**
+         * 获取字段对应的完整列名（表名.列名）
+         */
+        protected String getFullColumnName(Field field) {
+            return getColumnName(field, true);
         }
 
         // 获取类中所有带Column注解的字段
@@ -623,20 +622,8 @@ public class SQLHelper {
                 .collect(Collectors.toList());
         }
 
-        // 根据字段获取表名.列名的完整引用
-        protected String getFullColumnName(Field field) {
-            String tableName = getTableName();
-            String columnName = getColumnName(field);
-            return tableName + "." + columnName;
-        }
-
         /**
-         * 添加WHERE条件。
-         *
-         * @param field    字段
-         * @param operator 操作符
-         * @param value    值
-         * @return 当前构建器实例
+         * 添加条件查询方法，包括IN、NOT IN、LIKE等各种操作符的便捷方法
          */
         public B where(Field field, Operator operator, Object value) {
             String columnName = getFullColumnName(field);
@@ -704,55 +691,23 @@ public class SQLHelper {
             return self();
         }
 
-        /**
-         * 添加IN条件。
-         *
-         * @param field  字段
-         * @param values 值列表
-         * @return 当前构建器实例
-         */
+        // 简化的条件方法，全部使用where方法实现
         public B whereIn(Field field, List<?> values) {
             return where(field, Operator.IN, values);
         }
 
-        /**
-         * 添加NOT IN条件。
-         *
-         * @param field  字段
-         * @param values 值列表
-         * @return 当前构建器实例
-         */
         public B whereNotIn(Field field, List<?> values) {
             return where(field, Operator.NOT_IN, values);
         }
 
-        /**
-         * 添加LIKE条件。
-         *
-         * @param field   字段
-         * @param pattern 匹配模式
-         * @return 当前构建器实例
-         */
         public B whereLike(Field field, String pattern) {
             return where(field, Operator.LIKE, pattern);
         }
 
-        /**
-         * 添加IS NULL条件。
-         *
-         * @param field 字段
-         * @return 当前构建器实例
-         */
         public B whereNull(Field field) {
             return where(field, Operator.IS_NULL, null);
         }
 
-        /**
-         * 添加IS NOT NULL条件。
-         *
-         * @param field 字段
-         * @return 当前构建器实例
-         */
         public B whereNotNull(Field field) {
             return where(field, Operator.IS_NOT_NULL, null);
         }
@@ -763,9 +718,37 @@ public class SQLHelper {
          * @return WHERE子句
          */
         protected String buildWhereClause() {
-            String whereClause = currentGroup.buildClause();
-            params = currentGroup.getParams();
+            StringBuilder whereClauseBuilder = new StringBuilder();
+            params = new ArrayList<>();
+            currentGroup.buildClauseAndCollectParams(whereClauseBuilder, params);
+            whereClause = whereClauseBuilder.toString();
             return whereClause;
+        }
+
+        /**
+         * 处理WHERE条件并添加到SQL语句和参数中
+         *
+         * @param sql           当前的SQL语句
+         * @param executeParams 执行参数列表，供函数添加参数
+         * @param requireWhere  是否要求必须有条件（例如UPDATE和DELETE通常需要条件）
+         * @param operationName 操作名称，仅在抛出异常时使用
+         * @return 添加了WHERE子句的SQL语句
+         */
+        protected String addWhereClause(String sql, List<Object> executeParams, boolean requireWhere,
+            String operationName) {
+            if (usePrimaryKey) {
+                // 使用主键条件
+                Pair<String, Object> primaryKeyCondition = buildPrimaryKeyCondition();
+                sql += " WHERE " + primaryKeyCondition.getLeft();
+                executeParams.add(primaryKeyCondition.getRight());
+            } else if (!whereClause.isEmpty()) {
+                // 使用自定义条件
+                sql += " WHERE " + whereClause;
+                executeParams.addAll(params);
+            } else if (requireWhere) {
+                throw new IllegalStateException(operationName + "操作必须指定条件（使用byId()或where条件）");
+            }
+            return sql;
         }
 
         /**
@@ -777,7 +760,7 @@ public class SQLHelper {
 
         /**
          * 使用主键操作
-         * 
+         *
          * @return 当前构建器实例
          */
         @SuppressWarnings("unchecked")
@@ -788,7 +771,7 @@ public class SQLHelper {
 
         /**
          * 获取主键字段
-         * 
+         *
          * @return 主键字段
          */
         protected Field getPrimaryKeyField() {
@@ -805,7 +788,7 @@ public class SQLHelper {
 
         /**
          * 构建主键条件
-         * 
+         *
          * @return 主键条件SQL和参数
          */
         protected Pair<String, Object> buildPrimaryKeyCondition() {
@@ -835,12 +818,8 @@ public class SQLHelper {
      */
     public static class DDLBuilder<T> {
 
-        /** 实体类 */
-        private final Class<T> entityClass;
         /** 表引用映射 */
         private final Map<String, List<String>> tableRefMap = new HashMap<>();
-        /** 创建表SQL列表 */
-        private final List<String> createTableSqlList = new ArrayList<>();
         /** 实体类列表 */
         private final List<Class<?>> entityClasses = new ArrayList<>();
         /** 创建表SQL映射 */
@@ -852,7 +831,6 @@ public class SQLHelper {
          * @param entityClass 实体类
          */
         private DDLBuilder(Class<T> entityClass) {
-            this.entityClass = entityClass;
             if (entityClass != null) {
                 this.entityClasses.add(entityClass);
             }
@@ -869,78 +847,78 @@ public class SQLHelper {
             return this;
         }
 
-        public DDLBuilder<T> addAll(List<Class<?>> entityClasses) {
+        public DDLBuilder<T> addAll(Collection<Class<?>> entityClasses) {
             this.entityClasses.addAll(entityClasses);
             return this;
         }
 
-        public DDLBuilder<T> addAll(Set<Class<?>> entityClasses) {
-            this.entityClasses.addAll(entityClasses);
-            return this;
-        }
-
+        /**
+         * 构建SQL语句。
+         *
+         * @return SQL语句列表
+         */
         public List<String> build() {
-            if (entityClasses.isEmpty()) {
-                throw new IllegalStateException("没有要创建的表");
-            }
+            // 初始化创建表SQL映射
+            createTableSqlMap.clear();
+            tableRefMap.clear();
 
+            // 只有一个实体类的简单情况
             if (entityClasses.size() == 1) {
-                return buildSingleTable();
-            } else {
-                return buildMultipleTables();
+                Class<?> entityClass = entityClasses.get(0);
+                String tableName = SQLTableUtils.getTableName(entityClass);
+                List<String> sqls = buildTableSql(entityClass, tableName);
+                createTableSqlMap.put(tableName, sqls);
+                return sqls;
             }
+            // 多个实体类需要处理依赖关系
+            else {
+                // 收集所有表的依赖关系并生成建表SQL
+                collectDependenciesAndBuildTableSql();
+
+                // 拓扑排序表
+                List<String> sortedTables = sortTablesByDependencies();
+
+                // 根据排序结果合并SQL语句
+                return mergeSqlByOrder(sortedTables);
+            }
+        }
+
+        /**
+         * 收集所有表的依赖关系并生成建表SQL。
+         * 这个方法将原来分开的两次遍历合并为一次，同时完成依赖收集和SQL生成。
+         */
+        private void collectDependenciesAndBuildTableSql() {
+            for (Class<?> entityClass : entityClasses) {
+                String tableName = SQLTableUtils.getTableName(entityClass);
+
+                // 生成创建表SQL并存储，同时收集依赖关系
+                List<String> sqls = buildTableSql(entityClass, tableName);
+                createTableSqlMap.put(tableName, sqls);
+            }
+        }
+
+        /**
+         * 根据表排序结果合并SQL语句。
+         *
+         * @param sortedTables 排序后的表名列表
+         * @return 合并后的SQL语句列表
+         */
+        private List<String> mergeSqlByOrder(List<String> sortedTables) {
+            List<String> result = new ArrayList<>();
+            for (String tableName : sortedTables) {
+                List<String> sqls = createTableSqlMap.get(tableName);
+                if (sqls != null) {
+                    result.addAll(sqls);
+                }
+            }
+            return result;
         }
 
         public Integer execute() {
             List<String> sqls = build();
             return sqls.stream()
-                .mapToInt(sql -> (Integer) SQLiteManager.executeSafeSQL(sql, Collections.emptyList()))
+                .mapToInt(sql -> (Integer) SQLiteManager.executeSafeSQL(sql))
                 .sum();
-        }
-
-        /**
-         * 构建单个表的DDL语句。
-         *
-         * @return DDL语句列表
-         */
-        private List<String> buildSingleTable() {
-            String tableName = SQLTableUtils.getTableName(entityClass);
-            List<String> sqls = buildTableSql(entityClass, tableName);
-            createTableSqlList.addAll(sqls);
-            return createTableSqlList;
-        }
-
-        /**
-         * 构建多个表的DDL语句。
-         *
-         * @return DDL语句列表
-         */
-        private List<String> buildMultipleTables() {
-            collectAllTableDependencies();
-            List<String> sortedTables = sortTablesByDependencies();
-            generateAllCreateTableSql(sortedTables);
-            return mergeAllSql();
-        }
-
-        private void collectAllTableDependencies() {
-            for (Class<?> entityClass : entityClasses) {
-                collectTableDependencies(entityClass);
-            }
-        }
-
-        private void collectTableDependencies(Class<?> entityClass) {
-            String tableName = SQLTableUtils.getTableName(entityClass);
-
-            // 收集外键引用
-            for (Field field : UtilHelper.getAllFieldsReverse(entityClass)) {
-                if (field.isAnnotationPresent(Reference.class)) {
-                    Reference reference = field.getAnnotation(Reference.class);
-                    String referencedTable = SQLColumnUtils.getReferencedTableName(reference);
-
-                    tableRefMap.computeIfAbsent(referencedTable, k -> new ArrayList<>())
-                        .add(tableName);
-                }
-            }
         }
 
         private List<String> sortTablesByDependencies() {
@@ -949,6 +927,12 @@ public class SQLHelper {
             return performTopologicalSort(graph, inDegree);
         }
 
+        /**
+         * 构建依赖图
+         *
+         * @param inDegree 用于存储各节点入度的映射
+         * @return 依赖图
+         */
         private Map<String, List<String>> buildDependencyGraph(Map<String, Integer> inDegree) {
             Map<String, List<String>> graph = new HashMap<>();
 
@@ -970,6 +954,13 @@ public class SQLHelper {
             return graph;
         }
 
+        /**
+         * 执行拓扑排序
+         *
+         * @param graph    依赖图
+         * @param inDegree 节点入度映射
+         * @return 排序后的表名列表
+         */
         private List<String> performTopologicalSort(Map<String, List<String>> graph, Map<String, Integer> inDegree) {
             List<String> sortedTables = new ArrayList<>();
             Queue<String> queue = new LinkedList<>();
@@ -1004,27 +995,45 @@ public class SQLHelper {
             return sortedTables;
         }
 
+        /**
+         * 查找依赖图中的循环
+         *
+         * @param graph 依赖图
+         * @return 循环路径，如果没有循环则返回空列表
+         */
         private List<String> findCycle(Map<String, List<String>> graph) {
             Set<String> visited = new HashSet<>();
             Set<String> recursionStack = new HashSet<>();
-            List<String> cyclePath = new ArrayList<>();
 
             for (String table : graph.keySet()) {
-                if (!visited.contains(table) && findCycleUtil(table, graph, visited, recursionStack, cyclePath)) {
-                    return cyclePath;
+                if (!visited.contains(table)) {
+                    List<String> cyclePath = new ArrayList<>();
+                    if (detectCycle(table, graph, visited, recursionStack, cyclePath)) {
+                        return cyclePath;
+                    }
                 }
             }
             return Collections.emptyList();
         }
 
-        private boolean findCycleUtil(String table, Map<String, List<String>> graph, Set<String> visited,
+        /**
+         * 使用DFS检测循环
+         *
+         * @param table          当前表
+         * @param graph          依赖图
+         * @param visited        已访问节点集合
+         * @param recursionStack 当前递归栈
+         * @param cyclePath      用于存储检测到的循环路径
+         * @return 是否检测到循环
+         */
+        private boolean detectCycle(String table, Map<String, List<String>> graph, Set<String> visited,
             Set<String> recursionStack, List<String> cyclePath) {
             visited.add(table);
             recursionStack.add(table);
 
             for (String dependent : graph.get(table)) {
                 if (!visited.contains(dependent)) {
-                    if (findCycleUtil(dependent, graph, visited, recursionStack, cyclePath)) {
+                    if (detectCycle(dependent, graph, visited, recursionStack, cyclePath)) {
                         cyclePath.add(0, table);
                         return true;
                     }
@@ -1038,63 +1047,10 @@ public class SQLHelper {
             return false;
         }
 
-        private void generateAllCreateTableSql(List<String> sortedTables) {
-            for (String tableName : sortedTables) {
-                Class<?> entityClass = findEntityClassByTableName(tableName);
-                if (entityClass != null) {
-                    generateCreateTableSql(entityClass);
-                }
-            }
-        }
-
-        private Class<?> findEntityClassByTableName(String tableName) {
-            return entityClasses.stream()
-                .filter(clazz -> {
-                    Table table = clazz.getAnnotation(Table.class);
-                    return table != null && table.name()
-                        .equals(tableName);
-                })
-                .findFirst()
-                .orElse(null);
-        }
-
-        private void addForeignKeyConstraints(List<Field> referFields, String tableName, List<String> sqls) {
-            for (Field field : referFields) {
-                Reference reference = field.getAnnotation(Reference.class);
-                String referencedTable = SQLColumnUtils.getReferencedTableName(reference);
-                sqls.add(SQLTableUtils.generateForeignKeySql(field, referencedTable));
-            }
-        }
-
-        private void addIndexes(Map<String, List<String>> indexMap, String tableName, List<String> sqls) {
-            Map<String, List<String>> indexMapReverse = SQLIndexUtils.reverseIndexMap(indexMap);
-
-            for (Map.Entry<String, List<String>> entry : indexMapReverse.entrySet()) {
-                sqls.add(SQLIndexUtils.generateIndexSql(entry.getKey(), tableName, entry.getValue()));
-            }
-        }
-
-        private List<String> mergeAllSql() {
-            return createTableSqlMap.values()
-                .stream()
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
-        }
-
-        /**
-         * 生成创建表SQL。
-         *
-         * @param entityClass 实体类
-         */
-        private void generateCreateTableSql(Class<?> entityClass) {
-            String tableName = SQLTableUtils.getTableName(entityClass);
-            List<String> sqls = buildTableSql(entityClass, tableName);
-            createTableSqlMap.put(tableName, sqls);
-        }
-
         /**
          * 构建表的SQL语句。
          * 包括创建表、添加外键约束和索引。
+         * 同时构建表依赖关系。
          *
          * @param entityClass 实体类
          * @param tableName   表名
@@ -1109,14 +1065,32 @@ public class SQLHelper {
             // 处理所有字段
             SQLTableUtils.processFields(entityClass, columnDefinitions, referFields, indexMap);
 
-            // 生成建表语句
-            sqls.add(SQLTableUtils.generateCreateTableSql(tableName, columnDefinitions));
+            // 收集外键约束并按引用表分组
+            // 这里对外键进行分组优化，使相同表的外键引用可以合并为一个FOREIGN KEY语句
+            // SQLite支持多列外键: FOREIGN KEY(A, B) REFERENCES tasks(id) ON DELETE CASCADE ON UPDATE CASCADE
+            Map<String, List<Field>> referFieldsByTable = referFields.stream()
+                .collect(
+                    Collectors.groupingBy(
+                        field -> SQLColumnUtils.getReferencedTableName(field.getAnnotation(Reference.class))));
 
-            // 添加外键约束
-            addForeignKeyConstraints(referFields, tableName, sqls);
+            // 构建依赖关系映射
+            for (Map.Entry<String, List<Field>> entry : referFieldsByTable.entrySet()) {
+                String referencedTable = entry.getKey();
+                tableRefMap.computeIfAbsent(referencedTable, k -> new ArrayList<>())
+                    .add(tableName);
+            }
+
+            // 生成合并后的外键约束
+            List<String> foreignKeys = referFieldsByTable.entrySet()
+                .stream()
+                .map(entry -> SQLTableUtils.generateForeignKeySql(entry.getValue(), entry.getKey()))
+                .collect(Collectors.toList());
+
+            // 生成建表语句
+            sqls.add(SQLTableUtils.generateCreateTableSql(tableName, columnDefinitions, foreignKeys));
 
             // 添加索引
-            addIndexes(indexMap, tableName, sqls);
+            SQLIndexUtils.processAndAddIndexes(indexMap, tableName, sqls);
 
             return sqls;
         }
@@ -1130,32 +1104,38 @@ public class SQLHelper {
 
         /**
          * 获取SQLite数据类型。
+         * 根据Java字段类型转换为对应的SQLite数据类型。
          *
          * @param field 字段
          * @return SQLite数据类型
          */
         static String getSqliteType(Field field) {
-            return switch (field.getType()
-                .getSimpleName()) {
-                case "String", "UUID" -> "TEXT";
-                case "int", "Integer" -> "INTEGER";
-                case "long", "Long" -> "BIGINT";
-                case "double", "Double", "Duration" -> "REAL";
-                case "boolean", "Boolean" -> "BOOLEAN";
-                case "Date", "LocalDateTime" -> "TIMESTAMP";
-                default -> {
-                    if (field.getType()
-                        .isEnum()) {
-                        yield "TEXT";
-                    } else {
-                        throw new IllegalArgumentException("Unsupported field type: " + field.getType());
-                    }
-                }
-            };
+            Class<?> type = field.getType();
+            String typeName = type.getSimpleName();
+
+            // 字符串类型
+            if (typeName.equals("String") || typeName.equals("UUID") || type.isEnum()) {
+                return "TEXT";
+            } else {
+                return switch (typeName) {
+                    // 整数类型
+                    case "int", "Integer" -> "INTEGER";
+                    // 长整数类型
+                    case "long", "Long" -> "BIGINT";
+                    // 浮点类型
+                    case "double", "Double", "Duration" -> "REAL";
+                    // 布尔类型
+                    case "boolean", "Boolean" -> "BOOLEAN";
+                    // 时间类型
+                    case "Date", "LocalDateTime" -> "TIMESTAMP";
+                    default -> throw new IllegalArgumentException("不支持的字段类型: " + type);
+                };
+            }
         }
 
         /**
          * 构建列定义。
+         * 根据字段和注解生成完整的列定义SQL，包括数据类型和约束。
          *
          * @param field  字段
          * @param column 列注解
@@ -1177,16 +1157,9 @@ public class SQLHelper {
                     .append(column.defaultValue());
             }
 
-            // 添加检查约束
-            String checkConstraint = generateCheckConstraint(field, columnName);
-            if (!checkConstraint.isEmpty()) {
-                columnDef.append(" ")
-                    .append(checkConstraint);
-            }
-
-            // 添加唯一约束
-            if (column.isUnique()) {
-                columnDef.append(" UNIQUE");
+            // 添加NOT NULL约束
+            if (field.getAnnotation(javax.annotation.Nonnull.class) != null) {
+                columnDef.append(" NOT NULL");
             }
 
             // 添加主键约束
@@ -1194,138 +1167,131 @@ public class SQLHelper {
                 columnDef.append(" PRIMARY KEY");
             }
 
+            // 添加唯一约束
+            if (column.isUnique()) {
+                columnDef.append(" UNIQUE");
+            }
+
+            // 添加字段检查约束
+            FieldCheck fieldCheck = field.getAnnotation(FieldCheck.class);
+            if (fieldCheck != null) {
+                // 特殊处理枚举类型，添加CHECK约束确保值在枚举范围内
+                if (field.getType()
+                    .isEnum()) {
+                    String enumValues = getEnumValues(field.getType());
+                    if (!enumValues.isEmpty()) {
+                        columnDef.append(" CHECK(")
+                            .append(columnName)
+                            .append(" IN (")
+                            .append(enumValues)
+                            .append("))");
+                    }
+                } else {
+                    // 根据检查类型生成约束
+                    switch (fieldCheck.type()) {
+                        case RANGE:
+                            columnDef.append(" CHECK(")
+                                .append(columnName)
+                                .append(" >= ")
+                                .append(fieldCheck.min())
+                                .append(" AND ")
+                                .append(columnName)
+                                .append(" <= ")
+                                .append(fieldCheck.max())
+                                .append(")");
+                            break;
+                        case GLOB:
+                            columnDef.append(" CHECK(")
+                                .append(columnName)
+                                .append(" GLOB '")
+                                .append(fieldCheck.glob())
+                                .append("')");
+                            break;
+                        case LENGTH:
+                            columnDef.append(" CHECK(LENGTH(")
+                                .append(columnName)
+                                .append(") >= ")
+                                .append(fieldCheck.min())
+                                .append(" AND LENGTH(")
+                                .append(columnName)
+                                .append(") <= ")
+                                .append(fieldCheck.max())
+                                .append(")");
+                            break;
+                        case UUID:
+                            columnDef.append(" CHECK(LENGTH(")
+                                .append(columnName)
+                                .append(") = 36)");
+                            break;
+                        case ENUM:
+                            if (fieldCheck.dataType()
+                                .isEnum()) {
+                                columnDef.append(" CHECK(")
+                                    .append(columnName)
+                                    .append(" IN (")
+                                    .append(getEnumValues(fieldCheck.dataType()))
+                                    .append("))");
+                            }
+                            break;
+                        case NOT_VALUE:
+                            columnDef.append(" CHECK(")
+                                .append(columnName)
+                                .append(" != ")
+                                .append(fieldCheck.notValue())
+                                .append(")");
+                            break;
+                        case MIN:
+                            columnDef.append(" CHECK(")
+                                .append(columnName)
+                                .append(" >= ")
+                                .append(fieldCheck.min())
+                                .append(")");
+                            break;
+                        case MAX:
+                            columnDef.append(" CHECK(")
+                                .append(columnName)
+                                .append(" <= ")
+                                .append(fieldCheck.max())
+                                .append(")");
+                            break;
+                    }
+                }
+            }
             return columnDef.toString();
         }
 
         /**
-         * 生成检查约束。
-         *
-         * @param field      字段
-         * @param columnName 列名
-         * @return 检查约束SQL
-         */
-        static String generateCheckConstraint(Field field, String columnName) {
-            StringBuilder checkConstraint = new StringBuilder();
-
-            // 获取javax.annotation.Nonnull注解
-            if (field.getAnnotation(javax.annotation.Nonnull.class) != null) {
-                checkConstraint.append("NOT NULL ");
-            }
-
-            // 获取 FieldCheck 注解
-            FieldCheck fieldCheck = field.getAnnotation(FieldCheck.class);
-            if (fieldCheck == null) return "";
-
-            // 针对不同类型的校验
-            switch (fieldCheck.type()) {
-                case NOT_VALUE:
-                    checkConstraint.append("CHECK(")
-                        .append(columnName)
-                        .append(" != ")
-                        .append(fieldCheck.notValue())
-                        .append(")");
-                    break;
-                case MIN:
-                    checkConstraint.append("CHECK(")
-                        .append(columnName)
-                        .append(" >= ")
-                        .append(fieldCheck.min())
-                        .append(")");
-                    break;
-                case MAX:
-                    checkConstraint.append("CHECK(")
-                        .append(columnName)
-                        .append(" <= ")
-                        .append(fieldCheck.max())
-                        .append(")");
-                    break;
-                case RANGE:
-                    checkConstraint.append("CHECK(")
-                        .append(columnName)
-                        .append(" BETWEEN ")
-                        .append(fieldCheck.min())
-                        .append(" AND ")
-                        .append(fieldCheck.max())
-                        .append(")");
-                    break;
-                case GLOB:
-                    checkConstraint.append("CHECK(")
-                        .append(columnName)
-                        .append(" GLOB '")
-                        .append(fieldCheck.glob())
-                        .append("')");
-                    break;
-                case LENGTH:
-                    checkConstraint.append("CHECK(LENGTH(")
-                        .append(columnName)
-                        .append(") >= ")
-                        .append(fieldCheck.min())
-                        .append(" AND LENGTH(")
-                        .append(columnName)
-                        .append(") <= ")
-                        .append(fieldCheck.max())
-                        .append(")");
-                    break;
-                case UUID:
-                    checkConstraint.append("CHECK(LENGTH(")
-                        .append(columnName)
-                        .append(") = 36)");
-                    break;
-                case ENUM:
-                    if (fieldCheck.dataType()
-                        .isEnum()) {
-                        checkConstraint.append("CHECK(")
-                            .append(columnName)
-                            .append(" IN (")
-                            .append(getEnumValues(fieldCheck.dataType()))
-                            .append("))");
-                    }
-                    break;
-            }
-
-            return checkConstraint.toString();
-        }
-
-        /**
-         * 获取枚举值列表。
+         * 获取枚举类的所有值，用于构建CHECK约束。
          *
          * @param enumClass 枚举类
-         * @return 枚举值列表SQL
+         * @return 格式化的枚举值列表
          */
         static String getEnumValues(Class<?> enumClass) {
             if (!enumClass.isEnum()) {
-                throw new IllegalArgumentException("Provided class is not an Enum");
+                return "";
             }
 
-            StringBuilder values = new StringBuilder();
-            for (Object enumConstant : enumClass.getEnumConstants()) {
-                values.append("'")
-                    .append(((Enum<?>) enumConstant).name())
-                    .append("', ");
-            }
-
-            // 去掉最后的逗号和空格
-            return !(values.length() == 0) ? values.substring(0, values.length() - 2) : "";
+            Object[] constants = enumClass.getEnumConstants();
+            return Arrays.stream(constants)
+                .map(constant -> "'" + constant.toString() + "'")
+                .collect(Collectors.joining(", "));
         }
 
         /**
-         * 获取引用表名。
+         * 获取引用的表名。
+         * 根据Reference注解获取引用的表名。
          *
          * @param reference 引用注解
-         * @return 引用表名
+         * @return 引用的表名
          */
         static String getReferencedTableName(Reference reference) {
-            Reference.Type ref_type = reference.referenceType();
-            return switch (ref_type) {
-                case PLAYER -> Player.class.getAnnotation(Table.class)
-                    .name();
-                case TEAM -> Team.class.getAnnotation(Table.class)
-                    .name();
-                case TASK -> Task.class.getAnnotation(Table.class)
-                    .name();
-                case TAG -> Tag.class.getAnnotation(Table.class)
-                    .name();
-            };
+            if (reference == null) {
+                throw new IllegalArgumentException("引用注解不能为null");
+            }
+
+            Reference.Type referenceType = reference.referenceType();
+            return referenceType.name()
+                .toLowerCase() + "s";
         }
     }
 
@@ -1336,12 +1302,14 @@ public class SQLHelper {
     private static class SQLIndexUtils {
 
         /**
-         * 反转索引映射。
+         * 处理并生成索引SQL语句。
          *
-         * @param indexMap 原始索引映射
-         * @return 反转后的索引映射
+         * @param indexMap  索引映射（列名到索引名的映射）
+         * @param tableName 表名
+         * @param sqls      SQL语句列表，生成的索引SQL会添加到这个列表中
          */
-        static Map<String, List<String>> reverseIndexMap(Map<String, List<String>> indexMap) {
+        static void processAndAddIndexes(Map<String, List<String>> indexMap, String tableName, List<String> sqls) {
+            // 反转索引映射（索引名到列名的映射）
             Map<String, List<String>> indexMapReverse = new HashMap<>();
 
             for (Map.Entry<String, List<String>> entry : indexMap.entrySet()) {
@@ -1352,33 +1320,28 @@ public class SQLHelper {
                 }
             }
 
-            return indexMapReverse;
+            // 生成并添加索引SQL
+            for (Map.Entry<String, List<String>> entry : indexMapReverse.entrySet()) {
+                String indexSql = String.format(
+                    "CREATE INDEX IF NOT EXISTS %s ON %s(%s);",
+                    entry.getKey(),
+                    tableName,
+                    String.join(", ", entry.getValue()));
+                sqls.add(indexSql);
+            }
         }
 
         /**
-         * 收集索引信息。
+         * 收集字段的索引信息。
          *
          * @param field    字段
          * @param column   列注解
-         * @param indexMap 索引映射
+         * @param indexMap 索引映射，用于存储收集结果
          */
         static void collectIndexInfo(Field field, Column column, Map<String, List<String>> indexMap) {
             if (column.index().length > 0) {
                 indexMap.put(column.name(), Arrays.asList(column.index()));
             }
-        }
-
-        /**
-         * 生成索引SQL。
-         *
-         * @param indexName 索引名
-         * @param tableName 表名
-         * @param columns   列名列表
-         * @return 索引SQL
-         */
-        static String generateIndexSql(String indexName, String tableName, List<String> columns) {
-            return String
-                .format("CREATE INDEX IF NOT EXISTS %s ON %s(%s);", indexName, tableName, String.join(", ", columns));
         }
     }
 
@@ -1389,7 +1352,7 @@ public class SQLHelper {
     private static class SQLTableUtils {
 
         /**
-         * 处理字段。
+         * 处理实体类的所有字段。
          *
          * @param entityClass       实体类
          * @param columnDefinitions 列定义列表
@@ -1417,29 +1380,20 @@ public class SQLHelper {
          *
          * @param tableName         表名
          * @param columnDefinitions 列定义列表
+         * @param foreignKeys       外键约束列表
          * @return 创建表SQL
          */
-        static String generateCreateTableSql(String tableName, List<String> columnDefinitions) {
-            return String
-                .format("CREATE TABLE IF NOT EXISTS %s (%s);", tableName, String.join(", ", columnDefinitions));
+        static String generateCreateTableSql(String tableName, List<String> columnDefinitions,
+            List<String> foreignKeys) {
+            List<String> allDefinitions = new ArrayList<>(columnDefinitions);
+            if (foreignKeys != null && !foreignKeys.isEmpty()) {
+                allDefinitions.addAll(foreignKeys);
+            }
+            return String.format("CREATE TABLE IF NOT EXISTS %s (%s);", tableName, String.join(", ", allDefinitions));
         }
 
         /**
-         * 生成外键SQL。
-         *
-         * @param field           字段
-         * @param referencedTable 引用表名
-         * @return 外键SQL
-         */
-        static String generateForeignKeySql(Field field, String referencedTable) {
-            return String.format(
-                "FOREIGN KEY(%s) REFERENCES %s(id) ON DELETE CASCADE ON UPDATE CASCADE;",
-                field.getName(),
-                referencedTable);
-        }
-
-        /**
-         * 获取表名。
+         * 获取实体类对应的表名。
          *
          * @param entityClass 实体类
          * @return 表名
@@ -1450,6 +1404,29 @@ public class SQLHelper {
                 throw new IllegalArgumentException("类必须使用@Table注解");
             }
             return table.name();
+        }
+
+        /**
+         * 生成外键SQL。
+         *
+         * @param fields          引用字段列表
+         * @param referencedTable 引用表名
+         * @return 外键SQL
+         */
+        static String generateForeignKeySql(List<Field> fields, String referencedTable) {
+            // 构建字段名列表
+            String fieldNames = fields.stream()
+                .map(field -> {
+                    Column column = field.getAnnotation(Column.class);
+                    return column != null ? column.name() : field.getName();
+                })
+                .collect(Collectors.joining(", "));
+
+            // 生成外键约束SQL，使用CASCADE作为默认操作
+            return String.format(
+                "FOREIGN KEY(%s) REFERENCES %s(id) ON DELETE CASCADE ON UPDATE CASCADE",
+                fieldNames,
+                referencedTable);
         }
     }
 }

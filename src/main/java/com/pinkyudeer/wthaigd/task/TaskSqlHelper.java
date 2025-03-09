@@ -30,7 +30,7 @@ public class TaskSqlHelper {
      * 扫描并创建所有任务相关的表
      */
     public static void initTaskDataBase() {
-        Reflections reflections = new Reflections("com.pinkyudeer.wthaigd.task.entity");
+        Reflections reflections = new Reflections("com.pinkyudeer.wthaigd.entity.task");
         Set<Class<?>> annotatedClasses = reflections.getTypesAnnotatedWith(Table.class);
         if (SQLHelper.createTables(annotatedClasses)
             .execute() == 0) {
@@ -41,7 +41,7 @@ public class TaskSqlHelper {
 
     /**
      * 创建实体操作构建器
-     * 
+     *
      * @param entity 实体对象
      * @param <T>    实体类型
      * @return 操作构建器
@@ -52,7 +52,7 @@ public class TaskSqlHelper {
 
     /**
      * 创建批量操作构建器
-     * 
+     *
      * @param entities 实体列表
      * @param <T>      实体类型
      * @return 批量操作构建器
@@ -63,7 +63,7 @@ public class TaskSqlHelper {
 
     /**
      * 创建查询构建器
-     * 
+     *
      * @param entityClass 实体类
      * @param <T>         实体类型
      * @return 查询构建器
@@ -86,7 +86,7 @@ public class TaskSqlHelper {
 
         /**
          * 创建实体
-         * 
+         *
          * @return 受影响的行数
          */
         public Integer create() {
@@ -96,7 +96,7 @@ public class TaskSqlHelper {
 
         /**
          * 根据ID更新实体
-         * 
+         *
          * @return 受影响的行数
          */
         public Integer updateById() {
@@ -107,7 +107,7 @@ public class TaskSqlHelper {
 
         /**
          * 根据条件更新实体
-         * 
+         *
          * @param conditions 更新条件
          * @return 受影响的行数
          */
@@ -129,7 +129,7 @@ public class TaskSqlHelper {
 
         /**
          * 根据ID删除实体
-         * 
+         *
          * @return 受影响的行数
          */
         public Integer deleteById() {
@@ -140,7 +140,7 @@ public class TaskSqlHelper {
 
         /**
          * 根据条件删除实体
-         * 
+         *
          * @param conditions 删除条件
          * @return 受影响的行数
          */
@@ -162,7 +162,7 @@ public class TaskSqlHelper {
 
         /**
          * 查询实体
-         * 
+         *
          * @return 查询结果
          */
         public ResultSet query() {
@@ -185,7 +185,7 @@ public class TaskSqlHelper {
 
         /**
          * 批量创建实体
-         * 
+         *
          * @return 受影响的总行数
          */
         public Integer create() {
@@ -198,7 +198,7 @@ public class TaskSqlHelper {
 
         /**
          * 批量根据ID更新实体
-         * 
+         *
          * @return 受影响的总行数
          */
         public Integer updateById() {
@@ -212,7 +212,7 @@ public class TaskSqlHelper {
 
         /**
          * 批量根据条件更新实体
-         * 
+         *
          * @param conditions 更新条件
          * @return 受影响的总行数
          */
@@ -237,7 +237,7 @@ public class TaskSqlHelper {
 
         /**
          * 批量根据ID删除实体
-         * 
+         *
          * @return 受影响的总行数
          */
         public Integer deleteById() {
@@ -251,7 +251,7 @@ public class TaskSqlHelper {
 
         /**
          * 批量根据条件删除实体
-         * 
+         *
          * @param conditions 删除条件
          * @return 受影响的总行数
          */
@@ -294,7 +294,7 @@ public class TaskSqlHelper {
 
         /**
          * 设置查询条件
-         * 
+         *
          * @param condition 查询条件
          * @return 当前构建器
          */
@@ -305,7 +305,7 @@ public class TaskSqlHelper {
 
         /**
          * 执行查询
-         * 
+         *
          * @return 查询结果数量
          */
         public ResultSet execute() {

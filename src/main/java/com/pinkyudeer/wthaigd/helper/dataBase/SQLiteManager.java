@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -140,9 +141,11 @@ public class SQLiteManager {
     @SuppressWarnings("SqlSourceToSinkFlow")
     public static Object executeSafeSQL(String sql, Object... params) {
         try (PreparedStatement ps = inMemoryConnection.prepareStatement(sql)) {
-            setParameters(ps, Collections.singletonList(params));
+            if (!Arrays.equals(params, new Object[0])) {
+                setParameters(ps, Collections.singletonList(params));
+            }
             Wthaigd.LOG.info("执行 SQL: {}", sql);
-            boolean resultIsRs = ps.execute(sql);
+            boolean resultIsRs = ps.execute();
             if (resultIsRs) {
                 return ps.getResultSet();
             }
