@@ -16,26 +16,26 @@ Please feel free to open multiple issues to report bugs, suggestions, modificati
 If you wish to submit a pull request (PR), please provide detailed explanations where possible. Although I have programming experience, I'm still quite new in terms of mod development. Your expertise would be greatly appreciated; feel free to challenge me with your impressive ideas!
 
 ## Introduction
-This project aims to provide a collaborative task list for multiplayer environments in an as-simple-as-possible manner.
+This project aims to offer a collaborative task list designed for multiplayer interaction in the simplest way possible.
 * Users can earn points and enjoy visual effects upon completing tasks as motivation.
-* It offers features compatible with Better Quest.
+* It provides features compatible with Better Quest.
 
 ## Achievements So Far
-* Functionality for creating folders
+* Functionality for creating new folders
 * The "wishful thinking" feature
 * Successful entry into the game
 * First custom items, blocks, high-resolution textures, recipes, and fuels
-* Localization language files completed
+* Localization language files
 * Command-based functionalities: easy creation, modification, and deletion of work items
-* Configuration file completion and testing along with file management tools and player status utilities
-* Data structure design finalized, Complete data entities according to design specifications
+* Completed testing on configuration files along with file management and player status utility classes
+* Data structure design completed; data entities created according to design specifications
+* Functions related to database operations in taskSQLite: table creation as well as insertions, deletions, updates & queries
 
 ## Future Plans
-* Implement functions related to table operations in taskSQLite: create tables; add, delete, modify & query records
-* Set work item statuses via commands: priority levels; states; parent-child relationships among tasks; completion times; creation times; responsible parties; followers etc.
+* Set work item statuses via commands: priority levels, states of completion relationships between parent-child work items; completion time; creation time; responsible parties; followers etc.
 * Design GUI interface for work items
-* Support hotkeys for quick access to work items
-* Enhance functionality of work items—for example periodic automatic creation of tasks
+* Support hotkeys for opening work items
+* Enhance functionality of work items—such as periodic automatic creation
 * Adaptation for multiplayer mode
 * Transforming work items into mind maps,Gantt charts boards,and timeline boards (basic implementation)
 * Compatibility with Better Quest while reasonably selecting task projects enabling synchronized teamwork

@@ -1,5 +1,5 @@
 # wthaigd
-我该怎么办呢（Minecraft模组）
+我该干啥（Minecraft模组）
 
 English version is here: [README.md](./README.md)
 
@@ -29,9 +29,9 @@ English version is here: [README.md](./README.md)
 * 通过指令实现：简易的工作项创建、修改、删除
 * 完成并测试配置文件、文件管理及玩家状态工具类
 * 完成数据结构设计、按照设计完成数据实体
+* 在taskSQLite中数据表操作相关函数：建表、增、删、改、查
 
 ## 未来计划
-* 在taskSQLite中数据表操作相关函数：建表、增、删、改、查
 * 通过指令设置工作项状态：优先级、状态、父子工作项关系、完成时间、创建时间，以及负责人和关注者等
 * 工作项GUI界面设计
 * 支持快捷键打开工作项
