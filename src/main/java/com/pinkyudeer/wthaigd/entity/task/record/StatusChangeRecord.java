@@ -7,6 +7,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.pinkyudeer.wthaigd.entity.task.Task;
+import com.pinkyudeer.wthaigd.entity.task.Team;
 import com.pinkyudeer.wthaigd.entity.task.record.Notification.SourceType;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Reference;
@@ -23,7 +24,7 @@ public class StatusChangeRecord extends BaseRecord {
     // 核心状态变更信息
     @Nonnull
     @Column(name = "task_id")
-    @Reference(referenceType = Reference.Type.TASK)
+    @Reference(entity = Task.class)
     private UUID taskId; // 关联的任务ID
     @Nonnull
     @Column(name = "old_status")
@@ -41,7 +42,7 @@ public class StatusChangeRecord extends BaseRecord {
     private Boolean isAutomatic = false; // 是否自动触发（如超时自动关闭）
     @Nullable
     @Column(name = "related_team_id")
-    @Reference(referenceType = Reference.Type.TEAM)
+    @Reference(entity = Team.class)
     private UUID relatedTeamId; // 关联团队ID（当变更涉及团队操作时）
 
     // 变更来源追踪

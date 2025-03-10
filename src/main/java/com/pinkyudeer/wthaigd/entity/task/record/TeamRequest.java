@@ -6,6 +6,8 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.entity.task.Player;
+import com.pinkyudeer.wthaigd.entity.task.Task;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Reference;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Table;
@@ -26,15 +28,15 @@ public class TeamRequest extends BaseRecord {
     // 核心关联
     @Nonnull
     @Column(name = "team_id")
-    @Reference(referenceType = Reference.Type.TASK)
+    @Reference(entity = Task.class)
     private UUID teamId; // 目标团队ID
     @Nonnull
     @Column(name = "applicant_id")
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID applicantId; // 申请人/被邀请人ID
     @Nullable
     @Column(name = "inviter_id")
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID inviterId; // 邀请人ID（仅INVITE类型）
 
     // 请求内容
@@ -51,7 +53,7 @@ public class TeamRequest extends BaseRecord {
     private RequestStatus status = RequestStatus.PENDING; // 请求状态
     @Nullable
     @Column(name = "handler_id")
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID handlerId; // 处理人ID
     @Nullable
     @Column(name = "handle_reason")

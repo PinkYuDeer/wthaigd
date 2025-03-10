@@ -56,7 +56,7 @@ public class Tag {
     private TagScope scope = TagScope.PUBLIC; // 标签可见范围
     @Nullable
     @Column(name = "owner_id")
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID ownerId; // 私有标签拥有者
 
     // 时间戳

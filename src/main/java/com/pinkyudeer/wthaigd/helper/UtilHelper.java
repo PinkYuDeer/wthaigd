@@ -9,7 +9,7 @@ public class UtilHelper {
 
     /**
      * 获取本类及其父类的字段属性
-     * 
+     *
      * @param clazz 当前类对象
      * @return 字段数组
      */
@@ -25,7 +25,7 @@ public class UtilHelper {
 
     /**
      * 获取本类及其父类的字段属性, 且父类字段属性在子类前
-     * 
+     *
      * @param clazz 当前类对象
      * @return 字段数组
      */

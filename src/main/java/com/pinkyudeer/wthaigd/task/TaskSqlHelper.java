@@ -32,9 +32,11 @@ public class TaskSqlHelper {
     public static void initTaskDataBase() {
         Reflections reflections = new Reflections("com.pinkyudeer.wthaigd.entity.task");
         Set<Class<?>> annotatedClasses = reflections.getTypesAnnotatedWith(Table.class);
-        if (SQLHelper.createTables(annotatedClasses)
-            .execute() == 0) {
-            throw new RuntimeException("初始化数据库失败");
+        try {
+            SQLHelper.createTables(annotatedClasses);
+        } catch (Exception e) {
+            Wthaigd.LOG.error("初始化任务数据库失败", e);
+            return;
         }
         Wthaigd.LOG.info("初始化任务数据库，共创建 {} 张表", annotatedClasses.size());
     }

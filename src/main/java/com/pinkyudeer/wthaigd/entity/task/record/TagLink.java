@@ -6,6 +6,7 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.entity.task.Tag;
 import com.pinkyudeer.wthaigd.entity.task.Task;
 import com.pinkyudeer.wthaigd.entity.task.record.Notification.RelatedEntityType;
 import com.pinkyudeer.wthaigd.entity.task.record.Notification.SourceType;
@@ -24,7 +25,7 @@ public class TagLink extends BaseRecord {
     // 核心关联字段
     @Nonnull
     @Column(name = "tag_id")
-    @Reference(referenceType = Reference.Type.TAG)
+    @Reference(entity = Tag.class)
     private UUID tagId; // 关联的标签ID
     @Nonnull
     @Column(name = "entity_type")

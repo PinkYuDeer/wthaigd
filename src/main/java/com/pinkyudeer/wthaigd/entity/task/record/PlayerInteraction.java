@@ -6,6 +6,8 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.entity.task.Player;
+import com.pinkyudeer.wthaigd.entity.task.Task;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Reference;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Table;
@@ -24,16 +26,16 @@ public class PlayerInteraction extends BaseRecord {
     private InteractionType type; // 互动类型
     @Nonnull
     @Column(name = "initiator_id")
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID initiatorId; // 发起者ID
     @Nonnull
     @Column(name = "receiver_id")
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID receiverId; // 接收者ID
 
     // 关联实体（可选）
     @Nullable
-    @Reference(referenceType = Reference.Type.TASK)
+    @Reference(entity = Task.class)
     @Column(name = "related_task_id")
     private UUID relatedTaskId; // 关联的任务ID
     @Nullable

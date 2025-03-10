@@ -43,14 +43,14 @@ public class Task {
     // task 参与者属性
     @Nonnull
     @Column(name = "creator")
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID creator; // 创建者
     @Nullable
     @Column(name = "assignee_count", defaultValue = "0")
     private Integer assigneeCount; // 负责人个数
     @Nullable
     @Column(name = "team_id")
-    @Reference(referenceType = Reference.Type.TEAM)
+    @Reference(entity = Team.class)
     private UUID teamId; // 所属团队ID
     @Nonnull
     @Column(name = "follower_count", defaultValue = "0")
@@ -63,7 +63,7 @@ public class Task {
     private Integer commentCount = 0; // 评论数量
     @Nullable
     @Column(name = "last_operator")
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID lastOperator; // 最后操作人
 
     // task 状态属性

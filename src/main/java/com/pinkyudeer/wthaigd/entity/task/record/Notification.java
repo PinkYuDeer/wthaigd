@@ -6,6 +6,7 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.entity.task.Player;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Reference;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Table;
@@ -35,19 +36,19 @@ public class Notification extends BaseRecord {
     // 关联属性
     @Nonnull
     @Column(name = "receiver_id", index = { "idx_notifications_receiver_id" })
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID receiverId; // 接收者ID（Player/TEAM）
     @Nullable
     @Column(name = "trigger_player_id")
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID triggerPlayerId; // 触发通知的玩家
     @Nullable
     @Column(name = "related_task_id")
-    @Reference(referenceType = Reference.Type.TASK)
+    @Reference(entity = Player.class)
     private UUID relatedTaskId; // 关联的任务ID
     @Nullable
     @Column(name = "related_team_id")
-    @Reference(referenceType = Reference.Type.TEAM)
+    @Reference(entity = Player.class)
     private UUID relatedTeamId; // 关联的团队ID
     @Nullable
     @Column(name = "related_record_id")
@@ -55,7 +56,7 @@ public class Notification extends BaseRecord {
 
     // 时间属性
     @Nullable
-    @Column(name = "expire_time", index = { "idx_notifications_expire_time DESC" })
+    @Column(name = "expire_time", index = { "idx_notifications_expire_time" })
     private LocalDateTime expireTime; // 过期时间（临时通知）
     @Nullable
     @Column(name = "read_time")

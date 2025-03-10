@@ -49,20 +49,23 @@ public class SQLHelper {
      *
      * @param entityClass 实体类
      * @param <T>         实体类型
-     * @return DDL构建器实例
+     * @return 创建数量
      */
-    public static <T> DDLBuilder<T> createTable(Class<T> entityClass) {
-        return new DDLBuilder<>(entityClass);
+    public static <T> Integer createTable(Class<T> entityClass) {
+        return new DDLBuilder<>(entityClass).build()
+            .execute();
     }
 
     /**
      * 创建多个表的DDL构建器。
      *
      * @param entityClasses 实体类集合
-     * @return DDL构建器实例
+     * @return 创建数量
      */
-    public static DDLBuilder<?> createTables(Collection<Class<?>> entityClasses) {
-        return new DDLBuilder<>(null).addAll(entityClasses);
+    public static Integer createTables(Collection<Class<?>> entityClasses) {
+        return new DDLBuilder<>(null).addAll(entityClasses)
+            .build()
+            .execute();
     }
 
     /**
@@ -824,6 +827,8 @@ public class SQLHelper {
         private final List<Class<?>> entityClasses = new ArrayList<>();
         /** 创建表SQL映射 */
         private final Map<String, List<String>> createTableSqlMap = new HashMap<>();
+        /** SQL语句列表 */
+        private List<String> sqls = new ArrayList<>();
 
         /**
          * 构造函数。
@@ -854,10 +859,8 @@ public class SQLHelper {
 
         /**
          * 构建SQL语句。
-         *
-         * @return SQL语句列表
          */
-        public List<String> build() {
+        public DDLBuilder<T> build() {
             // 初始化创建表SQL映射
             createTableSqlMap.clear();
             tableRefMap.clear();
@@ -866,9 +869,8 @@ public class SQLHelper {
             if (entityClasses.size() == 1) {
                 Class<?> entityClass = entityClasses.get(0);
                 String tableName = SQLTableUtils.getTableName(entityClass);
-                List<String> sqls = buildTableSql(entityClass, tableName);
+                sqls = buildTableSql(entityClass, tableName);
                 createTableSqlMap.put(tableName, sqls);
-                return sqls;
             }
             // 多个实体类需要处理依赖关系
             else {
@@ -879,8 +881,9 @@ public class SQLHelper {
                 List<String> sortedTables = sortTablesByDependencies();
 
                 // 根据排序结果合并SQL语句
-                return mergeSqlByOrder(sortedTables);
+                sqls = mergeSqlByOrder(sortedTables);
             }
+            return this;
         }
 
         /**
@@ -915,7 +918,6 @@ public class SQLHelper {
         }
 
         public Integer execute() {
-            List<String> sqls = build();
             return sqls.stream()
                 .mapToInt(sql -> (Integer) SQLiteManager.executeSafeSQL(sql))
                 .sum();
@@ -937,9 +939,14 @@ public class SQLHelper {
             Map<String, List<String>> graph = new HashMap<>();
 
             // 初始化入度和邻接表
+            for (String tableName : createTableSqlMap.keySet()) {
+                inDegree.putIfAbsent(tableName, 0);
+                graph.putIfAbsent(tableName, new ArrayList<>());
+            }
+
+            // 构建依赖关系
             for (Map.Entry<String, List<String>> entry : tableRefMap.entrySet()) {
                 String table = entry.getKey();
-                inDegree.putIfAbsent(table, 0);
                 graph.putIfAbsent(table, new ArrayList<>());
 
                 for (String dependent : entry.getValue()) {
@@ -1067,7 +1074,6 @@ public class SQLHelper {
 
             // 收集外键约束并按引用表分组
             // 这里对外键进行分组优化，使相同表的外键引用可以合并为一个FOREIGN KEY语句
-            // SQLite支持多列外键: FOREIGN KEY(A, B) REFERENCES tasks(id) ON DELETE CASCADE ON UPDATE CASCADE
             Map<String, List<Field>> referFieldsByTable = referFields.stream()
                 .collect(
                     Collectors.groupingBy(
@@ -1289,9 +1295,14 @@ public class SQLHelper {
                 throw new IllegalArgumentException("引用注解不能为null");
             }
 
-            Reference.Type referenceType = reference.referenceType();
-            return referenceType.name()
-                .toLowerCase() + "s";
+            // 从实体类派生表名
+            Table table = reference.entity()
+                .getAnnotation(Table.class);
+            if (table != null) {
+                return table.name();
+            } else {
+                throw new IllegalArgumentException("实体类必须使用@Table注解");
+            }
         }
     }
 
@@ -1422,11 +1433,20 @@ public class SQLHelper {
                 })
                 .collect(Collectors.joining(", "));
 
+            // 构建引用字段名列表
+            String referencedFields = fields.stream()
+                .map(field -> {
+                    Reference reference = field.getAnnotation(Reference.class);
+                    return reference != null ? reference.fieldName() : "id";
+                })
+                .collect(Collectors.joining(", "));
+
             // 生成外键约束SQL，使用CASCADE作为默认操作
             return String.format(
-                "FOREIGN KEY(%s) REFERENCES %s(id) ON DELETE CASCADE ON UPDATE CASCADE",
+                "FOREIGN KEY(%s) REFERENCES %s(%s) ON DELETE CASCADE ON UPDATE CASCADE",
                 fieldNames,
-                referencedTable);
+                referencedTable,
+                referencedFields);
         }
     }
 }

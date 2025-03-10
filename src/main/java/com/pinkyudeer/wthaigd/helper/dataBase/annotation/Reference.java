@@ -9,13 +9,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Reference {
 
-    Type referenceType();
+    // 关联的实体
+    Class<?> entity();
 
-    // 此处的referenceType小写后应该与数据库表名一致
-    enum Type {
-        PLAYER,
-        TEAM,
-        TASK,
-        TAG
-    }
+    // 关联的字段名
+    String fieldName() default "id";
 }

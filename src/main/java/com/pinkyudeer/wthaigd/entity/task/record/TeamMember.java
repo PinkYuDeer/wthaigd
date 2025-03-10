@@ -7,6 +7,7 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.pinkyudeer.wthaigd.entity.task.Player;
 import com.pinkyudeer.wthaigd.entity.task.Team;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Reference;
@@ -23,11 +24,11 @@ public class TeamMember extends BaseRecord {
     // 核心关联
     @Nonnull
     @Column(name = "team_id")
-    @Reference(referenceType = Reference.Type.TASK)
+    @Reference(entity = Team.class)
     private UUID teamId; // 所属团队ID
     @Nonnull
     @Column(name = "player_id")
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID playerId; // 玩家ID
 
     // 成员属性
@@ -58,7 +59,7 @@ public class TeamMember extends BaseRecord {
     private LocalDateTime lastOperationTime; // 最后操作时间
     @Nullable
     @Column(name = "last_operator_id")
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID lastOperatorId; // 最后操作人（用于权限变更记录）
 
     public TeamMember(@Nonnull UUID teamId, @Nonnull UUID playerId, @Nonnull UUID operatorId) {

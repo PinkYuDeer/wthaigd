@@ -2,11 +2,8 @@ package com.pinkyudeer.wthaigd.core;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.stats.StatisticsFile;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
@@ -30,45 +27,22 @@ public class EventHandler {
 
         @SubscribeEvent
         public void onWorldLoad(WorldEvent.Load event) throws IOException {
-            if (!event.world.provider.isSurfaceWorld()) return;
+            if (event.world.provider.dimensionId != 0) return;
 
-            File currentWorldDir;
             if (FMLCommonHandler.instance()
                 .getSide()
                 .isServer()) {
-                currentWorldDir = event.world.getSaveHandler()
-                    .getWorldDirectory()
-                    .getCanonicalFile();
-            } else {
-                // 如果是加入服务器，则返回
-                if (Minecraft.getMinecraft()
-                    .getIntegratedServer() == null) {
-                    return;
-                }
-
-                currentWorldDir = new File(
-                    ModFileHelper.getSavesDir(),
-                    Minecraft.getMinecraft()
-                        .getIntegratedServer()
-                        .getFolderName());
+                ModFileHelper.updateModWorldDir(
+                    event.world.getSaveHandler()
+                        .getWorldDirectory()
+                        .getCanonicalFile());
             }
-            ModFileHelper.updateModWorldDir(currentWorldDir);
-
-            SQLiteManager.initSqlite();
-        }
-
-        @SubscribeEvent
-        public void onWorldUnload(WorldEvent.Unload event) {
-            if (!event.world.provider.isSurfaceWorld()) return;
-
-            ModFileHelper.updateModWorldDir(null);
-
-            SQLiteManager.close();
         }
 
         @SubscribeEvent
         public void onWorldSave(WorldEvent.Save event) {
-            if (!event.world.provider.isSurfaceWorld()) return;
+            // TODO: 测试其他世界暂停是否会保存主世界
+            if (event.world.provider.dimensionId != 0) return;
 
             Wthaigd.LOG.info("World save event triggered");
 
@@ -79,30 +53,37 @@ public class EventHandler {
     public static class playerHandler {
 
         @SubscribeEvent
-        public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) throws NoSuchFieldException {
+        public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
             Wthaigd.LOG.info("Player logged in: {}", event.player.getDisplayName());
-            try {
-                Class<? extends EntityPlayer> player = event.player.getClass();
-                Field field = player.getDeclaredField("field_147103_bO");
-                field.setAccessible(true);
-                StatisticsFile statsFile = (StatisticsFile) field.get(event.player);
-                Wthaigd.LOG.info("Player stats: {}", statsFile.toString());
-                Class<? extends StatisticsFile> statsFileClass = statsFile.getClass();
-                field = statsFileClass.getDeclaredField("field_150887_d");
-                field.setAccessible(true);
-                Wthaigd.LOG.info(
-                    "Player stats file: {}",
-                    field.get(statsFile)
-                        .toString());
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
+
+            if (FMLCommonHandler.instance()
+                .getSide()
+                .isClient()) {
+                // 如果是加入服务器，则返回
+                if (Minecraft.getMinecraft()
+                    .getIntegratedServer() == null) {
+                    return;
+                }
+
+                ModFileHelper.updateModWorldDir(
+                    new File(
+                        ModFileHelper.getSavesDir(),
+                        Minecraft.getMinecraft()
+                            .getIntegratedServer()
+                            .getFolderName()));
             }
+
+            SQLiteManager.initSqlite();
 
         }
 
         @SubscribeEvent
         public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
             Wthaigd.LOG.info("Player logged out: {}", event.player.getDisplayName());
+
+            ModFileHelper.updateModWorldDir(null);
+
+            SQLiteManager.close();
         }
     }
 }

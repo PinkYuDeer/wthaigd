@@ -36,7 +36,7 @@ public class Team {
     @Nonnull
     @FieldCheck(type = FieldCheck.Type.UUID, dataType = UUID.class)
     @Column(name = "owner_id")
-    @Reference(referenceType = Reference.Type.PLAYER)
+    @Reference(entity = Player.class)
     private UUID ownerId; // 拥有者ID
     @Nonnull
     @Column(name = "total_members", defaultValue = "0")
