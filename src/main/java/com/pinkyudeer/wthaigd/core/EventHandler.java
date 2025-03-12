@@ -7,8 +7,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
+import com.pinkyudeer.wthaigd.Wthaigd;
 import com.pinkyudeer.wthaigd.helper.ModFileHelper;
 import com.pinkyudeer.wthaigd.helper.dataBase.SQLiteManager;
+import com.pinkyudeer.wthaigd.task.TaskSqlHelper;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -75,6 +77,7 @@ public class EventHandler {
 
             SQLiteManager.initSqlite();
 
+            TaskSqlHelper.player.login(event.player);
         }
 
         @SubscribeEvent

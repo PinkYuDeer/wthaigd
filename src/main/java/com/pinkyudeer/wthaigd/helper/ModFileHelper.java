@@ -1,7 +1,7 @@
 package com.pinkyudeer.wthaigd.helper;
 
-import static com.pinkyudeer.wthaigd.core.Wthaigd.LOG;
-import static com.pinkyudeer.wthaigd.core.Wthaigd.MODID;
+import static com.pinkyudeer.wthaigd.Wthaigd.LOG;
+import static com.pinkyudeer.wthaigd.Wthaigd.MODID;
 
 import java.io.File;
 import java.io.IOException;

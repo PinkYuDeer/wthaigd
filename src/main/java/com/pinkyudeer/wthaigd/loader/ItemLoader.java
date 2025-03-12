@@ -2,8 +2,8 @@ package com.pinkyudeer.wthaigd.loader;
 
 import net.minecraft.item.Item;
 
-import com.pinkyudeer.wthaigd.entity.inGame.item.ItemDebugStick;
-import com.pinkyudeer.wthaigd.entity.inGame.item.ItemHandViewer;
+import com.pinkyudeer.wthaigd.inGame.item.ItemDebugStick;
+import com.pinkyudeer.wthaigd.inGame.item.ItemHandViewer;
 
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameRegistry;

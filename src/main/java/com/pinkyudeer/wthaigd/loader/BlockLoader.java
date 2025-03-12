@@ -2,8 +2,8 @@ package com.pinkyudeer.wthaigd.loader;
 
 import net.minecraft.block.Block;
 
-import com.pinkyudeer.wthaigd.entity.inGame.block.BlockDebugWthaigd;
-import com.pinkyudeer.wthaigd.entity.inGame.block.BlockViewer;
+import com.pinkyudeer.wthaigd.inGame.block.BlockDebugWthaigd;
+import com.pinkyudeer.wthaigd.inGame.block.BlockViewer;
 
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameRegistry;

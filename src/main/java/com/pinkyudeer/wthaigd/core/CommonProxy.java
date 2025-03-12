@@ -1,8 +1,9 @@
 package com.pinkyudeer.wthaigd.core;
 
 import com.pinkyudeer.wthaigd.Tags;
-import com.pinkyudeer.wthaigd.helper.ConfigHelper;
+import com.pinkyudeer.wthaigd.Wthaigd;
 import com.pinkyudeer.wthaigd.helper.ModFileHelper;
+import com.pinkyudeer.wthaigd.helper.config.ConfigHelper;
 import com.pinkyudeer.wthaigd.loader.BlockLoader;
 import com.pinkyudeer.wthaigd.loader.CommandLoader;
 import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;

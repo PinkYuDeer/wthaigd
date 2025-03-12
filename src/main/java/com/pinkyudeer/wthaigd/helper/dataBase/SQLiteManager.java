@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.sqlite.SQLiteConnection;
 
-import com.pinkyudeer.wthaigd.core.Wthaigd;
+import com.pinkyudeer.wthaigd.Wthaigd;
 import com.pinkyudeer.wthaigd.helper.ModFileHelper;
 import com.pinkyudeer.wthaigd.task.TaskSqlHelper;
 
@@ -25,7 +25,7 @@ public class SQLiteManager {
 
     private static final String MEM_DB_URL = "jdbc:sqlite::memory:"; // 内存数据库 URL
     private static Connection inMemoryConnection;
-    private static final File DATABASE_FILE = ModFileHelper.getWorldFile("task.db", false)
+    private static final File DATABASE_FILE = ModFileHelper.getWorldFile("entity.db", false)
         .getAbsoluteFile();
     public static boolean isWorldLoaded = false;
 
@@ -174,7 +174,7 @@ public class SQLiteManager {
      * @throws SQLException 当设置参数失败时抛出
      */
     private static void setParameters(PreparedStatement ps, List<Object> params) throws SQLException {
-        if (params != null) {
+        if (params != null && !params.isEmpty()) {
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }

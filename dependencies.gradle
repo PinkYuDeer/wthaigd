@@ -40,4 +40,5 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
     implementation 'org.reflections:reflections:0.10.2'
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
