@@ -1,8 +1,8 @@
 package com.pinkyudeer.wthaigd.helper.dataBase;
 
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import com.pinkyudeer.wthaigd.helper.dataBase.builder.AlterTableBuilder;
 import com.pinkyudeer.wthaigd.helper.dataBase.builder.CreateTableBuilder;
@@ -251,10 +251,25 @@ public class SQLHelper {
      * @param entityClass 实体类
      * @param <T>         实体类型
      * @return 实体对象列表
-     * @throws SQLException 如果查询失败
      */
-    public static <T> List<T> selectAllFrom(Class<T> entityClass) throws SQLException {
+    public static <T> List<T> selectAllFrom(Class<T> entityClass) {
         return EntityHandler.handleList(select(entityClass).execute(), entityClass);
+    }
+
+    /**
+     * 根据主键查询单个实体对象。
+     *
+     * @param entityClass 实体类
+     * @param id          实体主键，本项目中为UUID
+     * @param <T>         实体类型
+     * @return 实体对象
+     */
+    public static <T> T selectByPremiereKey(Class<T> entityClass, UUID id) {
+        return EntityHandler.handleSingle(
+            select(entityClass).where("id", SQLHelper.Operator.EQ, id)
+                .limit(1)
+                .execute(),
+            entityClass);
     }
 
     /**

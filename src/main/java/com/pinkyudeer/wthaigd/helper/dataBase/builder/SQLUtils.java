@@ -37,7 +37,6 @@ public class SQLUtils {
             Class<?> type = field.getType();
             String typeName = type.getSimpleName();
 
-            // 字符串类型
             if (typeName.equals("String") || typeName.equals("UUID") || type.isEnum()) {
                 return "TEXT";
             } else {

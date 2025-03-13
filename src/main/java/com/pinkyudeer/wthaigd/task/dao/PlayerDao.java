@@ -1,7 +1,5 @@
 package com.pinkyudeer.wthaigd.task.dao;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -9,7 +7,6 @@ import java.util.UUID;
 import net.minecraft.entity.player.EntityPlayer;
 
 import com.pinkyudeer.wthaigd.helper.UtilHelper;
-import com.pinkyudeer.wthaigd.helper.dataBase.EntityHandler;
 import com.pinkyudeer.wthaigd.helper.dataBase.SQLHelper;
 import com.pinkyudeer.wthaigd.helper.dataBase.builder.DeleteBuilder;
 import com.pinkyudeer.wthaigd.helper.dataBase.builder.SelectBuilder;
@@ -45,12 +42,16 @@ public class PlayerDao {
         return SQLHelper.select(Player.class);
     }
 
-    public static List<Player> selectAll() throws SQLException {
+    public static List<Player> selectAll() {
         return SQLHelper.selectAllFrom(Player.class);
     }
 
+    public static Player selectById(UUID uuid) {
+        return SQLHelper.selectByPremiereKey(Player.class, uuid);
+    }
+
     public static void updateOrInsert(EntityPlayer player) {
-        Player entity = selectByUUID(player.getUniqueID());
+        Player entity = selectById(player.getUniqueID());
         if (entity == null) {
             entity = new Player(player);
             SQLHelper.insert(entity);
@@ -61,18 +62,6 @@ public class PlayerDao {
             SQLHelper.updateByCompare(entity, oldEntity)
                 .byId()
                 .execute();
-        }
-    }
-
-    public static Player selectByUUID(UUID uuid) {
-        Player queryEntity = new Player();
-        queryEntity.setId(uuid);
-        ResultSet rs = SQLHelper.selectByCompare(queryEntity, null)
-            .execute();
-        try {
-            return EntityHandler.handleSingle(rs, Player.class);
-        } catch (SQLException e) {
-            throw new RuntimeException("查询玩家失败", e);
         }
     }
 }

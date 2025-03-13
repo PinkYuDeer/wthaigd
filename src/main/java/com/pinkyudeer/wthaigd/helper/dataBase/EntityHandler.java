@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.pinkyudeer.wthaigd.helper.UtilHelper;
 import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
 
 public class EntityHandler<T> {
@@ -49,6 +50,11 @@ public class EntityHandler<T> {
                 // 如果存在，则取值并赋给实体
                 if (columnExists) {
                     Object value = rs.getObject(columnName);
+                    // 比较字段类型，如果不匹配则尝试转换
+                    if (value != null && !field.getType()
+                        .isAssignableFrom(value.getClass())) {
+                        value = UtilHelper.convertValue(value, field.getType());
+                    }
                     field.set(entity, value);
                 }
             }
@@ -66,9 +72,13 @@ public class EntityHandler<T> {
      * @param <T>  泛型类型
      * @return 映射后的实体对象或null
      */
-    public static <T> T handleSingle(ResultSet rs, Class<T> type) throws SQLException {
-        if (rs.next()) {
-            return mapRow(rs, type);
+    public static <T> T handleSingle(ResultSet rs, Class<T> type) {
+        try {
+            if (rs.next()) {
+                return mapRow(rs, type);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return null;
     }
@@ -81,12 +91,17 @@ public class EntityHandler<T> {
      * @param <T>  泛型类型
      * @return 实体对象的列表
      */
-    public static <T> List<T> handleList(ResultSet rs, Class<T> type) throws SQLException {
+    public static <T> List<T> handleList(ResultSet rs, Class<T> type) {
         List<T> list = new ArrayList<>();
-        while (rs.next()) {
-            // 每次循环直接使用EntityHandler.mapRow将当前行映射为实体
-            T entity = EntityHandler.mapRow(rs, type);
-            list.add(entity);
+        while (true) {
+            try {
+                if (!rs.next()) break;
+                // 每次循环直接使用EntityHandler.mapRow将当前行映射为实体
+                T entity = EntityHandler.mapRow(rs, type);
+                list.add(entity);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
         return list;
     }

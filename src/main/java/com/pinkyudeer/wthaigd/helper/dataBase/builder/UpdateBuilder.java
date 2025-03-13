@@ -100,6 +100,6 @@ public class UpdateBuilder<T> extends BaseBuilder<T, UpdateBuilder<T>> {
 
         sql = addWhereClause(sql, executeParams, true, "更新");
 
-        return (Integer) SQLiteManager.executeSafeSQL(sql, executeParams);
+        return (Integer) SQLiteManager.executeSafeSQL(sql, executeParams.toArray());
     }
 }

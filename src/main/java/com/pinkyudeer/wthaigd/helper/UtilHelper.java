@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -100,6 +101,22 @@ public class UtilHelper {
         }
     }
 
+    /**
+     * 获取对象的字段
+     *
+     * @param fieldName 字段名称
+     * @return 字段对象
+     */
+    public static Field getField(Class<?> clazz, String fieldName) {
+        try {
+            Field field = clazz.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field;
+        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     static class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
 
         @Override
@@ -139,6 +156,88 @@ public class UtilHelper {
                 return null;
             }
             return Duration.parse(in.nextString());
+        }
+    }
+
+    /**
+     * 将值转换为指定类型
+     *
+     * @param value 值
+     * @param type  目标类型
+     * @return 转换后的值
+     */
+    public static Object convertValue(Object value, Class<?> type) {
+        if (value == null) {
+            return null;
+        }
+
+        String typeName = type.getSimpleName();
+
+        // 处理字符串类型
+        if (typeName.equals("String")) {
+            return value.toString();
+        }
+
+        // 处理枚举类型
+        if (type.isEnum()) {
+            @SuppressWarnings({ "unchecked", "rawtypes" })
+            Enum<?> enumValue = Enum.valueOf((Class<Enum>) type, value.toString());
+            return enumValue;
+        }
+
+        // 处理UUID类型
+        if (typeName.equals("UUID")) {
+            return UUID.fromString(value.toString());
+        }
+
+        // 处理其他类型
+        switch (typeName) {
+            // 整数类型
+            case "int", "Integer" -> {
+                if (value instanceof Number) {
+                    return ((Number) value).intValue();
+                }
+                return Integer.parseInt(value.toString());
+            }
+            // 长整数类型
+            case "long", "Long" -> {
+                if (value instanceof Number) {
+                    return ((Number) value).longValue();
+                }
+                return Long.parseLong(value.toString());
+            }
+            // 浮点类型
+            case "double", "Double" -> {
+                if (value instanceof Number) {
+                    return ((Number) value).doubleValue();
+                }
+                return Double.parseDouble(value.toString());
+            }
+            // Duration类型
+            case "Duration" -> {
+                return Duration.parse(value.toString());
+            }
+            // 布尔类型
+            case "boolean", "Boolean" -> {
+                if (value instanceof Number) {
+                    return ((Number) value).intValue() != 0;
+                }
+                return Boolean.parseBoolean(value.toString());
+            }
+            // 时间类型
+            case "Date" -> {
+                if (value instanceof String) {
+                    return java.sql.Date.valueOf((String) value);
+                }
+                return value;
+            }
+            case "LocalDateTime" -> {
+                if (value instanceof String) {
+                    return LocalDateTime.parse((String) value);
+                }
+                return value;
+            }
+            default -> throw new IllegalArgumentException("不支持的字段类型转换: " + type);
         }
     }
 }

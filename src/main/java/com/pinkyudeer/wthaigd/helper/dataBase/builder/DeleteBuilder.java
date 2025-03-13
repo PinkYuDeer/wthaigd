@@ -16,7 +16,7 @@ public class DeleteBuilder<T> extends BaseBuilder<T, DeleteBuilder<T>> {
 
     /**
      * 基于实体对象的构造函数
-     * 
+     *
      * @param entity 实体对象
      */
     public DeleteBuilder(T entity) {
@@ -25,7 +25,7 @@ public class DeleteBuilder<T> extends BaseBuilder<T, DeleteBuilder<T>> {
 
     /**
      * 基于实体类的构造函数
-     * 
+     *
      * @param entityClass 实体类
      */
     public DeleteBuilder(Class<T> entityClass) {
@@ -37,7 +37,7 @@ public class DeleteBuilder<T> extends BaseBuilder<T, DeleteBuilder<T>> {
 
     /**
      * 基于比对模式的构造函数
-     * 
+     *
      * @param entity    当前实体
      * @param oldEntity 旧实体（用于比对）
      */
@@ -69,6 +69,6 @@ public class DeleteBuilder<T> extends BaseBuilder<T, DeleteBuilder<T>> {
 
         sql = addWhereClause(sql, executeParams, true, "删除");
 
-        return (Integer) SQLiteManager.executeSafeSQL(sql, executeParams);
+        return (Integer) SQLiteManager.executeSafeSQL(sql, executeParams.toArray());
     }
 }

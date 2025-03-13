@@ -22,7 +22,7 @@ public class TaskSqlHelper {
      * 扫描并创建所有任务相关的表
      */
     public static void initTaskDataBase() {
-        Reflections reflections = new Reflections("com.pinkyudeer.wthaigd.entity.entity");
+        Reflections reflections = new Reflections("com.pinkyudeer.wthaigd.task.entity");
         Set<Class<?>> annotatedClasses = reflections.getTypesAnnotatedWith(Table.class);
         try {
             SQLHelper.createTables(annotatedClasses);

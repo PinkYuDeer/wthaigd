@@ -50,6 +50,6 @@ public class InsertBuilder<T> extends BaseBuilder<T, InsertBuilder<T>> {
         }
 
         String sql = String.format("INSERT INTO %s %s VALUES %s", getTableName(), columns, placeholders);
-        return (Integer) SQLiteManager.executeSafeSQL(sql, params);
+        return (Integer) SQLiteManager.executeSafeSQL(sql, params.toArray());
     }
 }

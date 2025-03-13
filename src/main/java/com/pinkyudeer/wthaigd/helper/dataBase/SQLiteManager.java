@@ -7,7 +7,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.sqlite.SQLiteConnection;
@@ -25,7 +24,7 @@ public class SQLiteManager {
 
     private static final String MEM_DB_URL = "jdbc:sqlite::memory:"; // 内存数据库 URL
     private static Connection inMemoryConnection;
-    private static final File DATABASE_FILE = ModFileHelper.getWorldFile("entity.db", false)
+    private static final File DATABASE_FILE = ModFileHelper.getWorldFile("main.db", false)
         .getAbsoluteFile();
     public static boolean isWorldLoaded = false;
 
@@ -135,11 +134,12 @@ public class SQLiteManager {
      */
     @SuppressWarnings("SqlSourceToSinkFlow")
     public static Object executeSafeSQL(String sql, Object... params) {
-        try (PreparedStatement ps = inMemoryConnection.prepareStatement(sql)) {
-            if (!Arrays.equals(params, new Object[0])) {
-                setParameters(ps, Collections.singletonList(params));
+        try {
+            PreparedStatement ps = inMemoryConnection.prepareStatement(sql);
+            if (params.length > 0) {
+                setParameters(ps, Arrays.asList(params));
             }
-            Wthaigd.LOG.info("执行 SQL: {}", sql);
+            Wthaigd.LOG.info("执行 SQL: {}", ps.toString()); // TODO:正式发布前删除
             boolean resultIsRs = ps.execute();
             if (resultIsRs) {
                 return ps.getResultSet();

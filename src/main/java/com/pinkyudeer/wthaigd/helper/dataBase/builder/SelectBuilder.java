@@ -225,6 +225,6 @@ public class SelectBuilder<T> extends BaseBuilder<T, SelectBuilder<T>> {
                 .append(offset);
         }
 
-        return (ResultSet) SQLiteManager.executeSafeSQL(query.toString(), executeParams);
+        return (ResultSet) SQLiteManager.executeSafeSQL(query.toString(), executeParams.toArray());
     }
 }
