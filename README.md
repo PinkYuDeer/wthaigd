@@ -29,7 +29,7 @@ This project aims to offer a collaborative task list designed for multiplayer in
 * Command-based functionalities: easy creation, modification, and deletion of work items
 * Completed testing on configuration files along with file management and player status utility classes
 * Data structure design completed; data entities created according to design specifications
-* Functions related to database operations in taskSQLite: table creation as well as insertions, deletions, updates & queries
+* Functions related to database operations in SQLHelper: table creation as well as insertions, deletions, updates & queries
 
 ## Future Plans
 * Set work item statuses via commands: priority levels, states of completion relationships between parent-child work items; completion time; creation time; responsible parties; followers etc.
