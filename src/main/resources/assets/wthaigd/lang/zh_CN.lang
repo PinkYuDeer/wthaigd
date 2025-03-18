@@ -8,3 +8,6 @@ itemGroup.wthaigd.name=WTHAIGD
 config.comment.greeting=欢迎使用WTHAIGD！
 config.comment.isMemoryMode=是否启用调试模式
 config.comment.debugMode=是否启用sqlite内存优化模式
+
+key.categories.wthaigd=WTHAIGD
+key.openTaskGui=打开任务界面

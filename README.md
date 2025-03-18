@@ -20,28 +20,28 @@ This project aims to offer a collaborative task list designed for multiplayer in
 * Users can earn points and enjoy visual effects upon completing tasks as motivation.
 * It provides features compatible with Better Quest.
 
-## Achievements So Far
-* Functionality for creating new folders
-* The "wishful thinking" feature
-* Successful entry into the game
-* First custom items, blocks, high-resolution textures, recipes, and fuels
-* Localization language files
-* Command-based functionalities: easy creation, modification, and deletion of work items
-* Completed testing on configuration files along with file management and player status utility classes
-* Data structure design completed; data entities created according to design specifications
-* Functions related to database operations in SQLHelper: table creation as well as insertions, deletions, updates & queries
+## Achievements
+* Implemented the feature to create new folders.
+* Introduced a "drawing pie" functionality.
+* Successfully entered the game environment.
+* Developed the first custom items, blocks, high-resolution textures, recipes, and fuels.
+* Localized language files for better accessibility.
+* Enabled simple task creation, modification, and deletion through commands.
+* Completed and tested configuration files along with file management and player status utility classes.
+* Designed data structures and implemented data entities according to that design.
+* Added functions related to database operations in SQLHelper: creating tables as well as adding, deleting, modifying, and querying records.
+* Created a shortcut key for opening the GUI interface.
 
 ## Future Plans
-* Set work item statuses via commands: priority levels, states of completion relationships between parent-child work items; completion time; creation time; responsible parties; followers etc.
-* Design GUI interface for work items
-* Support hotkeys for opening work items
-* Enhance functionality of work items—such as periodic automatic creation
-* Adaptation for multiplayer mode
-* Transforming work items into mind maps,Gantt charts boards,and timeline boards (basic implementation)
-* Compatibility with Better Quest while reasonably selecting task projects enabling synchronized teamwork
-* Provide positive feedback effects upon task completion including visual effects,sound alerts,and point rewards
-* Refactor UI interface of work items ensuring more appealing displays
-* Ensure compatibility with higher versions
+* Design a user-friendly GUI interface for tasks.
+* Set up task statuses including priority levels, states, parent-child relationships among tasks, completion times, creation times as well as responsible parties and followers.
+* Enhance task functionalities such as periodic automatic task creation.
+* Adapt features for multiplayer mode.
+* Transform tasks into mind maps or Gantt charts along with timeline boards (basic implementation).
+* Integrate with Better Quest in a reasonable manner to select mission projects effectively while enabling synchronized teamwork.
+* Provide positive feedback effects upon task completion including visual effects, auditory prompts, and point rewards.
+* Refactor the UI of work items to achieve more visually appealing presentations.
+* Ensure compatibility with higher versions.
 
 ## License
 This project follows the GNU General Public License v3.0. For further details please refer to the [LICENSE](./LICENSE) file.

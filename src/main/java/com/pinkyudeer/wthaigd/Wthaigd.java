@@ -33,6 +33,9 @@ public class Wthaigd {
     // 应该使用 {} 占位符动态插入变量，避免字符串拼接： LOG.info("成功注册了 {} 个物品", itemCount);
     public static final Logger LOG = LogManager.getLogger(MODID);
 
+    @Mod.Instance(MODID)
+    public static Wthaigd instance;
+
     @SidedProxy(
         clientSide = "com.pinkyudeer.wthaigd.core.ClientProxy",
         serverSide = "com.pinkyudeer.wthaigd.core.CommonProxy")

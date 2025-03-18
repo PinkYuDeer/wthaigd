@@ -8,3 +8,6 @@ itemGroup.wthaigd.name=WTHAIGD
 config.comment.greeting=Welcome to WTHAIGD!
 config.comment.isMemoryMode=Whether to enable debug mode
 config.comment.debugMode=Whether to enable sqlite memory optimization mode
+
+key.categories.wthaigd=WTHAIGD
+key.openTaskGui=Open Task GUI
