@@ -1,4 +1,4 @@
-package com.pinkyudeer.wthaigd.gui.entity;
+package com.pinkyudeer.wthaigd.gui.widget;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -6,8 +6,15 @@ import net.minecraft.client.gui.GuiButton;
 
 public class GuiTaskButton extends GuiButton {
 
-    public GuiTaskButton(int id, int x, int y, int width, int height, String text) {
+    protected int textColor = 0xffffff;
+
+    public GuiTaskButton(int buttonId, int x, int y, String buttonText) {
+        super(buttonId, x, y, buttonText);
+    }
+
+    public GuiTaskButton(int id, int x, int y, int width, int height, String text, int textColor) {
         super(id, x, y, width, height, text);
+        this.textColor = textColor;
     }
 
     @Override
@@ -21,12 +28,13 @@ public class GuiTaskButton extends GuiButton {
             final int color = (int) (255.0F * f);
 
             Gui.drawRect(xPosition, yPosition, xPosition + width, yPosition + height, color / 2 << 24);
+
             drawCenteredString(
                 mc.fontRenderer,
                 displayString,
                 xPosition + width / 2,
                 yPosition + (height - 8) / 2,
-                0xffffff);
+                textColor);
         }
     }
 

@@ -9,5 +9,9 @@ config.comment.greeting=欢迎使用WTHAIGD！
 config.comment.isMemoryMode=是否启用调试模式
 config.comment.debugMode=是否启用sqlite内存优化模式
 
+config.comment.blur.downscaleLevels=模糊效果的降级级别（每个阶段减少4倍性能开销，伴随些许质量损失）
+config.comment.blur.radius=模糊效果的半径（更高的值意味着更发散，性能开销较小）
+config.comment.blur.blurPasses=模糊效果的通道数（每增加2倍平滑度，性能开销增加2倍）
+
 key.categories.wthaigd=WTHAIGD
 key.openTaskGui=打开任务界面

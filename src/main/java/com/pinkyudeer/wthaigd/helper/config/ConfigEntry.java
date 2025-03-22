@@ -67,7 +67,8 @@ public abstract class ConfigEntry<T> {
         public final int minValue;
         public final int maxValue;
 
-        IntConfigEntry(String key, int defaultValue, String comment, String langKey, int minValue, int maxValue) {
+        public IntConfigEntry(String key, int defaultValue, String comment, String langKey, int minValue,
+            int maxValue) {
             super(key, defaultValue, comment, langKey);
             this.minValue = minValue;
             this.maxValue = maxValue;
@@ -97,14 +98,14 @@ public abstract class ConfigEntry<T> {
         public final float minValue;
         public final float maxValue;
 
-        FloatConfigEntry(String key, float defaultValue, String comment, String langKey, float minValue,
+        public FloatConfigEntry(String key, float defaultValue, String comment, String langKey, float minValue,
             float maxValue) {
             super(key, defaultValue, comment, langKey);
             this.minValue = minValue;
             this.maxValue = maxValue;
         }
 
-        FloatConfigEntry(String key, float defaultValue, String comment, String langKey) {
+        public FloatConfigEntry(String key, float defaultValue, String comment, String langKey) {
             super(key, defaultValue, comment, langKey);
             this.minValue = Float.MIN_VALUE;
             this.maxValue = Float.MAX_VALUE;

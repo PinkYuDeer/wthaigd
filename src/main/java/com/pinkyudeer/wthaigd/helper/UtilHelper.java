@@ -240,4 +240,14 @@ public class UtilHelper {
             default -> throw new IllegalArgumentException("不支持的字段类型转换: " + type);
         }
     }
+
+    /**
+     * 判断字符串是否为空或null
+     *
+     * @param str 字符串
+     * @return 是否为空或null
+     */
+    public static boolean isNullOrEmpty(String str) {
+        return str == null || str.isEmpty();
+    }
 }

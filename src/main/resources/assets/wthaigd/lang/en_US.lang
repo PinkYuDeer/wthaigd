@@ -9,5 +9,10 @@ config.comment.greeting=Welcome to WTHAIGD!
 config.comment.isMemoryMode=Whether to enable debug mode
 config.comment.debugMode=Whether to enable sqlite memory optimization mode
 
+config.comment.blur.downscaleLevels=Downscale levels for blur effect (higher levels reduce performance cost by 4x per level with some quality loss)
+config.comment.blur.radius=Radius for blur effect (Higher values mean more diffusion with less performance cost)
+config.comment.blur.blurPasses=Number of passes for blur effect(Increased performance cost by 2x per pass with 2x smoothness)
+
 key.categories.wthaigd=WTHAIGD
 key.openTaskGui=Open Task GUI
+

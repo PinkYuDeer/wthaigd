@@ -1,7 +1,6 @@
 package com.pinkyudeer.wthaigd.helper.config;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -11,6 +10,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.config.Configuration;
 
 import com.pinkyudeer.wthaigd.Wthaigd;
+import com.pinkyudeer.wthaigd.core.ConfigSetting;
 
 import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -19,35 +19,7 @@ public class ConfigHelper {
 
     public static Configuration config;
 
-    private static final List<ConfigEntry<?>> CONFIG_ENTRIES = new ArrayList<>();
-
-    private static void addConfigEntry() {
-        CONFIG_ENTRIES.add(
-            new ConfigEntry.StringConfigEntry(
-                "greeting",
-                "Hello World",
-                "Welcome to WTHAIGD!!!",
-                "config.comment.greeting"));
-        CONFIG_ENTRIES.add(
-            new ConfigEntry.BooleanConfigEntry(
-                "debugMode",
-                false,
-                "Whether to enable debug mode",
-                "config.comment.debugMode"));
-        CONFIG_ENTRIES.add(
-            new ConfigEntry.BooleanConfigEntry(
-                "isMemoryMode",
-                true,
-                "Whether to enable sqlite memory optimization mode",
-                "config.comment.isMemoryMode"));
-        // CONFIG_ENTRIES.add(new IntConfigEntry("someInt", 50, "一个整数", "config.comment.someInt")); // 使用默认的最大最小值
-        // CONFIG_ENTRIES.add(new FloatConfigEntry("someFloat", 0.5f, "一个小数", "config.comment.someFloat")); //
-        // 使用默认的最大最小值
-        // CONFIG_ENTRIES.add(new IntConfigEntry("someInt", 50, "一个0到100的整数", "config.comment.someInt", 0, 100)); //
-        // 限制在0-100之间
-        // CONFIG_ENTRIES.add(new FloatConfigEntry("someFloat", 0.5f, "一个0到1的小数", "config.comment.someFloat", 0.0f,
-        // 1.0f)); // 限制在0-1之间
-    }
+    private static final List<ConfigEntry<?>> CONFIG_ENTRIES = ConfigSetting.getConfigEntry();
 
     public static void synchronizeConfiguration(boolean loadFromFile) {
         try {
@@ -75,41 +47,88 @@ public class ConfigHelper {
 
     public static void init(File configFile) {
         config = new Configuration(configFile);
-        addConfigEntry();
         synchronizeConfiguration(true);
     }
 
-    public static String getStringConfig(String configName) {
-        return getConfigValue(configName, String.class);
+    public static String getString(String configKey) {
+        return getConfigValue(configKey, String.class);
     }
 
-    public static Boolean getBooleanConfig(String configName) {
-        return getConfigValue(configName, Boolean.class);
+    public static Boolean getBoolean(String configKey) {
+        return getConfigValue(configKey, Boolean.class);
     }
 
-    public static Integer getIntConfig(String configName) {
-        return getConfigValue(configName, Integer.class);
+    public static Integer getInt(String configKey) {
+        return getConfigValue(configKey, Integer.class);
     }
 
-    public static Float getFloatConfig(String configName) {
-        return getConfigValue(configName, Float.class);
+    public static Float getFloat(String configKey) {
+        return getConfigValue(configKey, Float.class);
     }
 
-    private static <T> T getConfigValue(String configName, Class<T> type) {
+    /**
+     * 获取字符串配置值，如果不存在则返回默认值
+     * 
+     * @param configKey    配置名称
+     * @param defaultValue 默认值
+     * @return 配置值
+     */
+    public static String getString(String configKey, String defaultValue) {
+        String value = getString(configKey);
+        return value != null ? value : defaultValue;
+    }
+
+    /**
+     * 获取布尔配置值，如果不存在则返回默认值
+     * 
+     * @param configKey    配置名称
+     * @param defaultValue 默认值
+     * @return 配置值
+     */
+    public static boolean getBoolean(String configKey, boolean defaultValue) {
+        Boolean value = getBoolean(configKey);
+        return value != null ? value : defaultValue;
+    }
+
+    /**
+     * 获取整数配置值，如果不存在则返回默认值
+     * 
+     * @param configKey    配置名称
+     * @param defaultValue 默认值
+     * @return 配置值
+     */
+    public static int getInt(String configKey, int defaultValue) {
+        Integer value = getInt(configKey);
+        return value != null ? value : defaultValue;
+    }
+
+    /**
+     * 获取浮点数配置值，如果不存在则返回默认值
+     * 
+     * @param configKey    配置名称
+     * @param defaultValue 默认值
+     * @return 配置值
+     */
+    public static float getFloat(String configKey, float defaultValue) {
+        Float value = getFloat(configKey);
+        return value != null ? value : defaultValue;
+    }
+
+    private static <T> T getConfigValue(String configKey, Class<T> type) {
         ConfigEntry<?> entry = CONFIG_ENTRIES.stream()
-            .filter(e -> e.key.equals(configName))
+            .filter(e -> e.key.equals(configKey))
             .findFirst()
             .orElse(null);
 
         if (entry == null) {
-            Wthaigd.LOG.error("配置项不存在: {}", configName);
+            Wthaigd.LOG.error("配置项不存在: {}", configKey);
             return null;
         }
 
         if (!type.isInstance(entry.value)) {
             Wthaigd.LOG.error(
                 "配置项类型不匹配: {} 预期类型: {}, 实际类型: {}",
-                configName,
+                configKey,
                 type.getSimpleName(),
                 entry.value.getClass()
                     .getSimpleName());
