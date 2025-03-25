@@ -7,14 +7,19 @@ import net.minecraft.client.gui.ScaledResolution;
 
 import com.cleanroommc.modularui.api.drawable.IDrawable;
 import com.cleanroommc.modularui.api.drawable.IKey;
-import com.cleanroommc.modularui.drawable.GuiTextures;
+import com.cleanroommc.modularui.api.widget.IWidget;
+import com.cleanroommc.modularui.factory.ClientGUI;
 import com.cleanroommc.modularui.screen.CustomModularScreen;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.viewport.ModularGuiContext;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
+import com.cleanroommc.modularui.widgets.RichTextWidget;
+import com.cleanroommc.modularui.widgets.layout.Column;
+import com.cleanroommc.modularui.widgets.layout.Row;
 import com.pinkyudeer.wthaigd.Wthaigd;
+import com.pinkyudeer.wthaigd.helper.RenderHelper;
+import com.pinkyudeer.wthaigd.helper.config.ConfigHelper;
 import com.pinkyudeer.wthaigd.helper.shader.OptimizedBlurHandler;
-import com.pinkyudeer.wthaigd.helper.shader.RenderHelper;
 
 public class MainModularScreen extends CustomModularScreen {
 
@@ -25,50 +30,233 @@ public class MainModularScreen extends CustomModularScreen {
     int panelX;
     int panelY;
 
+    boolean inited = false;
+
+    // 动画状态
+    private long animationStartTime;
+    private final int fadeDuration; // 淡入淡出持续时间（毫秒）
+    private final boolean animationEnabled; // 是否启用动画
+    private boolean isFadingIn; // 是否正在淡入
+    private boolean isFadingOut = false; // 是否正在淡出
+    private boolean isClosing = false; // 是否正在淡出
+    private float currentAlpha; // 当前透明度
+
+    /**
+     * 创建并初始化动画状态
+     */
+    public MainModularScreen() {
+        // 从配置中读取动画设置
+        this.animationEnabled = ConfigHelper.getBoolean("ui.animation.enabled", true);
+        this.fadeDuration = ConfigHelper.getInt("ui.animation.fadeDuration", 300);
+
+        // 初始化动画状态
+        this.animationStartTime = System.currentTimeMillis();
+
+        // 如果禁用了动画，则直接设置为完成状态
+        if (!animationEnabled) {
+            this.isFadingIn = false;
+            this.currentAlpha = 1.0f;
+        } else {
+            this.isFadingIn = true;
+            this.currentAlpha = 0.0f;
+        }
+    }
+
+    // 安全地应用边框的辅助方法
+    @SuppressWarnings("SameParameterValue")
+    private <T extends IWidget> T applyBorder(T widget, int color, int size, boolean isInner) {
+        return RenderHelper.applyBorderWithReflection(widget, color, size, isInner);
+    }
+
     @Override
     public @Nonnull ModularPanel buildUI(ModularGuiContext context) {
-        Minecraft mc = Minecraft.getMinecraft();
-        ScaledResolution scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        width = scaledResolution.getScaledWidth();
-        height = scaledResolution.getScaledHeight();
+        if (!inited) {
+            Minecraft mc = Minecraft.getMinecraft();
+            ScaledResolution scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+            width = scaledResolution.getScaledWidth();
+            height = scaledResolution.getScaledHeight();
+        }
 
-        // 计算面板尺寸和位置
-        panelWidth = width / 5 * 4;
-        panelHeight = height / 5 * 4;
+        // 动态计算面板尺寸和位置
+        panelWidth = width / 10 * 9;
+        panelHeight = height / 8 * 7;
         panelX = (width - panelWidth) / 2;
         panelY = (height - panelHeight) / 2;
+        int sidebarWidth = panelWidth / 6; // 侧边栏宽度
+        int navBarHeight = 20; // 导航条高度
 
-        ModularPanel panel = ModularPanel.defaultPanel("main", panelWidth, panelHeight)
-            .padding(0, 0, 0, 0)
-            .margin(0, 0, 0, 0)
+        // 创建主面板
+        ModularPanel mainPanel = ModularPanel.defaultPanel("main", panelWidth, panelHeight)
             .background(IDrawable.EMPTY); // 使用完全透明的背景
 
-        panel.child(
-            IKey.lang("wthaigd.gui.main.title")
-                .asWidget()
-                .top(7)
-                .left(7))
-            .child(
-                new ButtonWidget<>().center()
-                    .size(60, 16)
-                    .background(GuiTextures.BUTTON_CLEAN)
-                    .overlay(IKey.lang("wthaigd.gui.main.button.test"))
-                    .onMousePressed(mouseButton -> {
-                        Wthaigd.LOG.info("Button clicked!"); // TODO: Replace with actual action
-                        return true;
-                    }));
-        return panel;
+        // 创建一个主布局，使用Row进行水平分块
+        Row mainLayout = (Row) new Row().size(panelWidth, panelHeight)
+            .center()
+            .background(IDrawable.EMPTY);
+
+        // 创建左侧面板
+        Column sidebar = (Column) new Column().size(sidebarWidth, panelHeight)
+            .background(IDrawable.EMPTY);
+
+        ButtonWidget<?> sidebarButton = new ButtonWidget<>().size(70, navBarHeight)
+            .overlay(IKey.str("测试"))
+            .background(IDrawable.EMPTY);
+
+        sidebar.addChild(applyBorder(sidebarButton, 0xFF808080, 1, true), 0);
+
+        // 创建右侧面板
+        Column content = (Column) new Column().size(panelWidth - sidebarWidth, panelHeight)
+            .background(IDrawable.EMPTY);
+        // 创建导航条
+        Row navBar = (Row) new Row().size(panelWidth - sidebarWidth, navBarHeight)
+            .background(IDrawable.EMPTY)
+            .childPadding(10);
+
+        ButtonWidget<?> navButton1 = new ButtonWidget<>().size(30, navBarHeight)
+            .overlay(IKey.str("测试1"))
+            .background(IDrawable.EMPTY);
+
+        ButtonWidget<?> navButton2 = new ButtonWidget<>().size(30, navBarHeight)
+            .overlay(IKey.str("测试2"))
+            .background(IDrawable.EMPTY);
+
+        ButtonWidget<?> navButton3 = new ButtonWidget<>().size(30, navBarHeight)
+            .overlay(IKey.str("测试3"))
+            .background(IDrawable.EMPTY);
+
+        navBar.addChild(applyBorder(navButton1, 0xFF808080, 1, true), 0);
+        navBar.addChild(applyBorder(navButton2, 0xFF808080, 1, true), 1);
+        navBar.addChild(applyBorder(navButton3, 0xFF808080, 1, true), 2);
+
+        // 创建内容区域
+        Column contentArea = (Column) new Column().size(panelWidth - sidebarWidth, panelHeight - navBarHeight)
+            .background(IDrawable.EMPTY);
+        contentArea.addChild(
+            new RichTextWidget().size(panelWidth - sidebarWidth, panelHeight - navBarHeight)
+                .add("test"),
+            0);
+
+        content.addChild(applyBorder(navBar, 0xFF808080, 1, true), 0);
+        content.addChild(applyBorder(contentArea, 0xFF808080, 1, true), 1);
+
+        mainLayout.addChild(applyBorder(sidebar, 0xFF808080, 1, true), 0);
+        mainLayout.addChild(applyBorder(content, 0xFF808080, 1, true), 1);
+
+        mainPanel.addChild(mainLayout, 0);
+
+        return mainPanel;
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        // 在绘制GUI元素前应用模糊效果
-        OptimizedBlurHandler.renderBlurredBackground();
+        // 如果动画已禁用，则直接正常渲染
+        if (!animationEnabled) {
+            OptimizedBlurHandler.renderBlurredBackground(1.0f);
+            super.drawScreen(mouseX, mouseY, partialTicks);
+            RenderHelper.drawBorder(panelX, panelY, panelWidth, panelHeight, 0xFF808080);
+            return;
+        }
 
-        // 先调用父类方法绘制基本UI
-        super.drawScreen(mouseX, mouseY, partialTicks);
+        // 更新淡入淡出动画
+        updateFadeAnimation();
 
-        // 使用RenderHelper绘制边框
-        RenderHelper.drawBorder(panelX, panelY, panelWidth, panelHeight, 0xFF808080);
+        // 在绘制GUI元素前应用模糊效果，并传入当前的透明度
+        OptimizedBlurHandler.renderBlurredBackground(currentAlpha);
+
+        // 只有当动画完成时才绘制UI元素
+        if (!isFadingIn && !isFadingOut && !isClosing) {
+            // 先调用父类方法绘制基本UI
+            super.drawScreen(mouseX, mouseY, partialTicks);
+
+            // 使用RenderHelper绘制边框
+            RenderHelper.drawBorder(panelX, panelY, panelWidth, panelHeight, 0xFF808080);
+        }
+    }
+
+    /**
+     * 更新淡入淡出动画的状态
+     */
+    private void updateFadeAnimation() {
+        // 如果动画被禁用，则直接设置为完成状态
+        if (!animationEnabled) {
+            isFadingIn = false;
+            isFadingOut = false;
+            currentAlpha = 1.0f;
+            return;
+        }
+
+        long currentTime = System.currentTimeMillis();
+        long elapsedTime = currentTime - animationStartTime;
+
+        if (isFadingIn) {
+            // 淡入动画
+            if (elapsedTime >= fadeDuration) {
+                // 动画完成，设置状态为完成
+                currentAlpha = 1.0f;
+                isFadingIn = false;
+                // 此时应该绘制UI
+            } else {
+                // 动画进行中
+                currentAlpha = (float) elapsedTime / fadeDuration;
+            }
+        } else if (isFadingOut) {
+            // 淡出动画
+            if (elapsedTime >= fadeDuration) {
+                // 动画完成，关闭界面
+                currentAlpha = 0.0f;
+                isFadingOut = false;
+                super.close(true);
+            } else {
+                // 动画进行中
+                currentAlpha = 1.0f - (float) elapsedTime / fadeDuration;
+            }
+        }
+    }
+
+    /**
+     * 重写关闭方法，添加淡出效果
+     */
+    @Override
+    public void close(boolean force) {
+        // 如果已经在淡出，则不再处理
+        if (isFadingOut) return;
+
+        // 开始淡出动画
+        isFadingOut = true;
+        isFadingIn = false;
+        animationStartTime = System.currentTimeMillis();
+        isClosing = true;
+    }
+
+    @Override
+    public void onResize(int width, int height) {
+        super.onResize(width, height);
+        if (width == this.width && height == this.height) {
+            return;
+        }
+        Wthaigd.LOG.info("onResize: width={}-{}, height={}-{}", this.width, width, this.height, height);
+
+        // 使用淡出效果关闭当前界面，然后在回调中打开新界面
+        if (!isFadingOut) {
+            this.close(false);
+
+            // 等待时间根据动画是否启用决定
+            int waitTime = animationEnabled ? fadeDuration + 50 : 0;
+
+            // 在淡出完成后打开新界面
+            new Thread(() -> {
+                try {
+                    // 等待淡出动画完成
+                    Thread.sleep(waitTime);
+
+                    // 在主线程中打开新界面
+                    Minecraft.getMinecraft()
+                        .func_152344_a(() -> ClientGUI.open(new MainModularScreen().useTheme("wthaigd:main")));
+                } catch (InterruptedException e) {
+                    Thread.currentThread()
+                        .interrupt();
+                }
+            }).start();
+        }
     }
 }

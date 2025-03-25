@@ -40,6 +40,9 @@ public class OptimizedBlurHandler {
     // 默认模糊通道数
     @Setter
     private static int blurPasses = 2;
+    // 模糊效果的透明度，用于淡入淡出效果
+    @Setter
+    private static float alpha = 1.0f;
 
     public static void init() {
         if (!OpenGlHelper.isFramebufferEnabled()) {
@@ -134,7 +137,24 @@ public class OptimizedBlurHandler {
      * 渲染优化的模糊背景
      */
     public static void renderBlurredBackground() {
+        renderBlurredBackground(alpha);
+    }
+
+    /**
+     * 渲染优化的模糊背景，带透明度控制
+     *
+     * @param alpha 透明度值 (0.0f - 1.0f)
+     */
+    public static void renderBlurredBackground(float alpha) {
         if (!OpenGlHelper.isFramebufferEnabled() || blurShaderProgram == 0) {
+            return;
+        }
+
+        // 确保alpha在合法范围内
+        alpha = Math.max(0.0f, Math.min(1.0f, alpha));
+
+        // 如果完全透明，则跳过渲染
+        if (alpha <= 0.0f) {
             return;
         }
 
@@ -170,9 +190,11 @@ public class OptimizedBlurHandler {
         mc.getFramebuffer()
             .bindFramebuffer(false);
 
-        // 渲染最终的模糊结果到屏幕
+        // 渲染最终的模糊结果到屏幕，使用指定的透明度
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        // 应用透明度
+        GL11.glColor4f(1.0f, 1.0f, 1.0f, alpha);
         drawFramebuffer(mainBuffer.framebufferTexture);
 
         // 恢复状态
@@ -279,13 +301,16 @@ public class OptimizedBlurHandler {
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
         GL11.glLoadIdentity();
 
-        // 渲染一个全屏四边形
+        // 渲染一个扩大的四边形，确保边缘像素也能被处理
+        // 扩大渲染区域，使用略微超出纹理坐标的值
+        float expand = 0.0001f; // 扩展区域
+
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(0, 1, 0, 0, 0);
-        tessellator.addVertexWithUV(1, 1, 0, 1, 0);
-        tessellator.addVertexWithUV(1, 0, 0, 1, 1);
-        tessellator.addVertexWithUV(0, 0, 0, 0, 1);
+        tessellator.addVertexWithUV(0 - expand, 1 + expand, 0, 0, 0);
+        tessellator.addVertexWithUV(1 + expand, 1 + expand, 0, 1, 0);
+        tessellator.addVertexWithUV(1 + expand, 0 - expand, 0, 1, 1);
+        tessellator.addVertexWithUV(0 - expand, 0 - expand, 0, 0, 1);
         tessellator.draw();
     }
 }

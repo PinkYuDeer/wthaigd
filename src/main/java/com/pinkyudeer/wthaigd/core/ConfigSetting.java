@@ -48,7 +48,7 @@ public class ConfigSetting {
                 "blur.downscaleLevels",
                 2,
                 "Downscale levels for blur effect (Decreased performance cost by 4x per stage with some quality loss)",
-                "config.comment.blur.downscaleLevels",
+                "config.comment.ui.blur.downscaleLevels",
                 1,
                 3));
         entries.add(
@@ -56,7 +56,7 @@ public class ConfigSetting {
                 "blur.radius",
                 12.0f,
                 "Radius for blur effect (higher values mean more blur with little performance cost)",
-                "config.comment.blur.radius",
+                "config.comment.ui.blur.radius",
                 0.01f,
                 48.0f));
         entries.add(
@@ -64,9 +64,25 @@ public class ConfigSetting {
                 "blur.blurPasses",
                 2,
                 "Number of passes for blur effect(Increased performance cost by 2x per pass with 2x smoothness)",
-                "config.comment.blur.blurPasses",
+                "config.comment.ui.blur.blurPasses",
                 1,
                 5));
+
+        // 界面动画配置
+        entries.add(
+            new ConfigEntry.BooleanConfigEntry(
+                "ui.animation.enabled",
+                true,
+                "Whether to enable fade in/out animation effect",
+                "config.comment.ui.animation.blur.enabled"));
+        entries.add(
+            new ConfigEntry.IntConfigEntry(
+                "ui.animation.fadeDuration",
+                300,
+                "Fade in/out animation duration (ms)",
+                "config.comment.ui.animation.blur.fadeDuration",
+                1,
+                10000));
 
         return entries;
     }
