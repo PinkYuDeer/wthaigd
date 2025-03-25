@@ -8,6 +8,7 @@ import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.ARBShaderObjects;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import com.pinkyudeer.wthaigd.helper.config.ConfigHelper;
 
@@ -79,6 +80,9 @@ public class OptimizedBlurHandler {
             mainBuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, false);
             mainBuffer.setFramebufferFilter(GL11.GL_LINEAR);
 
+            // 设置主帧缓冲区的纹理环绕模式
+            configureFramebufferTexture(mainBuffer);
+
             // 创建降采样帧缓冲区
             downscaleBuffers = new Framebuffer[MAX_DOWNSCALE_LEVELS];
             int width = mc.displayWidth;
@@ -89,6 +93,7 @@ public class OptimizedBlurHandler {
                 height /= 2;
                 downscaleBuffers[i] = new Framebuffer(width, height, false);
                 downscaleBuffers[i].setFramebufferFilter(GL11.GL_LINEAR);
+                configureFramebufferTexture(downscaleBuffers[i]);
             }
 
             // 创建模糊处理帧缓冲区
@@ -97,6 +102,8 @@ public class OptimizedBlurHandler {
             blurBufferV = new Framebuffer(width, height, false);
             blurBufferH.setFramebufferFilter(GL11.GL_LINEAR);
             blurBufferV.setFramebufferFilter(GL11.GL_LINEAR);
+            configureFramebufferTexture(blurBufferH);
+            configureFramebufferTexture(blurBufferV);
         }
     }
 
@@ -124,6 +131,16 @@ public class OptimizedBlurHandler {
             blurBufferV.deleteFramebuffer();
             blurBufferV = null;
         }
+    }
+
+    /**
+     * 配置帧缓冲区纹理的包装模式
+     */
+    private static void configureFramebufferTexture(Framebuffer framebuffer) {
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, framebuffer.framebufferTexture);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
     }
 
     /**
@@ -294,6 +311,10 @@ public class OptimizedBlurHandler {
         // 绑定纹理
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
 
+        // 设置纹理环绕模式为边缘钳制，这将改善边缘处理
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
+
         // 设置正交投影
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glLoadIdentity();
@@ -301,16 +322,13 @@ public class OptimizedBlurHandler {
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
         GL11.glLoadIdentity();
 
-        // 渲染一个扩大的四边形，确保边缘像素也能被处理
-        // 扩大渲染区域，使用略微超出纹理坐标的值
-        float expand = 0.0001f; // 扩展区域
-
+        // 渲染一个全屏四边形
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(0 - expand, 1 + expand, 0, 0, 0);
-        tessellator.addVertexWithUV(1 + expand, 1 + expand, 0, 1, 0);
-        tessellator.addVertexWithUV(1 + expand, 0 - expand, 0, 1, 1);
-        tessellator.addVertexWithUV(0 - expand, 0 - expand, 0, 0, 1);
+        tessellator.addVertexWithUV(0, 1, 0, 0, 0);
+        tessellator.addVertexWithUV(1, 1, 0, 1, 0);
+        tessellator.addVertexWithUV(1, 0, 0, 1, 1);
+        tessellator.addVertexWithUV(0, 0, 0, 0, 1);
         tessellator.draw();
     }
 }
