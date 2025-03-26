@@ -1,4 +1,4 @@
-package com.pinkyudeer.wthaigd.helper.shader;
+package com.pinkyudeer.wthaigd.helper.render;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -81,7 +81,7 @@ public class ShaderHelper {
             // 检查编译是否成功
             if (ARBShaderObjects.glGetObjectParameteriARB(shader, ARBShaderObjects.GL_OBJECT_COMPILE_STATUS_ARB)
                 == GL11.GL_FALSE) {
-                throw new RuntimeException("Error compiling shader: " + getLogInfo(shader));
+                throw new RuntimeException("Error compiling render: " + getLogInfo(shader));
             }
 
             return shader;
@@ -102,7 +102,7 @@ public class ShaderHelper {
                     .collect(Collectors.joining("\n"));
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to read shader source", e);
+            throw new RuntimeException("Failed to read render source", e);
         }
     }
 

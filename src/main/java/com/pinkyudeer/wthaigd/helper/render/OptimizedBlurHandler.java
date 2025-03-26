@@ -1,4 +1,4 @@
-package com.pinkyudeer.wthaigd.helper.shader;
+package com.pinkyudeer.wthaigd.helper.render;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -7,6 +7,7 @@ import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.ARBShaderObjects;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
@@ -167,6 +168,16 @@ public class OptimizedBlurHandler {
             return;
         }
 
+        // 添加检查：如果游戏窗口最小化，则跳过渲染
+        if (!Display.isVisible()) {
+            return;
+        }
+
+        // 检查Minecraft的帧缓冲是否有效
+        if (isFramebufferValid(mc.getFramebuffer())) {
+            return;
+        }
+
         // 确保alpha在合法范围内
         alpha = Math.max(0.0f, Math.min(1.0f, alpha));
 
@@ -177,49 +188,66 @@ public class OptimizedBlurHandler {
 
         checkFrameBuffers();
 
+        // 检查我们自己的帧缓冲是否有效
+        if (isFramebufferValid(mainBuffer)) {
+            return;
+        }
+
         // 保存当前状态
         GL11.glPushMatrix();
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glPushMatrix();
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
 
-        // 复制主屏幕到我们的缓冲区
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glDisable(GL11.GL_BLEND);
+        try {
+            // 复制主屏幕到我们的缓冲区
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            GL11.glDisable(GL11.GL_BLEND);
 
-        // 从MC主帧缓冲复制到我们的主缓冲
-        mc.getFramebuffer()
-            .bindFramebuffer(false);
-        mainBuffer.framebufferClear();
-        mainBuffer.bindFramebuffer(false);
-        drawFramebuffer(mc.getFramebuffer().framebufferTexture);
+            // 从MC主帧缓冲复制到我们的主缓冲
+            mc.getFramebuffer()
+                .bindFramebuffer(false);
+            mainBuffer.framebufferClear();
+            mainBuffer.bindFramebuffer(false);
+            drawFramebuffer(mc.getFramebuffer().framebufferTexture);
 
-        // 执行降采样
-        performDownSampling();
+            // 执行降采样
+            performDownSampling();
 
-        // 应用模糊效果
-        applyBlur();
+            // 应用模糊效果
+            applyBlur();
 
-        // 执行上采样
-        performUpSampling();
+            // 执行上采样
+            performUpSampling();
 
-        // 绑定回主帧缓冲
-        mc.getFramebuffer()
-            .bindFramebuffer(false);
+            // 绑定回主帧缓冲
+            mc.getFramebuffer()
+                .bindFramebuffer(false);
 
-        // 渲染最终的模糊结果到屏幕，使用指定的透明度
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        // 应用透明度
-        GL11.glColor4f(1.0f, 1.0f, 1.0f, alpha);
-        drawFramebuffer(mainBuffer.framebufferTexture);
+            // 渲染最终的模糊结果到屏幕，使用指定的透明度
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            // 应用透明度
+            GL11.glColor4f(1.0f, 1.0f, 1.0f, alpha);
+            drawFramebuffer(mainBuffer.framebufferTexture);
+        } catch (Exception e) {
+            // 捕获并记录任何渲染过程中的异常
+            System.err.println("Error during blur rendering: " + e.getMessage());
+        } finally {
+            // 恢复状态
+            GL11.glDisable(GL11.GL_BLEND);
+            GL11.glMatrixMode(GL11.GL_PROJECTION);
+            GL11.glPopMatrix();
+            GL11.glMatrixMode(GL11.GL_MODELVIEW);
+            GL11.glPopMatrix();
+        }
+    }
 
-        // 恢复状态
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glMatrixMode(GL11.GL_PROJECTION);
-        GL11.glPopMatrix();
-        GL11.glMatrixMode(GL11.GL_MODELVIEW);
-        GL11.glPopMatrix();
+    /**
+     * 检查帧缓冲区是否有效
+     */
+    private static boolean isFramebufferValid(Framebuffer fb) {
+        return fb == null || fb.framebufferObject <= 0;
     }
 
     /**
@@ -228,8 +256,17 @@ public class OptimizedBlurHandler {
     private static void performDownSampling() {
         Framebuffer input = mainBuffer;
 
+        if (isFramebufferValid(input)) {
+            return;
+        }
+
         for (int i = 0; i < downscaleLevels; i++) {
             Framebuffer output = downscaleBuffers[i];
+
+            if (isFramebufferValid(output)) {
+                return;
+            }
+
             output.framebufferClear();
             output.bindFramebuffer(false);
 
@@ -247,6 +284,10 @@ public class OptimizedBlurHandler {
         // 获取最小级别的降采样缓冲区作为输入
         Framebuffer input = downscaleBuffers[downscaleLevels - 1];
         Framebuffer output = blurBufferV;
+
+        if (isFramebufferValid(input) || isFramebufferValid(blurBufferH) || isFramebufferValid(output)) {
+            return;
+        }
 
         // 应用多个模糊通道
         for (int pass = 0; pass < blurPasses; pass++) {
@@ -291,9 +332,18 @@ public class OptimizedBlurHandler {
     private static void performUpSampling() {
         Framebuffer input = blurBufferV;
 
+        if (isFramebufferValid(input)) {
+            return;
+        }
+
         // 从最小分辨率开始，逐步上采样回主分辨率
         for (int i = downscaleLevels - 1; i >= 0; i--) {
             Framebuffer output = i > 0 ? downscaleBuffers[i - 1] : mainBuffer;
+
+            if (isFramebufferValid(output)) {
+                return;
+            }
+
             output.framebufferClear();
             output.bindFramebuffer(false);
 

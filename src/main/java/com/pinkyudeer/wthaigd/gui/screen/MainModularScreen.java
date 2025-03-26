@@ -5,21 +5,14 @@ import javax.annotation.Nonnull;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 
-import com.cleanroommc.modularui.api.drawable.IDrawable;
-import com.cleanroommc.modularui.api.drawable.IKey;
-import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.factory.ClientGUI;
 import com.cleanroommc.modularui.screen.CustomModularScreen;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.viewport.ModularGuiContext;
-import com.cleanroommc.modularui.widgets.ButtonWidget;
-import com.cleanroommc.modularui.widgets.RichTextWidget;
-import com.cleanroommc.modularui.widgets.layout.Column;
-import com.cleanroommc.modularui.widgets.layout.Row;
 import com.pinkyudeer.wthaigd.Wthaigd;
-import com.pinkyudeer.wthaigd.helper.RenderHelper;
+import com.pinkyudeer.wthaigd.gui.screen.panel.MainPanel;
 import com.pinkyudeer.wthaigd.helper.config.ConfigHelper;
-import com.pinkyudeer.wthaigd.helper.shader.OptimizedBlurHandler;
+import com.pinkyudeer.wthaigd.helper.render.OptimizedBlurHandler;
 
 public class MainModularScreen extends CustomModularScreen {
 
@@ -62,12 +55,6 @@ public class MainModularScreen extends CustomModularScreen {
         }
     }
 
-    // 安全地应用边框的辅助方法
-    @SuppressWarnings("SameParameterValue")
-    private <T extends IWidget> T applyBorder(T widget, int color, int size, boolean isInner) {
-        return RenderHelper.applyBorderWithReflection(widget, color, size, isInner);
-    }
-
     @Override
     public @Nonnull ModularPanel buildUI(ModularGuiContext context) {
         if (!inited) {
@@ -82,95 +69,32 @@ public class MainModularScreen extends CustomModularScreen {
         panelHeight = height / 8 * 7;
         panelX = (width - panelWidth) / 2;
         panelY = (height - panelHeight) / 2;
-        int sidebarWidth = panelWidth / 6; // 侧边栏宽度
-        int navBarHeight = 20; // 导航条高度
 
         // 创建主面板
-        ModularPanel mainPanel = ModularPanel.defaultPanel("main", panelWidth, panelHeight)
-            .background(IDrawable.EMPTY); // 使用完全透明的背景
-
-        // 创建一个主布局，使用Row进行水平分块
-        Row mainLayout = (Row) new Row().size(panelWidth, panelHeight)
-            .center()
-            .background(IDrawable.EMPTY);
-
-        // 创建左侧面板
-        Column sidebar = (Column) new Column().size(sidebarWidth, panelHeight)
-            .background(IDrawable.EMPTY);
-
-        ButtonWidget<?> sidebarButton = new ButtonWidget<>().size(70, navBarHeight)
-            .overlay(IKey.str("测试"))
-            .background(IDrawable.EMPTY);
-
-        sidebar.addChild(applyBorder(sidebarButton, 0xFF808080, 1, true), 0);
-
-        // 创建右侧面板
-        Column content = (Column) new Column().size(panelWidth - sidebarWidth, panelHeight)
-            .background(IDrawable.EMPTY);
-        // 创建导航条
-        Row navBar = (Row) new Row().size(panelWidth - sidebarWidth, navBarHeight)
-            .background(IDrawable.EMPTY)
-            .childPadding(10);
-
-        ButtonWidget<?> navButton1 = new ButtonWidget<>().size(30, navBarHeight)
-            .overlay(IKey.str("测试1"))
-            .background(IDrawable.EMPTY);
-
-        ButtonWidget<?> navButton2 = new ButtonWidget<>().size(30, navBarHeight)
-            .overlay(IKey.str("测试2"))
-            .background(IDrawable.EMPTY);
-
-        ButtonWidget<?> navButton3 = new ButtonWidget<>().size(30, navBarHeight)
-            .overlay(IKey.str("测试3"))
-            .background(IDrawable.EMPTY);
-
-        navBar.addChild(applyBorder(navButton1, 0xFF808080, 1, true), 0);
-        navBar.addChild(applyBorder(navButton2, 0xFF808080, 1, true), 1);
-        navBar.addChild(applyBorder(navButton3, 0xFF808080, 1, true), 2);
-
-        // 创建内容区域
-        Column contentArea = (Column) new Column().size(panelWidth - sidebarWidth, panelHeight - navBarHeight)
-            .background(IDrawable.EMPTY);
-        contentArea.addChild(
-            new RichTextWidget().size(panelWidth - sidebarWidth, panelHeight - navBarHeight)
-                .add("test"),
-            0);
-
-        content.addChild(applyBorder(navBar, 0xFF808080, 1, true), 0);
-        content.addChild(applyBorder(contentArea, 0xFF808080, 1, true), 1);
-
-        mainLayout.addChild(applyBorder(sidebar, 0xFF808080, 1, true), 0);
-        mainLayout.addChild(applyBorder(content, 0xFF808080, 1, true), 1);
-
-        mainPanel.addChild(mainLayout, 0);
-
-        return mainPanel;
+        return new MainPanel(panelWidth, panelHeight);
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         // 如果动画已禁用，则直接正常渲染
-        if (!animationEnabled) {
+        if (animationEnabled) {
+            // 更新淡入淡出动画
+            updateFadeAnimation();
+
+            // 在绘制GUI元素前应用模糊效果，并传入当前的透明度
+            OptimizedBlurHandler.renderBlurredBackground(currentAlpha);
+
+            // 只有当动画完成时才绘制UI元素
+            if (isFadingIn || isFadingOut || isClosing) {
+                return;
+            }
+        } else {
             OptimizedBlurHandler.renderBlurredBackground(1.0f);
-            super.drawScreen(mouseX, mouseY, partialTicks);
-            RenderHelper.drawBorder(panelX, panelY, panelWidth, panelHeight, 0xFF808080);
-            return;
         }
 
-        // 更新淡入淡出动画
-        updateFadeAnimation();
+        // 调用父类方法绘制基本UI
+        super.drawScreen(mouseX, mouseY, partialTicks);
 
-        // 在绘制GUI元素前应用模糊效果，并传入当前的透明度
-        OptimizedBlurHandler.renderBlurredBackground(currentAlpha);
-
-        // 只有当动画完成时才绘制UI元素
-        if (!isFadingIn && !isFadingOut && !isClosing) {
-            // 先调用父类方法绘制基本UI
-            super.drawScreen(mouseX, mouseY, partialTicks);
-
-            // 使用RenderHelper绘制边框
-            RenderHelper.drawBorder(panelX, panelY, panelWidth, panelHeight, 0xFF808080);
-        }
     }
 
     /**
