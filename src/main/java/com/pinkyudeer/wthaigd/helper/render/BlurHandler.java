@@ -15,7 +15,7 @@ import com.pinkyudeer.wthaigd.helper.config.ConfigHelper;
 
 import lombok.Setter;
 
-public class OptimizedBlurHandler {
+public class BlurHandler {
 
     private static final Minecraft mc = Minecraft.getMinecraft();
 
@@ -36,6 +36,12 @@ public class OptimizedBlurHandler {
     private static final int MAX_DOWNSCALE_LEVELS = 3;
     private static int downscaleLevels = 2; // 默认降采样2级
 
+    // 缓存相关代码
+    private static Framebuffer cachedBlurBuffer = null; // TODO:缓存帧优化性能
+    private static boolean needsUpdate = true;
+    private static long lastUpdateTime = 0;
+    private static final long UPDATE_INTERVAL = 500; // 毫秒，可调整
+
     // 模糊设置
     @Setter
     private static float radius = 12.0f;
@@ -53,10 +59,10 @@ public class OptimizedBlurHandler {
 
         // 初始化着色器程序
         if (blurShaderProgram == 0) {
-            // 使用之前的ShaderHelper初始化着色器
+            // 使用ShaderHelper初始化着色器
             blurShaderProgram = ShaderHelper.createProgram(
                 new ResourceLocation("wthaigd", "shaders/blur.vert"),
-                new ResourceLocation("wthaigd", "shaders/optimized_blur.frag"));
+                new ResourceLocation("wthaigd", "shaders/blur.frag"));
         }
 
         // 创建帧缓冲区
@@ -72,7 +78,6 @@ public class OptimizedBlurHandler {
             || mc.displayHeight != mainBuffer.framebufferHeight;
 
         // 检查主帧缓冲区
-
         if (needsRecreate) {
             // 释放旧的帧缓冲区
             cleanFrameBuffers();
@@ -152,14 +157,28 @@ public class OptimizedBlurHandler {
     }
 
     /**
-     * 渲染优化的模糊背景
+     * 渲染模糊背景
      */
     public static void renderBlurredBackground() {
         renderBlurredBackground(alpha);
     }
 
     /**
-     * 渲染优化的模糊背景，带透明度控制
+     * 更新检查函数
+     */
+    private static boolean shouldUpdateBlur() {
+        long currentTime = System.currentTimeMillis();
+        // 根据时间间隔或脏标记决定是否更新
+        if (needsUpdate || currentTime - lastUpdateTime > UPDATE_INTERVAL) {
+            lastUpdateTime = currentTime;
+            needsUpdate = false;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 渲染模糊背景，带透明度控制
      *
      * @param alpha 透明度值 (0.0f - 1.0f)
      */
@@ -227,15 +246,11 @@ public class OptimizedBlurHandler {
             // 渲染最终的模糊结果到屏幕，使用指定的透明度
             GL11.glEnable(GL11.GL_BLEND);
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            // 应用透明度
             GL11.glColor4f(1.0f, 1.0f, 1.0f, alpha);
             drawFramebuffer(mainBuffer.framebufferTexture);
-        } catch (Exception e) {
-            // 捕获并记录任何渲染过程中的异常
-            System.err.println("Error during blur rendering: " + e.getMessage());
+
         } finally {
             // 恢复状态
-            GL11.glDisable(GL11.GL_BLEND);
             GL11.glMatrixMode(GL11.GL_PROJECTION);
             GL11.glPopMatrix();
             GL11.glMatrixMode(GL11.GL_MODELVIEW);
@@ -243,15 +258,12 @@ public class OptimizedBlurHandler {
         }
     }
 
-    /**
-     * 检查帧缓冲区是否有效
-     */
     private static boolean isFramebufferValid(Framebuffer fb) {
         return fb == null || fb.framebufferObject <= 0;
     }
 
     /**
-     * 执行降采样过程
+     * 执行降采样操作
      */
     private static void performDownSampling() {
         Framebuffer input = mainBuffer;
@@ -327,7 +339,7 @@ public class OptimizedBlurHandler {
     }
 
     /**
-     * 执行上采样过程
+     * 执行上采样操作
      */
     private static void performUpSampling() {
         Framebuffer input = blurBufferV;
@@ -355,7 +367,7 @@ public class OptimizedBlurHandler {
     }
 
     /**
-     * 绘制帧缓冲纹理
+     * 绘制帧缓冲区纹理
      */
     private static void drawFramebuffer(int texture) {
         // 绑定纹理

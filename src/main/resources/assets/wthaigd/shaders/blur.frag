@@ -12,7 +12,7 @@ vec4 safeTexture2D(sampler2D tex, vec2 uv) {
     return texture2D(tex, uv);
 }
 
-// 高效的高斯模糊片段着色器
+// 高斯模糊片段着色器
 // 利用硬件线性过滤优化采样
 void main() {
     vec2 uv = gl_TexCoord[0].xy;
@@ -25,14 +25,14 @@ void main() {
     float central = 0.2270270270;
     color += safeTexture2D(texture, uv) * central;
 
-    // 使用更少的采样点 (13个采样点替代传统的更多采样)
+    // 使用较少的采样点 (13个采样点)
     // 采样偏移和权重经过精心计算
     float weight1 = 0.1945945946;
     float weight2 = 0.1216216216;
     float weight3 = 0.0540540541;
     float weight4 = 0.0162162162;
 
-    // 偏移值被精心选择以在较少采样点的情况下获得最佳效果
+    // 偏移值被精心选择以获得最佳效果
     float offset1 = 1.0;
     float offset2 = 2.3333333333;
     float offset3 = 3.5555555556;

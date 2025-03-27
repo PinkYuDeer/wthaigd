@@ -13,6 +13,7 @@ import com.cleanroommc.modularui.widget.Widget;
 import com.cleanroommc.modularui.widget.sizer.Area;
 import com.pinkyudeer.wthaigd.gui.widget.IBorderAble;
 import com.pinkyudeer.wthaigd.helper.render.GLDrawHelper;
+import com.pinkyudeer.wthaigd.helper.render.GLShaderDrawHelper;
 
 @Mixin(Widget.class)
 public abstract class WidgetMixin<W extends Widget<W>> implements IBorderAble<W> {
@@ -31,18 +32,41 @@ public abstract class WidgetMixin<W extends Widget<W>> implements IBorderAble<W>
     public int wthaigd$borderFlags;
     @Unique
     public int wthaigd$cornerFlags;
+    @Unique
+    public boolean wthaigd$shouldFillBackground = false;
+    @Unique
+    public int wthaigd$backgroundColor;
 
     @Shadow(remap = false)
     public abstract Area getArea();
 
     @Inject(method = "draw", at = @At("HEAD"), remap = false)
     public void wthaigd$draw(ModularGuiContext context, WidgetTheme widgetTheme, CallbackInfo ci) {
-        if (wthaigd$shouldDrawBorder) {
-            int width = this.getArea().width;
-            int height = this.getArea().height;
-            int x = 0;
-            int y = 0;
+        int width = this.getArea().width;
+        int height = this.getArea().height;
+        int x = 0;
+        int y = 0;
 
+        // 首先绘制背景（如果需要）
+        if (wthaigd$shouldFillBackground) {
+            if (wthaigd$shouldRoundedBorder && wthaigd$borderRadius > 0) {
+                // 使用着色器绘制圆角背景
+                GLShaderDrawHelper.drawRoundedRectBackground(
+                    x,
+                    y,
+                    width,
+                    height,
+                    wthaigd$borderRadius,
+                    wthaigd$backgroundColor,
+                    wthaigd$cornerFlags);
+            } else {
+                // 对于没有圆角的情况，使用简单的矩形填充
+                GLDrawHelper.drawRect(x, y, width, height, wthaigd$backgroundColor);
+            }
+        }
+
+        // 然后绘制边框（如果需要）
+        if (wthaigd$shouldDrawBorder) {
             // 根据是否使用圆角边框选择绘制方法
             if (wthaigd$shouldRoundedBorder) {
                 GLDrawHelper.drawRoundedBorder(
@@ -74,6 +98,14 @@ public abstract class WidgetMixin<W extends Widget<W>> implements IBorderAble<W>
         this.wthaigd$borderSize = borderSize;
         this.wthaigd$borderFlags = borderFlags;
         this.wthaigd$cornerFlags = cornerFlags;
+        return (W) (Object) this;
+    }
+
+    @Unique
+    @SuppressWarnings({ "unchecked", "DataFlowIssue" })
+    public W wthaigd$fillBackground(int backgroundColor) {
+        this.wthaigd$shouldFillBackground = true;
+        this.wthaigd$backgroundColor = backgroundColor;
         return (W) (Object) this;
     }
 }

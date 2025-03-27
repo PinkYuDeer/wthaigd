@@ -9,4 +9,9 @@ public interface IBorderAble<W extends IWidget> {
      */
     W wthaigd$border(int wthaigd$borderColor, int wthaigd$borderSize, int wthaigd$borderRadius, int borderFlags,
         int cornerFlags);
+
+    /**
+     * 设置圆角背景填充，使用已有的圆角参数
+     */
+    W wthaigd$fillBackground(int backgroundColor);
 }

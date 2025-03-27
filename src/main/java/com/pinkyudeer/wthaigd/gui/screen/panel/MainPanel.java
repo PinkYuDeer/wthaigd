@@ -4,137 +4,169 @@ import static com.pinkyudeer.wthaigd.helper.render.RenderHelper.applyBorder;
 
 import com.cleanroommc.modularui.api.drawable.IDrawable;
 import com.cleanroommc.modularui.api.drawable.IKey;
+import com.cleanroommc.modularui.api.widget.IWidget;
+import com.cleanroommc.modularui.drawable.UITexture;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
-import com.cleanroommc.modularui.widgets.RichTextWidget;
 import com.cleanroommc.modularui.widgets.layout.Column;
 import com.cleanroommc.modularui.widgets.layout.Row;
-import com.pinkyudeer.wthaigd.helper.render.RenderBorderEnum;
+import com.pinkyudeer.wthaigd.helper.render.RenderHelper;
 
 public class MainPanel extends ModularPanel {
-
-    private final int panelWidth;
-    private final int panelHeight;
-    private final int sidebarWidth;
-    private final int navBarHeight;
 
     public MainPanel(int panelWidth, int panelHeight) {
         super("main");
         this.size(panelWidth, panelHeight);
+        this.getArea()
+            .setSize(panelWidth, panelHeight);
         this.background(IDrawable.EMPTY);
-        this.panelWidth = panelWidth;
-        this.panelHeight = panelHeight;
-        this.sidebarWidth = panelWidth / 6; // 侧边栏宽度
-        this.navBarHeight = 20; // 导航条高度
 
         addChild(
-            applyBorder(createMainLayout()).width(3)
+            applyBorder(mainLayout()).width(8)
                 .round()
                 .roundRadius(5)
-                .done(),
-            0);
-        addChild(
-            applyBorder(createMainLayout()).width(3)
-                .round()
-                .roundRadius(5)
+                .withBackground(0x60000000)
+                .color(0xbb99ccff)
                 .done(),
             0);
     }
 
-    private Row createMainLayout() {
+    private Row mainLayout() {
         // 创建一个主布局，使用Row进行水平分块
-        Row mainLayout = (Row) new Row().size(panelWidth, panelHeight)
-            .center()
+        Row mainLayout = (Row) new Row().center()
             .background(IDrawable.EMPTY);
 
+        float sidebarWidthRef = 0.16f; // 左侧侧边栏宽度
+
         mainLayout.addChild(
-            applyBorder(createSidebar()).select(RenderBorderEnum.RIGHT)
+            applyBorder(sidebar(sidebarWidthRef)).select(RenderHelper.RenderBorderEnum.RIGHT)
+                .width(4)
+                .color(0xbb99ccff)
                 .done(),
             0);
-        mainLayout.addChild(createContentPanel(), 1);
+        mainLayout.addChild(rightPanel(1 - sidebarWidthRef), 1);
 
         return mainLayout;
     }
 
-    private Column createSidebar() {
+    private Column sidebar(float widthRef) {
         // 创建左侧面板
-        Column sidebar = (Column) new Column().size(sidebarWidth, panelHeight)
+        Column sidebar = (Column) new Column().widthRel(widthRef)
             .background(IDrawable.EMPTY);
 
-        ButtonWidget<?> sidebarButton = new ButtonWidget<>().size(65, navBarHeight)
-            .overlay(IKey.str("测试"))
-            .background(IDrawable.EMPTY);
+        float infoRel = 0.1f; // 信息区域高度
 
+        IWidget mainText = IKey.str("wthaigd")
+            .color(0xbb99ccff)
+            .shadow(true)
+            .asWidget()
+            .heightRel(infoRel)
+            .widthRel(1);
+
+        sidebar.addChild(mainText, 0);
         sidebar.addChild(
-            applyBorder(sidebarButton).round()
-                .roundRadius(3)
-                .color(0x000000)
+            applyBorder(leftPanel(1 - infoRel)).select(RenderHelper.RenderBorderEnum.TOP)
+                .color(0xbb99ccff)
+                .width(4)
                 .done(),
-            0);
+            1);
 
         return sidebar;
     }
 
-    private Column createContentPanel() {
-        // 创建右侧面板
-        Column content = (Column) new Column().size(panelWidth - sidebarWidth, panelHeight)
+    private Column leftPanel(float heightRef) {
+        // 创建内容区域
+        Column leftPanel = (Column) new Column().heightRel(heightRef)
             .background(IDrawable.EMPTY);
 
-        content.addChild(
-            applyBorder(createNavBar()).select(RenderBorderEnum.BOTTOM)
-                .done(),
-            0);
-        content.addChild(createContentArea(), 1);
-
-        return content;
+        return leftPanel;
     }
 
-    private Row createNavBar() {
-        // 创建导航条
-        Row navBar = (Row) new Row().size(panelWidth - sidebarWidth, navBarHeight)
-            .background(IDrawable.EMPTY)
-            .childPadding(10);
-
-        ButtonWidget<?> navButton1 = new ButtonWidget<>().size(30, navBarHeight)
-            .overlay(IKey.str("测试1"))
+    private Column rightPanel(float widthRef) {
+        // 创建右侧面板
+        Column rightPanel = (Column) new Column().widthRel(widthRef)
             .background(IDrawable.EMPTY);
 
-        ButtonWidget<?> navButton2 = new ButtonWidget<>().size(30, navBarHeight)
-            .overlay(IKey.str("测试2"))
-            .background(IDrawable.EMPTY);
+        float navBarHeightRef = 0.1f; // 导航条高度
 
-        ButtonWidget<?> navButton3 = new ButtonWidget<>().size(30, navBarHeight)
-            .overlay(IKey.str("测试3"))
-            .background(IDrawable.EMPTY);
-
-        navBar.addChild(
-            applyBorder(navButton1).round()
-                .roundRadius(3)
+        rightPanel.addChild(
+            applyBorder(navBar(navBarHeightRef, widthRef)).select(RenderHelper.RenderBorderEnum.BOTTOM)
+                .color(0xbb99ccff)
+                .width(4)
                 .done(),
             0);
-        navBar.addChild(
-            applyBorder(navButton2).round()
-                .roundRadius(3)
-                .done(),
-            1);
-        navBar.addChild(
-            applyBorder(navButton3).round()
-                .roundRadius(3)
-                .done(),
-            2);
+        rightPanel.addChild(contentArea(1 - navBarHeightRef), 1);
 
+        return rightPanel;
+    }
+
+    private Row navBar(float heightRef, float rightPanelWidthRef) {
+        // 创建导航条
+        Row navBar = (Row) new Row().heightRel(heightRef)
+            .background(IDrawable.EMPTY);
+
+        float pageSwitchRef = 0.8f; // 页面切换按钮区域总宽度
+
+        navBar.addChild(pageSwitch(pageSwitchRef), 0);
+        navBar.addChild(settingButtons(1 - pageSwitchRef, heightRef, rightPanelWidthRef), 1);
         return navBar;
     }
 
-    private Column createContentArea() {
-        // 创建内容区域
-        Column contentArea = (Column) new Column().size(panelWidth - sidebarWidth, panelHeight - navBarHeight)
+    private Row pageSwitch(float widthRef) {
+        // 创建页面切换按钮
+        Row pageSwitch = (Row) new Row().widthRel(widthRef)
             .background(IDrawable.EMPTY);
 
-        contentArea.addChild(
-            new RichTextWidget().size(panelWidth - sidebarWidth, panelHeight - navBarHeight)
-                .add("test"),
-            0);
+        int pageNum = 3; // 页面数量
+
+        for (int i = 0; i < pageNum; i++) {
+            ButtonWidget<?> pageButton = new ButtonWidget<>().widthRel(1f / pageNum)
+                .overlay(
+                    IKey.str("页面" + i)
+                        .color(0xbbdba1c7)
+                        .shadow(false))
+                .background(IDrawable.EMPTY);
+
+            pageSwitch.addChild(
+                applyBorder(pageButton).select(RenderHelper.RenderBorderEnum.RIGHT)
+                    .width(4)
+                    .done(),
+                i);
+        }
+
+        return pageSwitch;
+    }
+
+    private Row settingButtons(float widthRef, float navBarHeightRef, float rightPanelWidthRef) {
+        // 创建设置按钮区域
+        Row settingButtons = (Row) new Row().widthRel(widthRef)
+            .background(IDrawable.EMPTY);
+
+        String[] buttonLabels = { "setting", "help", "add" };
+        int buttonWidth = (int) (this.getArea()
+            .h() * navBarHeightRef
+            * 0.8f);
+        int totalWidth = (int) (this.getArea()
+            .w() * rightPanelWidthRef
+            * widthRef);
+        int margin = buttonWidth / 4;
+        int padding = (totalWidth - buttonWidth * buttonLabels.length) / (buttonLabels.length + 1);
+        for (int i = 0; i < buttonLabels.length; i++) {
+            ButtonWidget<?> settingButton = new ButtonWidget<>().right((buttonWidth + padding) * i + margin)
+                .alignY(0.5f)
+                .size(buttonWidth)
+                .background(UITexture.fullImage("wthaigd", "textures/gui/" + buttonLabels[i] + ".png"));
+
+            settingButtons.addChild(settingButton, 0);
+        }
+
+        return settingButtons;
+    }
+
+    private Column contentArea(float heightRef) {
+        // 创建内容区域
+        Column contentArea = (Column) new Column().heightRel(heightRef)
+            .background(IDrawable.EMPTY);
 
         return contentArea;
     }

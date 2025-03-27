@@ -12,7 +12,7 @@ import com.cleanroommc.modularui.screen.viewport.ModularGuiContext;
 import com.pinkyudeer.wthaigd.Wthaigd;
 import com.pinkyudeer.wthaigd.gui.screen.panel.MainPanel;
 import com.pinkyudeer.wthaigd.helper.config.ConfigHelper;
-import com.pinkyudeer.wthaigd.helper.render.OptimizedBlurHandler;
+import com.pinkyudeer.wthaigd.helper.render.BlurHandler;
 
 public class MainModularScreen extends CustomModularScreen {
 
@@ -82,14 +82,14 @@ public class MainModularScreen extends CustomModularScreen {
             updateFadeAnimation();
 
             // 在绘制GUI元素前应用模糊效果，并传入当前的透明度
-            OptimizedBlurHandler.renderBlurredBackground(currentAlpha);
+            BlurHandler.renderBlurredBackground(currentAlpha);
 
             // 只有当动画完成时才绘制UI元素
             if (isFadingIn || isFadingOut || isClosing) {
                 return;
             }
         } else {
-            OptimizedBlurHandler.renderBlurredBackground(1.0f);
+            BlurHandler.renderBlurredBackground(1.0f);
         }
 
         // 调用父类方法绘制基本UI

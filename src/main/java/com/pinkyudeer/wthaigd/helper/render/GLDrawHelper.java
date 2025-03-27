@@ -1,6 +1,11 @@
 package com.pinkyudeer.wthaigd.helper.render;
 
+import net.minecraft.client.renderer.Tessellator;
+
 import org.lwjgl.opengl.GL11;
+
+import com.pinkyudeer.wthaigd.helper.render.RenderHelper.RenderBorderEnum;
+import com.pinkyudeer.wthaigd.helper.render.RenderHelper.RenderCornerEnum;
 
 /**
  * OpenGL绘制辅助类
@@ -76,6 +81,34 @@ public class GLDrawHelper {
     }
 
     /**
+     * 设置正交投影矩阵，用于2D绘制
+     *
+     * @param x      左边界
+     * @param y      上边界
+     * @param width  宽度
+     * @param height 高度
+     */
+    private static void setupOrthoMatrix(float x, float y, float width, float height) {
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        GL11.glPushMatrix();
+        GL11.glLoadIdentity();
+        GL11.glOrtho(x, x + width, y + height, y, -1.0D, 1.0D);
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        GL11.glPushMatrix();
+        GL11.glLoadIdentity();
+    }
+
+    /**
+     * 恢复矩阵状态
+     */
+    private static void restoreMatrix() {
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        GL11.glPopMatrix();
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        GL11.glPopMatrix();
+    }
+
+    /**
      * 绘制单条线
      *
      * @param startX    起点X坐标
@@ -95,6 +128,65 @@ public class GLDrawHelper {
         GL11.glEnd();
 
         restoreDrawLineGLState();
+    }
+
+    /**
+     * 绘制矩形填充背景
+     *
+     * @param x               矩形左上角x坐标
+     * @param y               矩形左上角y坐标
+     * @param width           矩形宽度
+     * @param height          矩形高度
+     * @param backgroundColor 背景颜色（包含透明度）
+     */
+    public static void drawRect(int x, int y, int width, int height, int backgroundColor) {
+        // 保存GL状态
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+
+        // 保存当前矩阵
+        GL11.glPushMatrix();
+
+        // 设置绘制状态
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+
+        // 设置颜色
+        float alpha = ((backgroundColor >> 24) & 0xFF) / 255.0f;
+        float red = ((backgroundColor >> 16) & 0xFF) / 255.0f;
+        float green = ((backgroundColor >> 8) & 0xFF) / 255.0f;
+        float blue = (backgroundColor & 0xFF) / 255.0f;
+        GL11.glColor4f(red, green, blue, alpha);
+
+        // 使用Tessellator渲染矩形，这是Minecraft推荐的渲染方式
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        tessellator.addVertex(x, y + height, 0);
+        tessellator.addVertex(x + width, y + height, 0);
+        tessellator.addVertex(x + width, y, 0);
+        tessellator.addVertex(x, y, 0);
+        tessellator.draw();
+
+        // 恢复GL状态
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glPopMatrix();
+        GL11.glPopAttrib();
+    }
+
+    /**
+     * 使用着色器绘制圆角矩形背景
+     *
+     * @param x               矩形左上角x坐标
+     * @param y               矩形左上角y坐标
+     * @param width           矩形宽度
+     * @param height          矩形高度
+     * @param radius          圆角半径
+     * @param backgroundColor 背景颜色（包含透明度）
+     * @param cornerFlags     圆角位掩码
+     */
+    public static void drawRoundedRect(int x, int y, int width, int height, int radius, int backgroundColor,
+        int cornerFlags) {
+        GLShaderDrawHelper.drawRoundedRectBackground(x, y, width, height, radius, backgroundColor, cornerFlags);
     }
 
     /**

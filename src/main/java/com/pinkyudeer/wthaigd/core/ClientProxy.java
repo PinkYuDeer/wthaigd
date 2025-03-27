@@ -2,7 +2,7 @@ package com.pinkyudeer.wthaigd.core;
 
 import com.pinkyudeer.wthaigd.gui.KeyBindGuiHandler;
 import com.pinkyudeer.wthaigd.gui.ModularTheme;
-import com.pinkyudeer.wthaigd.helper.render.OptimizedBlurHandler;
+import com.pinkyudeer.wthaigd.helper.render.BlurHandler;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
@@ -26,6 +26,6 @@ public class ClientProxy extends CommonProxy {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         super.init(event);
-        OptimizedBlurHandler.init();
+        BlurHandler.init();
     }
 }

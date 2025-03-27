@@ -126,4 +126,9 @@ public class ShaderHelper {
         int location = ARBShaderObjects.glGetUniformLocationARB(program, name);
         ARBShaderObjects.glUniform2fARB(location, x, y);
     }
+
+    public static void setUniform4f(int program, String name, float x, float y, float z, float w) {
+        int location = ARBShaderObjects.glGetUniformLocationARB(program, name);
+        ARBShaderObjects.glUniform4fARB(location, x, y, z, w);
+    }
 }
