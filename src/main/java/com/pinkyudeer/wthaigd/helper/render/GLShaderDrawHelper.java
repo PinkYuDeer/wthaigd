@@ -1,6 +1,5 @@
 package com.pinkyudeer.wthaigd.helper.render;
 
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.ARBShaderObjects;
@@ -12,46 +11,243 @@ import org.lwjgl.opengl.GL11;
  */
 public class GLShaderDrawHelper {
 
-    private static final ResourceLocation ROUNDED_RECT_VERT = new ResourceLocation(
+    private static final ResourceLocation COMPLEX_RECT_VERT = new ResourceLocation(
         "wthaigd",
-        "shaders/rounded_rect.vert");
-    private static final ResourceLocation ROUNDED_RECT_FRAG = new ResourceLocation(
+        "shaders/complex_rect.vert");
+    private static final ResourceLocation COMPLEX_RECT_FRAG = new ResourceLocation(
         "wthaigd",
-        "shaders/rounded_rect.frag");
-    private static final ResourceLocation BLUR_VERT = new ResourceLocation("wthaigd", "shaders/blur.vert");
-    private static final ResourceLocation BLUR_FRAG = new ResourceLocation("wthaigd", "shaders/blur.frag");
+        "shaders/complex_rect.frag");
 
-    private static int roundedRectShader = 0;
-    private static int blurShader = 0;
+    private static int complexRectShader = 0;
 
     // 初始化着色器程序
     public static void initShaders() {
-        if (roundedRectShader == 0) {
-            roundedRectShader = ShaderHelper.createProgram(ROUNDED_RECT_VERT, ROUNDED_RECT_FRAG);
+
+        if (complexRectShader == 0) {
+            complexRectShader = ShaderHelper.createProgram(COMPLEX_RECT_VERT, COMPLEX_RECT_FRAG);
+        }
+    }
+
+    public static class CustomRectConfig {
+
+        // 渲染 参数
+        public float[] renderOffset = { 0, 0 };
+        public float[] renderSize = { 1, 1 };
+        public float continuityIndex = 3.0f;
+        public int colorBg = 0x00000000;
+
+        // 矩形 参数
+        public float[] rectSize = { 1f, 1f };
+        public float[] rectCenter = { 0.5f, 0.5f };
+        public int colorRect = 0x00000000;
+        public float rectEdgeSoftness = 0.5f;
+        public float[] cornerRadiuses = { 0.0f, 0.0f, 0.0f, 0.0f }; // 右上, 右下, 左上, 左下
+
+        // 边框 参数
+        public float borderThickness = 0.02f;
+        public float borderSoftness = 0.5f;
+        public float borderPos = 0.0f;
+        public int colorBorder = 0x00000000;
+
+        // 阴影 参数
+        public float shadowSoftness = 0.05f;
+        public float[] shadowOffset = { 0.02f, 0.02f };
+        public int colorShadow = 0x00000000;
+
+        // 阴影2 参数
+        public float shadow2Softness = 0.0f;
+        public float[] shadow2Offset = { 0.0f, 0.0f };
+        public int colorShadow2 = 0x00000000;
+
+        // 内阴影 参数
+        public float innerShadowSoftness = 0.0f;
+        public float[] innerShadowOffset = { 0.0f, 0.0f };
+        public int colorInnerShadow = 0x00000000;
+
+        // 内阴影2 参数
+        public float innerShadow2Softness = 0.0f;
+        public float[] innerShadow2Offset = { 0.0f, 0.0f };
+        public int colorInnerShadow2 = 0x00000000;
+
+        /**
+         * 绘制复杂矩形，支持圆角、边框、阴影和内阴影效果
+         *
+         * @param renderOffset         渲染偏移量 [x, y]
+         * @param renderSize           渲染尺寸 [宽, 高]
+         * @param continuityIndex      连续性指数，控制圆角平滑度
+         * @param colorBg              背景颜色 (0xrrggbbaa格式)
+         *
+         * @param rectSize             矩形尺寸 [宽, 高]，相对于渲染尺寸的比例
+         * @param rectCenter           矩形中心位置 [x, y]，相对于渲染尺寸的比例
+         * @param colorRect            矩形颜色 (0xrrggbbaa格式)
+         * @param rectEdgeSoftness     矩形边缘柔和度
+         * @param cornerRadiuses       四个角的半径 [右上, 右下, 左上, 左下]
+         *
+         * @param borderThickness      边框厚度
+         * @param borderSoftness       边框边缘柔和度
+         * @param borderPos            边框位置，相对于矩形边缘：-0.5为外边框，0为中间，0.5为内边框
+         * @param colorBorder          边框颜色 (0xrrggbbaa格式)
+         *
+         * @param shadowSoftness       阴影发散距离
+         * @param shadowOffset         阴影偏移量 [x, y]
+         * @param colorShadow          阴影颜色 (0xrrggbbaa格式)
+         *
+         * @param shadow2Softness      第二阴影发散距离
+         * @param shadow2Offset        第二阴影偏移量 [x, y]
+         * @param colorShadow2         第二阴影颜色 (0xrrggbbaa格式)
+         *
+         * @param innerShadowSoftness  内阴影发散距离
+         * @param innerShadowOffset    内阴影偏移量 [x, y]
+         * @param colorInnerShadow     内阴影颜色 (0xrrggbbaa格式)
+         *
+         * @param innerShadow2Softness 第二内阴影发散距离
+         * @param innerShadow2Offset   第二内阴影偏移量 [x, y]
+         * @param colorInnerShadow2    第二内阴影颜色 (0xrrggbbaa格式)
+         */
+        public CustomRectConfig(float[] renderOffset, float[] renderSize, float continuityIndex, int colorBg,
+            float[] rectSize, float[] rectCenter, int colorRect, float rectEdgeSoftness, float[] cornerRadiuses,
+            float borderThickness, float borderSoftness, float borderPos, int colorBorder, float shadowSoftness,
+            float[] shadowOffset, int colorShadow, float shadow2Softness, float[] shadow2Offset, int colorShadow2,
+            float innerShadowSoftness, float[] innerShadowOffset, int colorInnerShadow, float innerShadow2Softness,
+            float[] innerShadow2Offset, int colorInnerShadow2) {
+            this.renderOffset = renderOffset;
+            this.renderSize = renderSize;
+            this.continuityIndex = continuityIndex;
+            this.colorBg = colorBg;
+
+            this.rectSize = rectSize;
+            this.rectCenter = rectCenter;
+            this.colorRect = colorRect;
+            this.rectEdgeSoftness = rectEdgeSoftness;
+            this.cornerRadiuses = cornerRadiuses;
+
+            this.borderThickness = borderThickness;
+            this.borderSoftness = borderSoftness;
+            this.borderPos = borderPos;
+            this.colorBorder = colorBorder;
+
+            this.shadowSoftness = shadowSoftness;
+            this.shadowOffset = shadowOffset;
+            this.colorShadow = colorShadow;
+
+            this.shadow2Softness = shadow2Softness;
+            this.shadow2Offset = shadow2Offset;
+            this.colorShadow2 = colorShadow2;
+
+            this.innerShadowSoftness = innerShadowSoftness;
+            this.innerShadowOffset = innerShadowOffset;
+            this.colorInnerShadow = colorInnerShadow;
+
+            this.innerShadow2Softness = innerShadow2Softness;
+            this.innerShadow2Offset = innerShadow2Offset;
+            this.colorInnerShadow2 = colorInnerShadow2;
         }
 
-        if (blurShader == 0) {
-            blurShader = ShaderHelper.createProgram(BLUR_VERT, BLUR_FRAG);
+        public CustomRectConfig() {}
+
+        /**
+         * 根据传入的矩形宽高自动调整所有参数。包括：
+         * 1、将非归一化参数转换为归一化参数
+         * 2、计算渲染区域大小和偏移
+         * 3、计算矩形相对大小和中心
+         *
+         * @param width  矩形宽度
+         * @param height 矩形高度
+         * @return 调整后的配置
+         */
+        public CustomRectConfig setup(float width, float height) {
+            // setup前，renderOffset、rectCenter为计算的offset后偏移量、renderSize为计算后缩放乘数、rectSize为计算前矩形乘数。
+            width *= this.rectSize[0];
+            height *= this.rectSize[1];
+            float[] renderSizeP = new float[] { width, height };
+
+            // 1、将非归一化参数转换为归一化参数
+            float minSize = Math.min(width, height);
+            this.borderThickness = adjustPixelRatio(this.borderThickness, 1, minSize);
+            this.shadowSoftness = adjustPixelRatio(this.shadowSoftness, 1, minSize);
+            this.shadow2Softness = adjustPixelRatio(this.shadow2Softness, 1, minSize);
+            this.innerShadowSoftness = adjustPixelRatio(this.innerShadowSoftness, 1, minSize);
+            this.innerShadow2Softness = adjustPixelRatio(this.innerShadow2Softness, 1, minSize);
+            for (int i = 0; i < 2; i++) {
+                this.renderOffset[i] = adjustPixelRatio(this.renderOffset[i], 1, renderSizeP[i]);
+                this.rectCenter[i] = adjustPixelRatio(this.rectCenter[i], 1, renderSizeP[i]);
+                this.renderSize[i] = adjustPixelRatio(this.renderSize[i], 1, renderSizeP[i]);
+                this.shadowOffset[i] = adjustPixelRatio(this.shadowOffset[i], 1, renderSizeP[i]);
+                this.shadow2Offset[i] = adjustPixelRatio(this.shadow2Offset[i], 1, renderSizeP[i]);
+                this.innerShadowOffset[i] = adjustPixelRatio(this.innerShadowOffset[i], 1, renderSizeP[i]);
+                this.innerShadow2Offset[i] = adjustPixelRatio(this.innerShadow2Offset[i], 1, renderSizeP[i]);
+            }
+            for (int i = 0; i < 4; i++) {
+                this.cornerRadiuses[i] = adjustPixelRatio(this.cornerRadiuses[i], 0.5f, minSize);
+            }
+
+            // 2 考虑边框和柔软度
+            float extraAll;
+            if (this.borderPos == 0.5) { // 内边框
+                extraAll = Math.max(this.borderSoftness, this.rectEdgeSoftness);
+            } else if (this.borderPos == 0) { // 中边框
+                extraAll = Math.max(this.borderSoftness + this.borderThickness / 2, this.rectEdgeSoftness);
+            } else { // 外边框
+                extraAll = Math.max(this.borderSoftness + this.borderThickness, this.rectEdgeSoftness);
+            }
+
+            // 3 考虑阴影
+            float extraTop = Math.min(
+                this.shadowOffset[1] * height - this.shadowSoftness,
+                this.shadow2Offset[1] * height - this.shadow2Softness);
+            float extraBottom = Math.max(
+                this.shadowOffset[1] * height + this.shadowSoftness,
+                this.shadow2Offset[1] * height + this.shadow2Softness);
+            float extraLeft = Math.min(
+                this.shadowOffset[0] * width - this.shadowSoftness,
+                this.shadow2Offset[0] * width - this.shadow2Softness);
+            float extraRight = Math.max(
+                this.shadowOffset[0] * width + this.shadowSoftness,
+                this.shadow2Offset[0] * width + this.shadow2Softness);
+
+            extraTop += Math.abs(Math.min(0, extraTop));
+            extraBottom += Math.abs(Math.max(0, extraBottom));
+            extraLeft += Math.abs(Math.min(0, extraLeft));
+            extraRight += Math.abs(Math.max(0, extraRight));
+
+            this.renderSize = new float[] {
+                (renderSizeP[0] + extraLeft + extraRight + extraAll * 2) * this.renderSize[0],
+                (renderSizeP[1] + extraTop + extraBottom + extraAll * 2) * this.renderSize[1] };
+            this.renderOffset = new float[] { this.renderOffset[0] - extraLeft, this.renderOffset[1] - extraTop };
+            this.rectSize = new float[] { width / this.renderSize[0], height / this.renderSize[1] };
+            this.rectCenter = new float[] { this.rectCenter[0] - (extraLeft - extraRight) / width,
+                this.rectCenter[1] - (extraTop - extraBottom) / height };
+
+            return this;
+        }
+
+        /**
+         * 辅助方法：调整像素比例
+         * 如果值大于阈值，则除以参照值来缩放
+         *
+         * @param value     需要调整的值
+         * @param threshold 阈值
+         * @param reference 参照值（缩放因子）
+         * @return 调整后的值
+         */
+        private static float adjustPixelRatio(float value, float threshold, float reference) {
+            if (value > threshold) {
+                return value / reference;
+            }
+            return value;
         }
     }
 
     /**
-     * 绘制圆角矩形背景
+     * 绘制复杂矩形，支持圆角、边框、阴影和内阴影效果
      *
-     * @param x               矩形左上角x坐标
-     * @param y               矩形左上角y坐标
-     * @param width           矩形宽度
-     * @param height          矩形高度
-     * @param radius          圆角半径
-     * @param backgroundColor 背景颜色（包含透明度）
-     * @param cornerFlags     圆角位掩码
+     * @param config 复杂矩形的配置参数
      */
-    public static void drawRoundedRectBackground(int x, int y, int width, int height, int radius, int backgroundColor,
-        int cornerFlags) {
+    public static void drawComplexRect(CustomRectConfig config) {
         // 如果着色器未初始化或不可用，则跳过
-        if (roundedRectShader == 0) {
+        if (complexRectShader == 0) {
             initShaders();
-            if (roundedRectShader == 0) return;
+            if (complexRectShader == 0) return;
         }
 
         // 保存GL状态
@@ -61,7 +257,7 @@ public class GLShaderDrawHelper {
         GL11.glPushMatrix();
 
         // 移动到正确的位置
-        GL11.glTranslatef(x, y, 0);
+        GL11.glTranslatef(config.renderOffset[0], config.renderOffset[1], 0);
 
         // 设置绘制状态
         GL11.glEnable(GL11.GL_BLEND);
@@ -69,28 +265,64 @@ public class GLShaderDrawHelper {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         // 启用着色器
-        ARBShaderObjects.glUseProgramObjectARB(roundedRectShader);
+        ARBShaderObjects.glUseProgramObjectARB(complexRectShader);
 
         // 设置着色器参数
-        ShaderHelper.setUniform2f(roundedRectShader, "resolution", width, height);
-        ShaderHelper.setUniform1f(roundedRectShader, "radius", radius);
-        ShaderHelper.setUniform1i(roundedRectShader, "cornerFlags", cornerFlags);
+        ShaderHelper.setUniform2f(complexRectShader, "iResolution", config.renderSize[0], config.renderSize[1]);
+        // 设置基本参数
+        ShaderHelper.setUniform1f(complexRectShader, "u_continuityIndex", config.continuityIndex);
+        ShaderHelper.setUniformRgba(complexRectShader, "u_colorBg", config.colorBg);
 
-        // 设置颜色
-        float alpha = ((backgroundColor >> 24) & 0xFF) / 255.0f;
-        float red = ((backgroundColor >> 16) & 0xFF) / 255.0f;
-        float green = ((backgroundColor >> 8) & 0xFF) / 255.0f;
-        float blue = (backgroundColor & 0xFF) / 255.0f;
-        ShaderHelper.setUniform4f(roundedRectShader, "color", red, green, blue, alpha);
+        // 矩形参数
+        ShaderHelper.setUniform2f(complexRectShader, "u_rectSize", config.rectSize[0], config.rectSize[1]);
+        ShaderHelper.setUniform2f(complexRectShader, "u_rectCenter", config.rectCenter[0], config.rectCenter[1]);
+        ShaderHelper.setUniformRgba(complexRectShader, "u_colorRect", config.colorRect);
+        ShaderHelper.setUniform1f(complexRectShader, "u_rectEdgeSoftness", config.rectEdgeSoftness);
+        ShaderHelper.setUniform4f(
+            complexRectShader,
+            "u_cornerRadiuses",
+            config.cornerRadiuses[0],
+            config.cornerRadiuses[1],
+            config.cornerRadiuses[2],
+            config.cornerRadiuses[3]);
 
-        // 使用Tessellator绘制矩形，这是Minecraft推荐的渲染方式
-        Tessellator tessellator = Tessellator.instance;
-        tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(0, height, 0, 0, 1);
-        tessellator.addVertexWithUV(width, height, 0, 1, 1);
-        tessellator.addVertexWithUV(width, 0, 0, 1, 0);
-        tessellator.addVertexWithUV(0, 0, 0, 0, 0);
-        tessellator.draw();
+        // 边框参数
+        ShaderHelper.setUniform1f(complexRectShader, "u_borderThickness", config.borderThickness);
+        ShaderHelper.setUniform1f(complexRectShader, "u_borderSoftness", config.borderSoftness);
+        ShaderHelper.setUniform1f(complexRectShader, "u_borderPos", config.borderPos);
+        ShaderHelper.setUniformRgba(complexRectShader, "u_colorBorder", config.colorBorder);
+
+        // 阴影参数
+        ShaderHelper.setUniform1f(complexRectShader, "u_ShadowSoftness", config.shadowSoftness);
+        ShaderHelper.setUniform2f(complexRectShader, "u_ShadowOffset", config.shadowOffset[0], config.shadowOffset[1]);
+        ShaderHelper.setUniformRgba(complexRectShader, "u_colorShadow", config.colorShadow);
+
+        // 阴影2参数
+        ShaderHelper.setUniform1f(complexRectShader, "u_Shadow2Softness", config.shadow2Softness);
+        ShaderHelper
+            .setUniform2f(complexRectShader, "u_Shadow2Offset", config.shadow2Offset[0], config.shadow2Offset[1]);
+        ShaderHelper.setUniformRgba(complexRectShader, "u_colorShadow2", config.colorShadow2);
+
+        // 内阴影参数
+        ShaderHelper.setUniform1f(complexRectShader, "u_InnerShadowSoftness", config.innerShadowSoftness);
+        ShaderHelper.setUniform2f(
+            complexRectShader,
+            "u_InnerShadowOffset",
+            config.innerShadowOffset[0],
+            config.innerShadowOffset[1]);
+        ShaderHelper.setUniformRgba(complexRectShader, "u_colorInnerShadow", config.colorInnerShadow);
+
+        // 内阴影2参数
+        ShaderHelper.setUniform1f(complexRectShader, "u_InnerShadow2Softness", config.innerShadow2Softness);
+        ShaderHelper.setUniform2f(
+            complexRectShader,
+            "u_InnerShadow2Offset",
+            config.innerShadow2Offset[0],
+            config.innerShadow2Offset[1]);
+        ShaderHelper.setUniformRgba(complexRectShader, "u_colorInnerShadow2", config.colorInnerShadow2);
+
+        // 使用Tessellator绘制矩形
+        RenderHelper.drawRelativeRect((int) config.renderSize[0], (int) config.renderSize[1], true);
 
         // 禁用着色器
         ARBShaderObjects.glUseProgramObjectARB(0);
@@ -101,69 +333,48 @@ public class GLShaderDrawHelper {
         GL11.glPopAttrib();
     }
 
-    /**
-     * 应用高斯模糊效果
-     *
-     * @param x      区域左上角x坐标
-     * @param y      区域左上角y坐标
-     * @param width  区域宽度
-     * @param height 区域高度
-     * @param radius 模糊半径
-     */
-    public static void applyBlur(int x, int y, int width, int height, float radius) {
-        // 如果着色器未初始化或不可用，则跳过
-        if (blurShader == 0) {
-            initShaders();
-            if (blurShader == 0) return;
-        }
+    public static void drawTestComplexRect() {
+        CustomRectConfig config = new CustomRectConfig();
 
-        // 保存GL状态
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        // 渲染参数
+        config.renderOffset = new float[] { 5, 5 };
+        config.renderSize = new float[] { 300f, 200f };
+        config.continuityIndex = 3.0f;
+        config.colorBg = 0xEDEDEDFF;
 
-        // 保存当前矩阵
-        GL11.glPushMatrix();
+        // 矩形参数
+        config.rectSize = new float[] { 0.75f, 0.75f };
+        config.rectCenter = new float[] { 0.5f, 0.5f };
+        config.colorRect = 0xBF00BF80;
+        config.rectEdgeSoftness = 0.5f;
+        config.cornerRadiuses = new float[] { 0.25f, 0.15f, 0.1f, 0.2f }; // 右上, 右下, 左上, 左下
 
-        // 设置绘制状态
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        // 边框参数
+        config.borderThickness = 0.025f;
+        config.borderSoftness = 0.5f;
+        config.borderPos = 0.0f;
+        config.colorBorder = 0x000000FF;
 
-        // 启用着色器
-        ARBShaderObjects.glUseProgramObjectARB(blurShader);
+        // 阴影参数
+        config.shadowSoftness = 0.07f;
+        config.shadowOffset = new float[] { -0.05f, 0.05f };
+        config.colorShadow = 0x00E5E5FF;
 
-        // 设置着色器参数
-        float pixelSizeX = 1.0f / width;
-        float pixelSizeY = 1.0f / height;
-        ShaderHelper.setUniform2f(blurShader, "texelSize", pixelSizeX, pixelSizeY);
-        ShaderHelper.setUniform1f(blurShader, "radius", radius);
+        // 阴影2参数
+        config.shadow2Softness = 0.07f;
+        config.shadow2Offset = new float[] { 0.05f, -0.05f };
+        config.colorShadow2 = 0xE5E500FF;
 
-        // 先进行水平模糊
-        ShaderHelper.setUniform2f(blurShader, "direction", 1.0f, 0.0f);
+        // 内阴影参数
+        config.innerShadowSoftness = 0.07f;
+        config.innerShadowOffset = new float[] { -0.05f, 0.05f };
+        config.colorInnerShadow = 0x00FF00FF;
 
-        // 绘制区域
-        Tessellator tessellator = Tessellator.instance;
-        tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(x, y + height, 0, 0, 1);
-        tessellator.addVertexWithUV(x + width, y + height, 0, 1, 1);
-        tessellator.addVertexWithUV(x + width, y, 0, 1, 0);
-        tessellator.addVertexWithUV(x, y, 0, 0, 0);
-        tessellator.draw();
+        // 内阴影2参数
+        config.innerShadow2Softness = 0.07f;
+        config.innerShadow2Offset = new float[] { 0.05f, -0.05f };
+        config.colorInnerShadow2 = 0xFF0000FF;
 
-        // 然后进行垂直模糊
-        ShaderHelper.setUniform2f(blurShader, "direction", 0.0f, 1.0f);
-
-        tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(x, y + height, 0, 0, 1);
-        tessellator.addVertexWithUV(x + width, y + height, 0, 1, 1);
-        tessellator.addVertexWithUV(x + width, y, 0, 1, 0);
-        tessellator.addVertexWithUV(x, y, 0, 0, 0);
-        tessellator.draw();
-
-        // 禁用着色器
-        ARBShaderObjects.glUseProgramObjectARB(0);
-
-        // 恢复GL状态
-        GL11.glPopMatrix();
-        GL11.glPopAttrib();
+        drawComplexRect(config);
     }
 }

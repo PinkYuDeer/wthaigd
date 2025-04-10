@@ -131,4 +131,10 @@ public class ShaderHelper {
         int location = ARBShaderObjects.glGetUniformLocationARB(program, name);
         ARBShaderObjects.glUniform4fARB(location, x, y, z, w);
     }
+
+    public static void setUniformRgba(int program, String name, int RGBA) {
+        float[] rgba = RenderHelper.parseRGBA(RGBA);
+        int location = ARBShaderObjects.glGetUniformLocationARB(program, name);
+        ARBShaderObjects.glUniform4fARB(location, rgba[0], rgba[1], rgba[2], rgba[3]);
+    }
 }

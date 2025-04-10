@@ -36,12 +36,6 @@ public class BlurHandler {
     private static final int MAX_DOWNSCALE_LEVELS = 3;
     private static int downscaleLevels = 2; // 默认降采样2级
 
-    // 缓存相关代码
-    private static Framebuffer cachedBlurBuffer = null; // TODO:缓存帧优化性能
-    private static boolean needsUpdate = true;
-    private static long lastUpdateTime = 0;
-    private static final long UPDATE_INTERVAL = 500; // 毫秒，可调整
-
     // 模糊设置
     @Setter
     private static float radius = 12.0f;
@@ -161,20 +155,6 @@ public class BlurHandler {
      */
     public static void renderBlurredBackground() {
         renderBlurredBackground(alpha);
-    }
-
-    /**
-     * 更新检查函数
-     */
-    private static boolean shouldUpdateBlur() {
-        long currentTime = System.currentTimeMillis();
-        // 根据时间间隔或脏标记决定是否更新
-        if (needsUpdate || currentTime - lastUpdateTime > UPDATE_INTERVAL) {
-            lastUpdateTime = currentTime;
-            needsUpdate = false;
-            return true;
-        }
-        return false;
     }
 
     /**
