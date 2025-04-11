@@ -13,7 +13,6 @@ import com.pinkyudeer.wthaigd.Wthaigd;
 import com.pinkyudeer.wthaigd.gui.screen.panel.MainPanel;
 import com.pinkyudeer.wthaigd.helper.config.ConfigHelper;
 import com.pinkyudeer.wthaigd.helper.render.BlurHandler;
-import com.pinkyudeer.wthaigd.helper.render.GLShaderDrawHelper;
 
 public class MainModularScreen extends CustomModularScreen {
 
@@ -93,10 +92,8 @@ public class MainModularScreen extends CustomModularScreen {
             BlurHandler.renderBlurredBackground(1.0f);
         }
 
-        GLShaderDrawHelper.drawTestComplexRect();
-
         // 调用父类方法绘制基本UI
-        // super.drawScreen(mouseX, mouseY, partialTicks);
+        super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
     /**

@@ -47,6 +47,7 @@ public class GLShaderDrawHelper {
         public float borderThickness = 0.02f;
         public float borderSoftness = 0.5f;
         public float borderPos = 0.0f;
+        private float[] borderSelect = { 1.0f, 1.0f, 1.0f, 1.0f };
         public int colorBorder = 0x00000000;
 
         // 阴影 参数
@@ -86,6 +87,7 @@ public class GLShaderDrawHelper {
          * @param borderThickness      边框厚度
          * @param borderSoftness       边框边缘柔和度
          * @param borderPos            边框位置，相对于矩形边缘：-0.5为外边框，0为中间，0.5为内边框
+         * @param borderSelect         边框选择，[上。下。左，右]
          * @param colorBorder          边框颜色 (0xrrggbbaa格式)
          *
          * @param shadowSoftness       阴影发散距离
@@ -106,10 +108,10 @@ public class GLShaderDrawHelper {
          */
         public CustomRectConfig(float[] renderOffset, float[] renderSize, float continuityIndex, int colorBg,
             float[] rectSize, float[] rectCenter, int colorRect, float rectEdgeSoftness, float[] cornerRadiuses,
-            float borderThickness, float borderSoftness, float borderPos, int colorBorder, float shadowSoftness,
-            float[] shadowOffset, int colorShadow, float shadow2Softness, float[] shadow2Offset, int colorShadow2,
-            float innerShadowSoftness, float[] innerShadowOffset, int colorInnerShadow, float innerShadow2Softness,
-            float[] innerShadow2Offset, int colorInnerShadow2) {
+            float borderThickness, float borderSoftness, float borderPos, float[] borderSelect, int colorBorder,
+            float shadowSoftness, float[] shadowOffset, int colorShadow, float shadow2Softness, float[] shadow2Offset,
+            int colorShadow2, float innerShadowSoftness, float[] innerShadowOffset, int colorInnerShadow,
+            float innerShadow2Softness, float[] innerShadow2Offset, int colorInnerShadow2) {
             this.renderOffset = renderOffset;
             this.renderSize = renderSize;
             this.continuityIndex = continuityIndex;
@@ -125,6 +127,7 @@ public class GLShaderDrawHelper {
             this.borderSoftness = borderSoftness;
             this.borderPos = borderPos;
             this.colorBorder = colorBorder;
+            this.borderSelect = borderSelect;
 
             this.shadowSoftness = shadowSoftness;
             this.shadowOffset = shadowOffset;
@@ -163,7 +166,7 @@ public class GLShaderDrawHelper {
 
             // 1、将非归一化参数转换为归一化参数
             float minSize = Math.min(width, height);
-            this.borderThickness = adjustPixelRatio(this.borderThickness, 1, minSize);
+            this.borderThickness = adjustPixelRatio(this.borderThickness, 0.5f, minSize);
             this.shadowSoftness = adjustPixelRatio(this.shadowSoftness, 1, minSize);
             this.shadow2Softness = adjustPixelRatio(this.shadow2Softness, 1, minSize);
             this.innerShadowSoftness = adjustPixelRatio(this.innerShadowSoftness, 1, minSize);
@@ -186,9 +189,9 @@ public class GLShaderDrawHelper {
             if (this.borderPos == 0.5) { // 内边框
                 extraAll = Math.max(this.borderSoftness, this.rectEdgeSoftness);
             } else if (this.borderPos == 0) { // 中边框
-                extraAll = Math.max(this.borderSoftness + this.borderThickness / 2, this.rectEdgeSoftness);
+                extraAll = Math.max(this.borderSoftness + this.borderThickness * minSize, this.rectEdgeSoftness);
             } else { // 外边框
-                extraAll = Math.max(this.borderSoftness + this.borderThickness, this.rectEdgeSoftness);
+                extraAll = Math.max(this.borderSoftness + this.borderThickness * minSize * 2, this.rectEdgeSoftness);
             }
 
             // 3 考虑阴影
@@ -205,18 +208,19 @@ public class GLShaderDrawHelper {
                 this.shadowOffset[0] * width + this.shadowSoftness,
                 this.shadow2Offset[0] * width + this.shadow2Softness);
 
-            extraTop += Math.abs(Math.min(0, extraTop));
-            extraBottom += Math.abs(Math.max(0, extraBottom));
-            extraLeft += Math.abs(Math.min(0, extraLeft));
-            extraRight += Math.abs(Math.max(0, extraRight));
+            extraTop += Math.abs(Math.min(0, extraTop)) + extraAll;
+            extraBottom += Math.abs(Math.max(0, extraBottom)) + extraAll;
+            extraLeft += Math.abs(Math.min(0, extraLeft)) + extraAll;
+            extraRight += Math.abs(Math.max(0, extraRight)) + extraAll;
 
             this.renderSize = new float[] {
                 (renderSizeP[0] + extraLeft + extraRight + extraAll * 2) * this.renderSize[0],
                 (renderSizeP[1] + extraTop + extraBottom + extraAll * 2) * this.renderSize[1] };
-            this.renderOffset = new float[] { this.renderOffset[0] - extraLeft, this.renderOffset[1] - extraTop };
+            this.renderOffset = new float[] { this.renderOffset[0] - extraLeft * 2,
+                this.renderOffset[1] - extraTop * 2 };
             this.rectSize = new float[] { width / this.renderSize[0], height / this.renderSize[1] };
-            this.rectCenter = new float[] { this.rectCenter[0] - (extraLeft - extraRight) / width,
-                this.rectCenter[1] - (extraTop - extraBottom) / height };
+            this.rectCenter = new float[] { 0.5f + this.rectCenter[0] - (extraLeft - extraRight) / width,
+                0.5f + this.rectCenter[1] - (extraTop - extraBottom) / height };
 
             return this;
         }
@@ -290,6 +294,13 @@ public class GLShaderDrawHelper {
         ShaderHelper.setUniform1f(complexRectShader, "u_borderThickness", config.borderThickness);
         ShaderHelper.setUniform1f(complexRectShader, "u_borderSoftness", config.borderSoftness);
         ShaderHelper.setUniform1f(complexRectShader, "u_borderPos", config.borderPos);
+        ShaderHelper.setUniform4f(
+            complexRectShader,
+            "u_borderSelect",
+            config.borderSelect[0],
+            config.borderSelect[1],
+            config.borderSelect[2],
+            config.borderSelect[3]);
         ShaderHelper.setUniformRgba(complexRectShader, "u_colorBorder", config.colorBorder);
 
         // 阴影参数
@@ -353,6 +364,7 @@ public class GLShaderDrawHelper {
         config.borderThickness = 0.025f;
         config.borderSoftness = 0.5f;
         config.borderPos = 0.0f;
+        config.borderSelect = new float[] { 1.0f, 1.0f, 1.0f, 1.0f };
         config.colorBorder = 0x000000FF;
 
         // 阴影参数

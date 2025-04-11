@@ -8,6 +8,7 @@ import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
 import com.cleanroommc.modularui.widgets.layout.Column;
 import com.cleanroommc.modularui.widgets.layout.Row;
+import com.pinkyudeer.wthaigd.helper.render.MUIHelper;
 
 public class MainPanel extends ModularPanel {
 
@@ -17,15 +18,13 @@ public class MainPanel extends ModularPanel {
         this.getArea()
             .setSize(panelWidth, panelHeight);
         this.background(IDrawable.EMPTY);
-
-        // addChild(
-        // applyBorder(mainLayout()).width(8)
-        // .round()
-        // .roundRadius(5)
-        // .withBackground(0x00000060)
-        // .color(0x99ccffbb)
-        // .done(),
-        // 0);
+        addChild(
+            MUIHelper.custom(mainLayout())
+                .border(4f, 0.5f, 0.0f, 0x99ccffff)
+                .round(15)
+                .rectColor(0x00000060)
+                .done(),
+            0);
     }
 
     private Row mainLayout() {
@@ -34,13 +33,12 @@ public class MainPanel extends ModularPanel {
             .background(IDrawable.EMPTY);
 
         float sidebarWidthRef = 0.16f; // 左侧侧边栏宽度
-
-        // mainLayout.addChild(
-        // applyBorder(sidebar(sidebarWidthRef)).select(MUI2Helper.RenderBorderEnum.RIGHT)
-        // .width(4)
-        // .color(0x99ccffbb)
-        // .done(),
-        // 0);
+        mainLayout.addChild(
+            MUIHelper.custom(sidebar(sidebarWidthRef))
+                .border(2f, 0f, 0.5f, 0x99ccffff)
+                .borderSelect(false, false, false, true)
+                .done(),
+            0);
         mainLayout.addChild(rightPanel(1 - sidebarWidthRef), 1);
 
         return mainLayout;
@@ -61,12 +59,12 @@ public class MainPanel extends ModularPanel {
             .widthRel(1);
 
         sidebar.addChild(mainText, 0);
-        // sidebar.addChild(
-        // applyBorder(leftPanel(1 - infoRel)).select(MUI2Helper.RenderBorderEnum.TOP)
-        // .color(0x99ccffbb)
-        // .width(4)
-        // .done(),
-        // 1);
+        sidebar.addChild(
+            MUIHelper.custom(leftPanel(1 - infoRel))
+                .border(2f, 0f, 0.5f, 0x99ccffff)
+                .borderSelect(true, false, false, false)
+                .done(),
+            1);
 
         return sidebar;
     }
@@ -86,12 +84,12 @@ public class MainPanel extends ModularPanel {
 
         float navBarHeightRef = 0.1f; // 导航条高度
 
-        // rightPanel.addChild(
-        // applyBorder(navBar(navBarHeightRef, widthRef)).select(MUI2Helper.RenderBorderEnum.BOTTOM)
-        // .color(0x99ccffbb)
-        // .width(4)
-        // .done(),
-        // 0);
+        rightPanel.addChild(
+            MUIHelper.custom(navBar(navBarHeightRef, widthRef))
+                .border(2f, 0f, 0.5f, 0x99ccffff)
+                .borderSelect(false, true, false, false)
+                .done(),
+            0);
         rightPanel.addChild(contentArea(1 - navBarHeightRef), 1);
 
         return rightPanel;
@@ -124,11 +122,12 @@ public class MainPanel extends ModularPanel {
                         .shadow(false))
                 .background(IDrawable.EMPTY);
 
-            // pageSwitch.addChild(
-            // applyBorder(pageButton).select(MUI2Helper.RenderBorderEnum.RIGHT)
-            // .width(4)
-            // .done(),
-            // i);
+            pageSwitch.addChild(
+                MUIHelper.custom(pageButton)
+                    .border(2f, 0f, 0.5f, 0x99ccffff)
+                    .borderSelect(false, false, false, true)
+                    .done(),
+                i);
         }
 
         return pageSwitch;
