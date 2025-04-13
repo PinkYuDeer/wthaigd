@@ -20,8 +20,9 @@ public class MainPanel extends ModularPanel {
         this.background(IDrawable.EMPTY);
         addChild(
             MUIHelper.custom(mainLayout())
-                .border(4f, 0.5f, 0.0f, 0x99ccffff)
-                .round(15)
+                .rectEdgeSoftness(1.0f)
+                .border(1f, 0.6f, 0.0f, 0x99ccffff)
+                .round(30)
                 .rectColor(0x00000060)
                 .done(),
             0);
@@ -35,8 +36,8 @@ public class MainPanel extends ModularPanel {
         float sidebarWidthRef = 0.16f; // 左侧侧边栏宽度
         mainLayout.addChild(
             MUIHelper.custom(sidebar(sidebarWidthRef))
-                .border(2f, 0f, 0.5f, 0x99ccffff)
-                .borderSelect(false, false, false, true)
+                .border(1f, 0.5f, 0x99ccffff)
+                .borderSelect(false, false, false, true, false)
                 .done(),
             0);
         mainLayout.addChild(rightPanel(1 - sidebarWidthRef), 1);
@@ -59,12 +60,7 @@ public class MainPanel extends ModularPanel {
             .widthRel(1);
 
         sidebar.addChild(mainText, 0);
-        sidebar.addChild(
-            MUIHelper.custom(leftPanel(1 - infoRel))
-                .border(2f, 0f, 0.5f, 0x99ccffff)
-                .borderSelect(true, false, false, false)
-                .done(),
-            1);
+        sidebar.addChild(leftPanel(1 - infoRel), 1);
 
         return sidebar;
     }
@@ -74,6 +70,14 @@ public class MainPanel extends ModularPanel {
         Column leftPanel = (Column) new Column().heightRel(heightRef)
             .background(IDrawable.EMPTY);
 
+        leftPanel.addChild(
+            MUIHelper.custom(
+                new Row().height(1)
+                    .widthRel(0.8f))
+                .border(1f, -0.5f, 0x99ccffff)
+                .borderSelect(true, false, false, false, false)
+                .done(),
+            0);
         return leftPanel;
     }
 
@@ -86,8 +90,8 @@ public class MainPanel extends ModularPanel {
 
         rightPanel.addChild(
             MUIHelper.custom(navBar(navBarHeightRef, widthRef))
-                .border(2f, 0f, 0.5f, 0x99ccffff)
-                .borderSelect(false, true, false, false)
+                .border(1f, -0.5f, 0x99ccffff)
+                .borderSelect(false, true, false, false, true)
                 .done(),
             0);
         rightPanel.addChild(contentArea(1 - navBarHeightRef), 1);
@@ -115,17 +119,32 @@ public class MainPanel extends ModularPanel {
         int pageNum = 3; // 页面数量
 
         for (int i = 0; i < pageNum; i++) {
-            ButtonWidget<?> pageButton = new ButtonWidget<>().widthRel(1f / pageNum)
+
+            ButtonWidget<?> pageButton = new ButtonWidget<>().widthRel(0.5f)
+                .heightRel(0.8f)
                 .overlay(
                     IKey.str("页面" + i)
-                        .color(0xdba1c7bb)
+                        .color(0xbb99ccff)
                         .shadow(false))
                 .background(IDrawable.EMPTY);
 
-            pageSwitch.addChild(
+            Row buttonDiv = (Row) new Row().widthRel(1f / pageNum)
+                .heightRel(0.8f)
+                .paddingLeft(25);
+            buttonDiv.addChild(
                 MUIHelper.custom(pageButton)
-                    .border(2f, 0f, 0.5f, 0x99ccffff)
-                    .borderSelect(false, false, false, true)
+                    .round(10f)
+                    .innerShadow(0.2f, -0.02f, 0.08f, 0xFFB1D9E0)
+                    .shadow(0.05f, 0.02f, -0.08f, 0x000000ff)
+                    .rectEdgeSoftness(1f)
+                    .rectColor(0xFFB1D9A0)
+                    .done(),
+                0);
+
+            pageSwitch.addChild(
+                MUIHelper.custom(buttonDiv)
+                    .border(1f, -0.5f, 0x99ccffff)
+                    .borderSelect(false, false, false, true, false)
                     .done(),
                 i);
         }

@@ -55,7 +55,7 @@ public class BlurHandler {
         if (blurShaderProgram == 0) {
             // 使用ShaderHelper初始化着色器
             blurShaderProgram = ShaderHelper.createProgram(
-                new ResourceLocation("wthaigd", "shaders/blur.vert"),
+                new ResourceLocation("wthaigd", "shaders/normal.vert"),
                 new ResourceLocation("wthaigd", "shaders/blur.frag"));
         }
 

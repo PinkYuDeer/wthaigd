@@ -15,6 +15,9 @@ public class MUIHelper {
 
         private final T widget;
 
+        private boolean useComplexShader = false;
+        private boolean useSimpleShader = false;
+
         // 位置相关
         private float[] renderOffset = { 0f, 0f };
         private float[] renderSizeMulti = { 1f, 1f };
@@ -35,6 +38,7 @@ public class MUIHelper {
         private float borderSoftness = 0.5f;
         private float borderPos = 0.0f;
         private float[] borderSelect = { 1f, 1f, 1f, 1f };
+        private float borderCutCorners = 1.0f;
         private int colorBorder = 0x00000000;
 
         // 阴影参数
@@ -110,17 +114,6 @@ public class MUIHelper {
         }
 
         /**
-         * 设置连续性指数
-         *
-         * @param index 连续性指数值
-         * @return 构建器实例，用于链式调用
-         */
-        public CustomWidgetBuilder<T> continuity(float index) {
-            this.continuityIndex = index;
-            return this;
-        }
-
-        /**
          * 设置背景颜色
          *
          * @param color 0xrrggbbaa格式的颜色值
@@ -143,6 +136,18 @@ public class MUIHelper {
         }
 
         /**
+         * 设置连续性指数
+         *
+         * @param index 连续性指数值
+         * @return 构建器实例，用于链式调用
+         */
+        public CustomWidgetBuilder<T> continuity(float index) {
+            this.continuityIndex = index;
+            this.useComplexShader = true;
+            return this;
+        }
+
+        /**
          * 设置矩形边缘柔软度
          *
          * @param softness 边缘柔软度值
@@ -150,6 +155,7 @@ public class MUIHelper {
          */
         public CustomWidgetBuilder<T> rectEdgeSoftness(float softness) {
             this.rectEdgeSoftness = softness;
+            this.useComplexShader = true;
             return this;
         }
 
@@ -164,6 +170,7 @@ public class MUIHelper {
          */
         public CustomWidgetBuilder<T> rounds(float topRight, float bottomRight, float topLeft, float bottomLeft) {
             this.cornerRadiuses = new float[] { topRight, bottomRight, topLeft, bottomLeft };
+            this.useComplexShader = true;
             return this;
         }
 
@@ -190,6 +197,21 @@ public class MUIHelper {
             this.borderSoftness = softness;
             this.borderPos = pos;
             this.colorBorder = color;
+            this.useComplexShader = true;
+            return this;
+        }
+
+        /**
+         * 设置边框厚度（简单矩形）
+         *
+         * @param thickness 边框厚度
+         * @param pos       边框位置值，-0.5为外边框，0为中间，0.5为内边框
+         * @return 构建器实例，用于链式调用
+         */
+        public CustomWidgetBuilder<T> border(float thickness, float pos, int color) {
+            this.borderThickness = thickness;
+            this.borderPos = pos;
+            this.colorBorder = color;
             return this;
         }
 
@@ -202,11 +224,14 @@ public class MUIHelper {
          * @param right  是否显示右侧边框
          * @return 构建器实例，用于链式调用
          */
-        public CustomWidgetBuilder<T> borderSelect(boolean top, boolean bottom, boolean left, boolean right) {
+        public CustomWidgetBuilder<T> borderSelect(boolean top, boolean bottom, boolean left, boolean right,
+            boolean cutCorners) {
             borderSelect[0] = bottom ? 1.0f : 0.0f;
             borderSelect[1] = top ? 1.0f : 0.0f;
             borderSelect[2] = right ? 1.0f : 0.0f;
             borderSelect[3] = left ? 1.0f : 0.0f;
+            borderCutCorners = cutCorners ? 1.0f : 0.0f;
+            this.useSimpleShader = true;
             return this;
         }
 
@@ -223,6 +248,7 @@ public class MUIHelper {
             this.shadowSoftness = blur;
             this.shadowOffset = new float[] { offsetX, offsetY };
             this.colorShadow = color;
+            this.useComplexShader = true;
             return this;
         }
 
@@ -239,6 +265,7 @@ public class MUIHelper {
             this.shadow2Softness = blur;
             this.shadow2Offset = new float[] { offsetX, offsetY };
             this.colorShadow2 = color;
+            this.useComplexShader = true;
             return this;
         }
 
@@ -255,6 +282,7 @@ public class MUIHelper {
             this.innerShadowSoftness = blur;
             this.innerShadowOffset = new float[] { offsetX, offsetY };
             this.colorInnerShadow = color;
+            this.useComplexShader = true;
             return this;
         }
 
@@ -271,6 +299,7 @@ public class MUIHelper {
             this.innerShadow2Softness = blur;
             this.innerShadow2Offset = new float[] { offsetX, offsetY };
             this.colorInnerShadow2 = color;
+            this.useComplexShader = true;
             return this;
         }
 
@@ -280,33 +309,50 @@ public class MUIHelper {
          * @return 应用了自定义样式的控件实例
          */
         public T done() {
-            GLShaderDrawHelper.CustomRectConfig config = new GLShaderDrawHelper.CustomRectConfig(
-                renderOffset,
-                renderSizeMulti,
-                continuityIndex,
-                colorBg,
-                rectSizeMulti,
-                rectCenterOffset,
-                colorRect,
-                rectEdgeSoftness,
-                cornerRadiuses,
-                borderThickness,
-                borderSoftness,
-                borderPos,
-                borderSelect,
-                colorBorder,
-                shadowSoftness,
-                shadowOffset,
-                colorShadow,
-                shadow2Softness,
-                shadow2Offset,
-                colorShadow2,
-                innerShadowSoftness,
-                innerShadowOffset,
-                colorInnerShadow,
-                innerShadow2Softness,
-                innerShadow2Offset,
-                colorInnerShadow2);
+            GLShaderDrawHelper.CustomRectConfig config;
+            if (useComplexShader) {
+                if (useSimpleShader) throw new IllegalStateException("复杂矩形不可选择边框。");
+                config = new GLShaderDrawHelper.CustomRectConfig(
+                    renderOffset,
+                    renderSizeMulti,
+                    continuityIndex,
+                    colorBg,
+                    rectSizeMulti,
+                    rectCenterOffset,
+                    colorRect,
+                    rectEdgeSoftness,
+                    cornerRadiuses,
+                    borderThickness,
+                    borderSoftness,
+                    borderPos,
+                    colorBorder,
+                    shadowSoftness,
+                    shadowOffset,
+                    colorShadow,
+                    shadow2Softness,
+                    shadow2Offset,
+                    colorShadow2,
+                    innerShadowSoftness,
+                    innerShadowOffset,
+                    colorInnerShadow,
+                    innerShadow2Softness,
+                    innerShadow2Offset,
+                    colorInnerShadow2);
+            } else {
+                config = new GLShaderDrawHelper.CustomRectConfig(
+                    renderOffset,
+                    renderSizeMulti,
+                    continuityIndex,
+                    colorBg,
+                    rectSizeMulti,
+                    rectCenterOffset,
+                    colorRect,
+                    borderThickness,
+                    borderPos,
+                    borderSelect,
+                    borderCutCorners,
+                    colorBorder);
+            }
             return applyCustom(this.widget, config);
         }
     }
