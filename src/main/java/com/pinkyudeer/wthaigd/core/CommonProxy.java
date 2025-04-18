@@ -48,7 +48,9 @@ public class CommonProxy {
         EventHandler.registerCommonEvents();
         FMLCommonHandler.instance()
             .bus()
-            .register(new EventHandler.playerHandler());
+            .register(new EventHandler.serverHandler());
+        // 注册网络通信
+        WthaigdPacketHandler.registerMessages();
     }
 
     // 模组间交互（如获取其他模组内容）、覆盖原版逻辑。

@@ -4,12 +4,15 @@ import java.io.File;
 import java.io.IOException;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
 import com.pinkyudeer.wthaigd.Wthaigd;
 import com.pinkyudeer.wthaigd.helper.ModFileHelper;
 import com.pinkyudeer.wthaigd.helper.dataBase.SQLiteManager;
+import com.pinkyudeer.wthaigd.helper.network.NetWorkData;
+import com.pinkyudeer.wthaigd.helper.network.NetWorkHelper;
 import com.pinkyudeer.wthaigd.task.TaskSqlHelper;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -38,7 +41,22 @@ public class EventHandler {
                     event.world.getSaveHandler()
                         .getWorldDirectory()
                         .getCanonicalFile());
+            } else {
+                IntegratedServer IS = Minecraft.getMinecraft()
+                    .getIntegratedServer();
+                File saveFolderName = ModFileHelper.getSavesDir();
+                if (IS == null) {
+                    ModFileHelper.updateModWorldDir(saveFolderName);
+                    return;
+                }
+                ModFileHelper.updateModWorldDir(
+                    new File(
+                        ModFileHelper.getSavesDir(),
+                        Minecraft.getMinecraft()
+                            .getIntegratedServer()
+                            .getFolderName()));
             }
+            SQLiteManager.initSqlite();
         }
 
         @SubscribeEvent
@@ -50,43 +68,33 @@ public class EventHandler {
 
             SQLiteManager.saveDataFromMemoryToFile();
         }
+
+        @SubscribeEvent
+        public void onWorldUnload(WorldEvent.Unload event) {
+            if (event.world.provider.dimensionId != 0) return;
+
+            Wthaigd.LOG.info("World unload event triggered");
+
+            ModFileHelper.updateModWorldDir(null);
+
+            SQLiteManager.close();
+        }
     }
 
-    public static class playerHandler {
+    public static class serverHandler {
 
         @SubscribeEvent
         public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
             Wthaigd.LOG.info("Player logged in: {}", event.player.getDisplayName());
 
-            if (FMLCommonHandler.instance()
-                .getSide()
-                .isClient()) {
-                // 如果是加入服务器，则返回
-                if (Minecraft.getMinecraft()
-                    .getIntegratedServer() == null) {
-                    return;
-                }
-
-                ModFileHelper.updateModWorldDir(
-                    new File(
-                        ModFileHelper.getSavesDir(),
-                        Minecraft.getMinecraft()
-                            .getIntegratedServer()
-                            .getFolderName()));
-            }
-
-            SQLiteManager.initSqlite();
-
             TaskSqlHelper.player.login(event.player);
+
+            NetWorkHelper.SendMessageToClient("welcome", event.player, NetWorkData.DataType.PLAYER_LOGIN, 200);
         }
 
         @SubscribeEvent
         public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
             Wthaigd.LOG.info("Player logged out: {}", event.player.getDisplayName());
-
-            ModFileHelper.updateModWorldDir(null);
-
-            SQLiteManager.close();
         }
     }
 }
