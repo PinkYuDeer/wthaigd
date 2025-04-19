@@ -24,12 +24,6 @@ public class ConfigSetting {
         List<ConfigEntry<?>> entries = new ArrayList<>();
 
         entries.add(
-            new ConfigEntry.StringConfigEntry(
-                "greeting",
-                "Hello World",
-                "Welcome to WTHAIGD!!!",
-                "config.comment.greeting"));
-        entries.add(
             new ConfigEntry.BooleanConfigEntry(
                 "debugMode",
                 false,
@@ -67,8 +61,7 @@ public class ConfigSetting {
                 "config.comment.ui.blur.blurPasses",
                 1,
                 5));
-
-        // 界面动画配置
+        // blur界面动画配置
         entries.add(
             new ConfigEntry.BooleanConfigEntry(
                 "ui.animation.enabled",

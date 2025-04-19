@@ -8,9 +8,14 @@ import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
 import com.cleanroommc.modularui.widgets.layout.Column;
 import com.cleanroommc.modularui.widgets.layout.Row;
-import com.pinkyudeer.wthaigd.helper.render.MUIHelper;
+import com.pinkyudeer.wthaigd.gui.widget.CustomButton;
+import com.pinkyudeer.wthaigd.gui.widget.CustomColumn;
+import com.pinkyudeer.wthaigd.gui.widget.CustomRow;
+import com.pinkyudeer.wthaigd.gui.widget.RectConfigBuilder;
 
 public class MainPanel extends ModularPanel {
+
+    public int lineColor = 0x99ccffff;
 
     public MainPanel(int panelWidth, int panelHeight) {
         super("main");
@@ -18,36 +23,38 @@ public class MainPanel extends ModularPanel {
         this.getArea()
             .setSize(panelWidth, panelHeight);
         this.background(IDrawable.EMPTY);
+
         addChild(
-            MUIHelper.custom(mainLayout())
-                .rectEdgeSoftness(1.0f)
-                .border(1f, 0.6f, 0.0f, 0x99ccffff)
-                .round(30)
-                .rectColor(0x00000060)
-                .done(),
+            mainLayout().custom(
+                new RectConfigBuilder().round(30)
+                    .rectEdgeSoftness(1.0f)
+                    .border(1f, 0.6f, 0.0f, lineColor)
+                    .rectColor(0x00000060)
+                    .done()),
             0);
     }
 
-    private Row mainLayout() {
+    private CustomRow mainLayout() {
         // 创建一个主布局，使用Row进行水平分块
-        Row mainLayout = (Row) new Row().center()
+        CustomRow mainLayout = (CustomRow) new CustomRow().center()
             .background(IDrawable.EMPTY);
 
         float sidebarWidthRef = 0.16f; // 左侧侧边栏宽度
+
         mainLayout.addChild(
-            MUIHelper.custom(sidebar(sidebarWidthRef))
-                .border(1f, 0.5f, 0x99ccffff)
-                .borderSelect(false, false, false, true, false)
-                .done(),
+            sidebar(sidebarWidthRef).custom(
+                new RectConfigBuilder().border(1f, 0.5f, lineColor)
+                    .borderSelect(false, false, false, true, false)
+                    .done()),
             0);
         mainLayout.addChild(rightPanel(1 - sidebarWidthRef), 1);
 
         return mainLayout;
     }
 
-    private Column sidebar(float widthRef) {
+    private CustomColumn sidebar(float widthRef) {
         // 创建左侧面板
-        Column sidebar = (Column) new Column().widthRel(widthRef)
+        CustomColumn sidebar = (CustomColumn) new CustomColumn().widthRel(widthRef)
             .background(IDrawable.EMPTY);
 
         float infoRel = 0.1f; // 信息区域高度
@@ -71,12 +78,11 @@ public class MainPanel extends ModularPanel {
             .background(IDrawable.EMPTY);
 
         leftPanel.addChild(
-            MUIHelper.custom(
-                new Row().height(1)
-                    .widthRel(0.8f))
-                .border(1f, -0.5f, 0x99ccffff)
-                .borderSelect(true, false, false, false, false)
-                .done(),
+            ((CustomRow) new CustomRow().height(1)
+                .widthRel(0.8f)).custom(
+                    new RectConfigBuilder().border(1f, -0.5f, lineColor)
+                        .borderSelect(true, false, false, false, false)
+                        .done()),
             0);
         return leftPanel;
     }
@@ -89,19 +95,19 @@ public class MainPanel extends ModularPanel {
         float navBarHeightRef = 0.1f; // 导航条高度
 
         rightPanel.addChild(
-            MUIHelper.custom(navBar(navBarHeightRef, widthRef))
-                .border(1f, -0.5f, 0x99ccffff)
-                .borderSelect(false, true, false, false, true)
-                .done(),
+            navBar(navBarHeightRef, widthRef).custom(
+                new RectConfigBuilder().border(1f, -0.5f, lineColor)
+                    .borderSelect(false, true, false, false, true)
+                    .done()),
             0);
         rightPanel.addChild(contentArea(1 - navBarHeightRef), 1);
 
         return rightPanel;
     }
 
-    private Row navBar(float heightRef, float rightPanelWidthRef) {
+    private CustomRow navBar(float heightRef, float rightPanelWidthRef) {
         // 创建导航条
-        Row navBar = (Row) new Row().heightRel(heightRef)
+        CustomRow navBar = (CustomRow) new CustomRow().heightRel(heightRef)
             .background(IDrawable.EMPTY);
 
         float pageSwitchRef = 0.8f; // 页面切换按钮区域总宽度
@@ -119,8 +125,7 @@ public class MainPanel extends ModularPanel {
         int pageNum = 3; // 页面数量
 
         for (int i = 0; i < pageNum; i++) {
-
-            ButtonWidget<?> pageButton = new ButtonWidget<>().widthRel(0.5f)
+            CustomButton<?> pageButton = new CustomButton<>().widthRel(0.5f)
                 .heightRel(0.8f)
                 .overlay(
                     IKey.str("页面" + i)
@@ -128,24 +133,24 @@ public class MainPanel extends ModularPanel {
                         .shadow(false))
                 .background(IDrawable.EMPTY);
 
-            Row buttonDiv = (Row) new Row().widthRel(1f / pageNum)
+            CustomRow buttonDiv = (CustomRow) new CustomRow().widthRel(1f / pageNum)
                 .heightRel(0.8f)
                 .paddingLeft(25);
             buttonDiv.addChild(
-                MUIHelper.custom(pageButton)
-                    .round(10f)
-                    .innerShadow(0.2f, -0.02f, 0.08f, 0xFFB1D9E0)
-                    .shadow(0.05f, 0.02f, -0.08f, 0x000000ff)
-                    .rectEdgeSoftness(1f)
-                    .rectColor(0xFFB1D9A0)
-                    .done(),
+                pageButton.custom(
+                    new RectConfigBuilder().round(10f)
+                        .innerShadow(0.2f, -0.02f, 0.08f, 0xFFB1D9E0)
+                        .shadow(0.05f, 0.02f, -0.08f, 0x000000ff)
+                        .rectEdgeSoftness(1f)
+                        .rectColor(0xFFB1D9A0)
+                        .done()),
                 0);
 
             pageSwitch.addChild(
-                MUIHelper.custom(buttonDiv)
-                    .border(1f, -0.5f, 0x99ccffff)
-                    .borderSelect(false, false, false, true, false)
-                    .done(),
+                buttonDiv.custom(
+                    new RectConfigBuilder().border(1f, -0.5f, lineColor)
+                        .borderSelect(false, false, false, true, false)
+                        .done()),
                 i);
         }
 
