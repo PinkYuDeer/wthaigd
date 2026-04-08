@@ -9,9 +9,9 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.FieldCheck;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Table;
+import com.pinkyudeer.wthaigd.db.annotation.Column;
+import com.pinkyudeer.wthaigd.db.annotation.FieldCheck;
+import com.pinkyudeer.wthaigd.db.annotation.Table;
 
 import lombok.Data;
 

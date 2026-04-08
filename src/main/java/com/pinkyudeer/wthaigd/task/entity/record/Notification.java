@@ -6,10 +6,12 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Reference;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Table;
+import com.pinkyudeer.wthaigd.db.annotation.Column;
+import com.pinkyudeer.wthaigd.db.annotation.Reference;
+import com.pinkyudeer.wthaigd.db.annotation.Table;
 import com.pinkyudeer.wthaigd.task.entity.Player;
+import com.pinkyudeer.wthaigd.task.entity.Task;
+import com.pinkyudeer.wthaigd.task.entity.Team;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -44,11 +46,11 @@ public class Notification extends BaseRecord {
     private UUID triggerPlayerId; // 触发通知的玩家
     @Nullable
     @Column(name = "related_task_id")
-    @Reference(entity = Player.class)
+    @Reference(entity = Task.class)
     private UUID relatedTaskId; // 关联的任务ID
     @Nullable
     @Column(name = "related_team_id")
-    @Reference(entity = Player.class)
+    @Reference(entity = Team.class)
     private UUID relatedTeamId; // 关联的团队ID
     @Nullable
     @Column(name = "related_record_id")

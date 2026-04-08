@@ -6,9 +6,9 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Reference;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Table;
+import com.pinkyudeer.wthaigd.db.annotation.Column;
+import com.pinkyudeer.wthaigd.db.annotation.Reference;
+import com.pinkyudeer.wthaigd.db.annotation.Table;
 import com.pinkyudeer.wthaigd.task.entity.Task;
 import com.pinkyudeer.wthaigd.task.entity.Team;
 import com.pinkyudeer.wthaigd.task.entity.record.Notification.SourceType;

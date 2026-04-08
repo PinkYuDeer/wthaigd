@@ -2,7 +2,7 @@ package com.pinkyudeer.wthaigd.core;
 
 import com.pinkyudeer.wthaigd.gui.KeyBindGuiHandler;
 import com.pinkyudeer.wthaigd.gui.ModularTheme;
-import com.pinkyudeer.wthaigd.helper.render.BlurHandler;
+import com.pinkyudeer.wthaigd.render.BlurHandler;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;

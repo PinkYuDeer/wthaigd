@@ -6,11 +6,11 @@ import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayer;
 
+import com.pinkyudeer.wthaigd.db.SQLHelper;
+import com.pinkyudeer.wthaigd.db.builder.DeleteBuilder;
+import com.pinkyudeer.wthaigd.db.builder.SelectBuilder;
+import com.pinkyudeer.wthaigd.db.builder.UpdateBuilder;
 import com.pinkyudeer.wthaigd.helper.UtilHelper;
-import com.pinkyudeer.wthaigd.helper.dataBase.SQLHelper;
-import com.pinkyudeer.wthaigd.helper.dataBase.builder.DeleteBuilder;
-import com.pinkyudeer.wthaigd.helper.dataBase.builder.SelectBuilder;
-import com.pinkyudeer.wthaigd.helper.dataBase.builder.UpdateBuilder;
 import com.pinkyudeer.wthaigd.task.entity.Player;
 
 public class PlayerDao {

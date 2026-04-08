@@ -5,8 +5,8 @@ import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.FieldCheck;
+import com.pinkyudeer.wthaigd.db.annotation.Column;
+import com.pinkyudeer.wthaigd.db.annotation.FieldCheck;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

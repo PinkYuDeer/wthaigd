@@ -6,11 +6,11 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Column;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Reference;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Table;
+import com.pinkyudeer.wthaigd.db.annotation.Column;
+import com.pinkyudeer.wthaigd.db.annotation.Reference;
+import com.pinkyudeer.wthaigd.db.annotation.Table;
 import com.pinkyudeer.wthaigd.task.entity.Player;
-import com.pinkyudeer.wthaigd.task.entity.Task;
+import com.pinkyudeer.wthaigd.task.entity.Team;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -28,7 +28,7 @@ public class TeamRequest extends BaseRecord {
     // 核心关联
     @Nonnull
     @Column(name = "team_id")
-    @Reference(entity = Task.class)
+    @Reference(entity = Team.class)
     private UUID teamId; // 目标团队ID
     @Nonnull
     @Column(name = "applicant_id")

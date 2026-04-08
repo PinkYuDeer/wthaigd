@@ -7,8 +7,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import org.reflections.Reflections;
 
 import com.pinkyudeer.wthaigd.Wthaigd;
-import com.pinkyudeer.wthaigd.helper.dataBase.SQLHelper;
-import com.pinkyudeer.wthaigd.helper.dataBase.annotation.Table;
+import com.pinkyudeer.wthaigd.db.SQLHelper;
+import com.pinkyudeer.wthaigd.db.annotation.Table;
 import com.pinkyudeer.wthaigd.task.dao.PlayerDao;
 
 /**

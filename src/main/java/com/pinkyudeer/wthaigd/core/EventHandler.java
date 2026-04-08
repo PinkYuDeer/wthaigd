@@ -9,10 +9,10 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
 import com.pinkyudeer.wthaigd.Wthaigd;
+import com.pinkyudeer.wthaigd.db.SQLiteManager;
 import com.pinkyudeer.wthaigd.helper.ModFileHelper;
-import com.pinkyudeer.wthaigd.helper.dataBase.SQLiteManager;
-import com.pinkyudeer.wthaigd.helper.network.NetWorkData;
-import com.pinkyudeer.wthaigd.helper.network.NetWorkHelper;
+import com.pinkyudeer.wthaigd.network.NetWorkData;
+import com.pinkyudeer.wthaigd.network.NetWorkHelper;
 import com.pinkyudeer.wthaigd.task.TaskSqlHelper;
 
 import cpw.mods.fml.common.FMLCommonHandler;

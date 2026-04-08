@@ -7,18 +7,18 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 
 import com.pinkyudeer.wthaigd.Wthaigd;
-import com.pinkyudeer.wthaigd.helper.config.ConfigHelper;
+import com.pinkyudeer.wthaigd.config.ConfigHelper;
 
 public class TaskCommand extends CommandBase {
 
     @Override
     public String getCommandName() {
-        return "entity";
+        return "task";
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/entity <add|remove|list|update|test> [任务名称] [任务描述]";
+        return "/task <add|remove|list|update|test> [任务名称] [任务描述]";
     }
 
     @Override
@@ -48,7 +48,7 @@ public class TaskCommand extends CommandBase {
                 // 在此处运行测试代码，根据test后args不同运行不同的测试模块
                 // TODO:正式发布前清理此处
                 if (args.length < 2) {
-                    sender.addChatMessage(new ChatComponentText("用法: /entity test <测试模块>"));
+                    sender.addChatMessage(new ChatComponentText("用法: /task test <测试模块>"));
                     return;
                 }
                 String testModule = args[1].toLowerCase();

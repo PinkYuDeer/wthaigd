@@ -3,10 +3,10 @@ package com.pinkyudeer.wthaigd.task.dao.record;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.pinkyudeer.wthaigd.helper.dataBase.SQLHelper;
-import com.pinkyudeer.wthaigd.helper.dataBase.builder.DeleteBuilder;
-import com.pinkyudeer.wthaigd.helper.dataBase.builder.SelectBuilder;
-import com.pinkyudeer.wthaigd.helper.dataBase.builder.UpdateBuilder;
+import com.pinkyudeer.wthaigd.db.SQLHelper;
+import com.pinkyudeer.wthaigd.db.builder.DeleteBuilder;
+import com.pinkyudeer.wthaigd.db.builder.SelectBuilder;
+import com.pinkyudeer.wthaigd.db.builder.UpdateBuilder;
 import com.pinkyudeer.wthaigd.task.entity.record.Notification;
 
 public class NotificationDao {

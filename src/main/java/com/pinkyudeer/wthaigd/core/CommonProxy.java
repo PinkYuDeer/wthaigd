@@ -1,7 +1,7 @@
 package com.pinkyudeer.wthaigd.core;
 
+import com.pinkyudeer.wthaigd.config.ConfigHelper;
 import com.pinkyudeer.wthaigd.helper.ModFileHelper;
-import com.pinkyudeer.wthaigd.helper.config.ConfigHelper;
 import com.pinkyudeer.wthaigd.loader.BlockLoader;
 import com.pinkyudeer.wthaigd.loader.CommandLoader;
 import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
@@ -46,7 +46,7 @@ public class CommonProxy {
             .bus()
             .register(new EventHandler.serverHandler());
         // 注册网络通信
-        WthaigdPacketHandler.registerMessages();
+        PacketHandler.registerMessages();
     }
 
     // 模组间交互（如获取其他模组内容）、覆盖原版逻辑。

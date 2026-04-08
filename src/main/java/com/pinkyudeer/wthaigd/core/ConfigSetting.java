@@ -3,7 +3,7 @@ package com.pinkyudeer.wthaigd.core;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.pinkyudeer.wthaigd.helper.config.ConfigEntry;
+import com.pinkyudeer.wthaigd.config.ConfigEntry;
 
 public class ConfigSetting {
     // 增加配置方法：
