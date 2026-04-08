@@ -1,5 +1,4 @@
 .gradle
-/gradle/
 .settings
 /.idea/
 /.vscode/
@@ -40,3 +39,4 @@ layout.json
 !/build.gradle.kts
 /com/
 /assets/
+/.claude/
