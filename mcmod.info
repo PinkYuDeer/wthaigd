@@ -1,0 +1,21 @@
+[
+  {
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "A GUI library to ease the process of creating vanilla style GUIs. Heavily inspired by GTCE's ModularUI",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "https://github.com/CleanroomMC/ModularUI/tree/1.7.10",
+    "updateUrl": "",
+    "authorList": [
+      "brachy84",
+      "Rongmario",
+      "CleanroomMC",
+      "miozune (1.7.10 port)"
+    ],
+    "credits": "GTCE Author for the idea and concept, Kila Bash for improvements in GTCEu",
+    "logoFile": "assets/modularui/textures/modular_ui_logo.png",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
