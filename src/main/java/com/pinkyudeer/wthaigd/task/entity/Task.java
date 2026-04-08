@@ -13,8 +13,10 @@ import com.pinkyudeer.wthaigd.db.annotation.Reference;
 import com.pinkyudeer.wthaigd.db.annotation.Table;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 @Table(name = "tasks")
 public class Task {
 

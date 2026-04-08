@@ -27,8 +27,7 @@ public class EntityHandler<T> {
             ResultSetMetaData metaData = rs.getMetaData();
             int columnCount = metaData.getColumnCount();
 
-            // 遍历实体类中所有字段，检查是否有@Column注解
-            for (Field field : type.getDeclaredFields()) {
+            for (Field field : UtilHelper.getAllFields(type)) {
                 field.setAccessible(true);
                 String columnName = field.getName(); // 默认使用字段名
                 Column colAnno = field.getAnnotation(Column.class);

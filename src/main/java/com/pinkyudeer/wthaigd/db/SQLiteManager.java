@@ -71,14 +71,12 @@ public class SQLiteManager {
     private static void loadDataFromFileToMemory() {
         Wthaigd.LOG.info("加载文件数据到内存");
         try {
-            int result;
-            try (SQLiteConnection mem = unwrapConnection()) {
-                result = mem.getDatabase()
-                    .restore("main", DATABASE_FILE.getAbsolutePath(), (remaining, pageCount) -> {
-                        int progress = (int) ((1 - (double) remaining / pageCount) * 100);
-                        Wthaigd.LOG.info("恢复进度: {}%, 剩余: {}/{}", progress, remaining, pageCount);
-                    });
-            }
+            @SuppressWarnings("resource") SQLiteConnection mem = unwrapConnection();
+            int result = mem.getDatabase()
+                .restore("main", DATABASE_FILE.getAbsolutePath(), (remaining, pageCount) -> {
+                    int progress = (int) ((1 - (double) remaining / pageCount) * 100);
+                    Wthaigd.LOG.info("恢复进度: {}%, 剩余: {}/{}", progress, remaining, pageCount);
+                });
             Wthaigd.LOG.info("恢复结果: {}", result);
         } catch (SQLException e) {
             throw new RuntimeException("加载数据失败", e);
@@ -95,15 +93,13 @@ public class SQLiteManager {
         if (!isWorldLoaded) return;
         Wthaigd.LOG.info("保存内存数据到文件");
         try {
-            int result;
-            try (SQLiteConnection mem = unwrapConnection()) {
-                ModFileHelper.ensureWorldDirExist();
-                result = mem.getDatabase()
-                    .backup("main", DATABASE_FILE.getAbsolutePath(), (remaining, pageCount) -> {
-                        int progress = (int) ((1 - (double) remaining / pageCount) * 100);
-                        Wthaigd.LOG.info("备份进度: {}%, 剩余: {}/{}", progress, remaining, pageCount);
-                    });
-            }
+            @SuppressWarnings("resource") SQLiteConnection mem = unwrapConnection();
+            ModFileHelper.ensureWorldDirExist();
+            int result = mem.getDatabase()
+                .backup("main", DATABASE_FILE.getAbsolutePath(), (remaining, pageCount) -> {
+                    int progress = (int) ((1 - (double) remaining / pageCount) * 100);
+                    Wthaigd.LOG.info("备份进度: {}%, 剩余: {}/{}", progress, remaining, pageCount);
+                });
             Wthaigd.LOG.info("备份结果: {}", result);
         } catch (SQLException | IOException e) {
             throw new RuntimeException("保存数据失败", e);

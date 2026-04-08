@@ -16,6 +16,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.pinkyudeer.wthaigd.db.SQLHelper;
 import com.pinkyudeer.wthaigd.db.annotation.Column;
 import com.pinkyudeer.wthaigd.db.annotation.Table;
+import com.pinkyudeer.wthaigd.helper.UtilHelper;
 
 /**
  * 基础构建器抽象类。
@@ -173,8 +174,7 @@ public abstract class BaseBuilder<T, B extends BaseBuilder<T, B>> {
         }
 
         Map<String, Object> values = new HashMap<>();
-        for (Field field : targetEntity.getClass()
-            .getDeclaredFields()) {
+        for (Field field : UtilHelper.getAllFields(targetEntity.getClass())) {
             Column column = field.getAnnotation(Column.class);
             if (column != null) {
                 field.setAccessible(true);
@@ -274,7 +274,7 @@ public abstract class BaseBuilder<T, B extends BaseBuilder<T, B>> {
             return Collections.emptyList();
         }
 
-        return Arrays.stream(clazz.getDeclaredFields())
+        return Arrays.stream(UtilHelper.getAllFields(clazz))
             .filter(field -> field.isAnnotationPresent(Column.class))
             .collect(Collectors.toList());
     }
@@ -373,7 +373,7 @@ public abstract class BaseBuilder<T, B extends BaseBuilder<T, B>> {
             throw new IllegalStateException("无法确定主键字段：entityClass和entity均为null");
         }
 
-        return Arrays.stream(clazz.getDeclaredFields())
+        return Arrays.stream(UtilHelper.getAllFields(clazz))
             .filter(field -> {
                 Column column = field.getAnnotation(Column.class);
                 return column != null && column.isPrimaryKey();
