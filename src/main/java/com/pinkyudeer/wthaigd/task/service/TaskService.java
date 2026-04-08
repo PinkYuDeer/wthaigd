@@ -129,6 +129,9 @@ public class TaskService {
 
     public static boolean deleteTask(String taskId) {
         try {
+            SQLHelper.delete(Task.class)
+                .where("parent_task_id", SQLHelper.Operator.EQ, taskId)
+                .execute();
             Integer result = SQLHelper.delete(Task.class)
                 .where("id", SQLHelper.Operator.EQ, taskId)
                 .execute();
@@ -136,6 +139,51 @@ public class TaskService {
         } catch (Exception e) {
             Wthaigd.LOG.error("Failed to delete task: {}", taskId, e);
             return false;
+        }
+    }
+
+    public static Task createSubtask(String title, String description, UUID creatorId, String parentTaskId) {
+        Task task = new Task(title, description, creatorId);
+        task.setParentTaskId(parentTaskId);
+        Integer result = TaskDao.insert(task);
+        if (result == null || result <= 0) {
+            Wthaigd.LOG.error("Failed to create subtask: {}", title);
+            return null;
+        }
+        return task;
+    }
+
+    public static Task createSubtask(String title, String description, UUID creatorId, String parentTaskId,
+        Task.Importance importance, Task.Urgency urgency) {
+        Task task = new Task(title, description, creatorId, importance, urgency);
+        task.setParentTaskId(parentTaskId);
+        Integer result = TaskDao.insert(task);
+        if (result == null || result <= 0) {
+            Wthaigd.LOG.error("Failed to create subtask: {}", title);
+            return null;
+        }
+        return task;
+    }
+
+    public static List<Task> getSubtasks(String parentTaskId) {
+        try {
+            return EntityHandler.handleList(
+                SQLHelper.select(Task.class)
+                    .where("parent_task_id", SQLHelper.Operator.EQ, parentTaskId)
+                    .execute(),
+                Task.class);
+        } catch (Exception e) {
+            Wthaigd.LOG.error("Failed to fetch subtasks for: {}", parentTaskId, e);
+            return Collections.emptyList();
+        }
+    }
+
+    public static int getSubtaskCount(String parentTaskId) {
+        try {
+            List<Task> subs = getSubtasks(parentTaskId);
+            return subs.size();
+        } catch (Exception e) {
+            return 0;
         }
     }
 }

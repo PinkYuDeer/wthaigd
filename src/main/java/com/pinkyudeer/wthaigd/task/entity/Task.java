@@ -41,6 +41,9 @@ public class Task {
     @Nullable
     @Column(name = "task_type")
     private TaskType taskType; // 任务类型
+    @Nullable
+    @Column(name = "parent_task_id")
+    private String parentTaskId; // 父任务ID，用于子任务关联
 
     // entity 参与者属性
     @Nonnull

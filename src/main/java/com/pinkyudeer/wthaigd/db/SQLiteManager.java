@@ -45,6 +45,7 @@ public class SQLiteManager {
             initNewDataBase();
         } else {
             loadDataFromFileToMemory();
+            TaskSqlHelper.migrateSchema();
         }
         Wthaigd.LOG.info("SQLite 初始化完成");
     }
@@ -71,7 +72,8 @@ public class SQLiteManager {
     private static void loadDataFromFileToMemory() {
         Wthaigd.LOG.info("加载文件数据到内存");
         try {
-            @SuppressWarnings("resource") SQLiteConnection mem = unwrapConnection();
+            @SuppressWarnings("resource")
+            SQLiteConnection mem = unwrapConnection();
             int result = mem.getDatabase()
                 .restore("main", DATABASE_FILE.getAbsolutePath(), (remaining, pageCount) -> {
                     int progress = (int) ((1 - (double) remaining / pageCount) * 100);
@@ -93,7 +95,8 @@ public class SQLiteManager {
         if (!isWorldLoaded) return;
         Wthaigd.LOG.info("保存内存数据到文件");
         try {
-            @SuppressWarnings("resource") SQLiteConnection mem = unwrapConnection();
+            @SuppressWarnings("resource")
+            SQLiteConnection mem = unwrapConnection();
             ModFileHelper.ensureWorldDirExist();
             int result = mem.getDatabase()
                 .backup("main", DATABASE_FILE.getAbsolutePath(), (remaining, pageCount) -> {

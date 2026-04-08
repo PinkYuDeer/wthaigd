@@ -50,8 +50,10 @@ public class MainPanel extends ModularPanel {
     private ListWidget<IWidget, ?> taskListWidget;
     private IPanelHandler formHandler;
     private SortMode currentSort = SortMode.PRIORITY;
+    private boolean showCompleted = false;
     private ButtonWidget<?> sortPrioBtn;
     private ButtonWidget<?> sortTimeBtn;
+    private ButtonWidget<?> filterDoneBtn;
 
     public MainPanel(TaskScreen taskScreen) {
         super("main");
@@ -189,7 +191,53 @@ public class MainPanel extends ModularPanel {
         bar.child(sortPrioBtn);
         bar.child(sortTimeBtn);
 
+        bar.child(
+            IKey.str("  ")
+                .asWidget()
+                .width(10)
+                .heightRel(1f));
+
+        filterDoneBtn = buildFilterDoneButton();
+        bar.child(filterDoneBtn);
+
         return bar;
+    }
+
+    private static final int FILTER_ON = 0x336644aa;
+    private static final int FILTER_OFF = 0x1a223344;
+
+    private ButtonWidget<?> buildFilterDoneButton() {
+        int bg = showCompleted ? FILTER_ON : FILTER_OFF;
+        ButtonWidget<?> btn = new ButtonWidget<>();
+        btn.width(52)
+            .height(14)
+            .alignY(0.5f)
+            .marginLeft(3)
+            .background(ShaderDrawable.roundedRect(3f, bg))
+            .hoverBackground(ShaderDrawable.roundedRect(3f, BTN_HOVER))
+            .overlay(
+                IKey.str(showCompleted ? "Done: ON" : "Done: OFF")
+                    .color(showCompleted ? 0x88FF88ff : 0x777777ff)
+                    .shadow(showCompleted)
+                    .scale(0.85f))
+            .onMousePressed(b -> {
+                showCompleted = !showCompleted;
+                refreshFilterButton();
+                refreshTaskList();
+                return true;
+            });
+        return btn;
+    }
+
+    private void refreshFilterButton() {
+        if (filterDoneBtn == null) return;
+        int bg = showCompleted ? FILTER_ON : FILTER_OFF;
+        filterDoneBtn.background(ShaderDrawable.roundedRect(3f, bg))
+            .overlay(
+                IKey.str(showCompleted ? "Done: ON" : "Done: OFF")
+                    .color(showCompleted ? 0x88FF88ff : 0x777777ff)
+                    .shadow(showCompleted)
+                    .scale(0.85f));
     }
 
     private ButtonWidget<?> buildSortButton(String label, SortMode mode) {
@@ -267,7 +315,8 @@ public class MainPanel extends ModularPanel {
 
     private void populateTaskList() {
         try {
-            List<Task> tasks = TaskService.getActiveTasks();
+            List<Task> tasks = showCompleted ? TaskService.getAllTasks() : TaskService.getActiveTasks();
+            tasks.removeIf(t -> t.getParentTaskId() != null);
             if (tasks.isEmpty()) {
                 taskListWidget.child(
                     IKey.str("No tasks yet. Click '+ New Task' to create one.")
@@ -296,8 +345,8 @@ public class MainPanel extends ModularPanel {
     private void sortTasks(List<Task> tasks) {
         Comparator<Task> cmp = switch (currentSort) {
             case TIME_ASC -> Comparator.comparing(Task::getCreateTime, Comparator.nullsLast(Comparator.naturalOrder()));
-            case TIME_DESC ->
-                Comparator.comparing(Task::getCreateTime, Comparator.nullsLast(Comparator.reverseOrder()));
+            case TIME_DESC -> Comparator
+                .comparing(Task::getCreateTime, Comparator.nullsLast(Comparator.reverseOrder()));
             default -> Comparator.comparing(
                 t -> t.getPriority()
                     .ordinal());
@@ -320,6 +369,8 @@ public class MainPanel extends ModularPanel {
         String statusLabel = task.getStatus()
             .name();
         int statusColor = getStatusColor(task.getStatus());
+        int subCount = TaskService.getSubtaskCount(task.getId());
+        String subLabel = subCount > 0 ? " (" + subCount + ")" : "";
 
         IDrawable itemOverlay = (context, x, y, width, height, widgetTheme) -> {
             FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
@@ -335,12 +386,15 @@ public class MainPanel extends ModularPanel {
             fr.drawStringWithShadow(icon, cx, textY, completed ? 0x66CC66 : 0xAAAAAA);
             cx += fr.getStringWidth(icon);
 
-            String title = task.getTitle();
+            String rightPart = statusLabel + subLabel;
+            int rightW = fr.getStringWidth(rightPart);
             int maxTitleW = width - pad * 2
                 - fr.getStringWidth(icon)
                 - fr.getStringWidth(" [" + prioLabel + "]")
-                - fr.getStringWidth(statusLabel)
-                - 16;
+                - rightW
+                - 20;
+
+            String title = task.getTitle();
             if (maxTitleW > 0 && fr.getStringWidth(title) > maxTitleW) {
                 while (fr.getStringWidth(title + "..") > maxTitleW && title.length() > 1) {
                     title = title.substring(0, title.length() - 1);
@@ -356,8 +410,15 @@ public class MainPanel extends ModularPanel {
             cx += fr.getStringWidth(prioLabel);
             fr.drawStringWithShadow("]", cx, textY, 0x666666);
 
-            int statusW = fr.getStringWidth(statusLabel);
-            fr.drawStringWithShadow(statusLabel, x + width - pad - statusW, textY, statusColor);
+            int rx = x + width - pad;
+            if (subCount > 0) {
+                String subStr = "(" + subCount + ")";
+                rx -= fr.getStringWidth(subStr);
+                fr.drawStringWithShadow(subStr, rx, textY, 0x7799AA);
+                rx -= 4;
+            }
+            rx -= fr.getStringWidth(statusLabel);
+            fr.drawStringWithShadow(statusLabel, rx, textY, statusColor);
 
             GL11.glPopMatrix();
         };
@@ -425,6 +486,16 @@ public class MainPanel extends ModularPanel {
                             .name())
                         .color(0xBBBBBB))
                 .newLine();
+
+            if (subCount > 0) {
+                tip.add(
+                    IKey.str("Subtasks:   ")
+                        .color(0x999999))
+                    .add(
+                        IKey.str(String.valueOf(subCount))
+                            .color(0x7799AA))
+                    .newLine();
+            }
 
             if (task.getCreateTime() != null) {
                 tip.spaceLine(2);

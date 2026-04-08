@@ -34,6 +34,7 @@ public class TaskFormPanel extends ModularPanel {
     private final TextFieldWidget titleField;
     private final TextFieldWidget descField;
     private final Runnable onSaved;
+    private final String parentTaskId;
     private Task.Importance selectedImportance = Task.Importance.MEDIUM;
     private Task.Urgency selectedUrgency = Task.Urgency.MEDIUM;
 
@@ -41,8 +42,13 @@ public class TaskFormPanel extends ModularPanel {
     private Row urgencyRow;
 
     public TaskFormPanel(Runnable onSaved) {
-        super("task_form");
+        this(onSaved, null);
+    }
+
+    public TaskFormPanel(Runnable onSaved, String parentTaskId) {
+        super(parentTaskId != null ? "subtask_form" : "task_form");
         this.onSaved = onSaved;
+        this.parentTaskId = parentTaskId;
         size(260, 220);
         center();
         background(IDrawable.EMPTY);
@@ -66,7 +72,7 @@ public class TaskFormPanel extends ModularPanel {
         form.padding(12);
 
         form.child(
-            IKey.str("Create Task")
+            IKey.str(parentTaskId != null ? "Add Subtask" : "Create Task")
                 .color(ACCENT)
                 .shadow(true)
                 .asWidget()
@@ -252,8 +258,19 @@ public class TaskFormPanel extends ModularPanel {
         UUID creatorId = Minecraft.getMinecraft().thePlayer.getUniqueID();
 
         try {
-            Task task = TaskService
-                .createTask(title.trim(), desc.trim(), creatorId, selectedImportance, selectedUrgency);
+            Task task;
+            if (parentTaskId != null) {
+                task = TaskService.createSubtask(
+                    title.trim(),
+                    desc.trim(),
+                    creatorId,
+                    parentTaskId,
+                    selectedImportance,
+                    selectedUrgency);
+            } else {
+                task = TaskService
+                    .createTask(title.trim(), desc.trim(), creatorId, selectedImportance, selectedUrgency);
+            }
             if (task != null) {
                 closeIfOpen();
                 if (onSaved != null) onSaved.run();
