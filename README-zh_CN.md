@@ -31,9 +31,12 @@ English version is here: [README.md](./README.md)
 * 完成数据结构设计、按照设计完成数据实体
 * 在SQLHelper中数据表操作相关函数：建表、增、删、改、查
 * 快捷键打开GUI界面
+* 工作项GUI界面设计
+
+![img_1.png](image/img_1.png)
+![img.png](image/img.png)
 
 ## 未来计划
-* 工作项GUI界面设计
 * 设置工作项状态：优先级、状态、父子工作项关系、完成时间、创建时间，以及负责人和关注者等
 * 完善工作项功能，例如周期性自动创建工作项等
 * 多人模式适配

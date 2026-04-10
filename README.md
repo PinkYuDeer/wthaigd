@@ -31,9 +31,12 @@ This project aims to offer a collaborative task list designed for multiplayer in
 * Designed data structures and implemented data entities according to that design.
 * Added functions related to database operations in SQLHelper: creating tables as well as adding, deleting, modifying, and querying records.
 * Created a shortcut key for opening the GUI interface.
+* Design a user-friendly GUI interface for tasks.
+*
+  ![img_1.png](image/img_1.png)
+  ![img.png](image/img.png)
 
 ## Future Plans
-* Design a user-friendly GUI interface for tasks.
 * Set up task statuses including priority levels, states, parent-child relationships among tasks, completion times, creation times as well as responsible parties and followers.
 * Enhance task functionalities such as periodic automatic task creation.
 * Adapt features for multiplayer mode.
