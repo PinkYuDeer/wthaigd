@@ -106,7 +106,8 @@ public class TaskService {
 
     public static List<Task> getActiveTasks() {
         try {
-            List<String> excluded = java.util.Arrays.asList(TaskStatus.Closed.name(), TaskStatus.Canceled.name());
+            List<String> excluded = java.util.Arrays
+                .asList(TaskStatus.Completed.name(), TaskStatus.Closed.name(), TaskStatus.Canceled.name());
             return EntityHandler.handleList(
                 SQLHelper.select(Task.class)
                     .where("status", SQLHelper.Operator.NOT_IN, excluded)

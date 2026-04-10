@@ -178,7 +178,7 @@ public class Task {
         UNDEFINED, // 未定义
     }
 
-    private static Priority calculatePriority(Importance importance, Urgency urgency) {
+    public static Priority calculatePriority(Importance importance, Urgency urgency) {
         return switch (importance) {
             case CRITICAL -> switch (urgency) {
                     case CRITICAL -> Priority.CRITICAL;

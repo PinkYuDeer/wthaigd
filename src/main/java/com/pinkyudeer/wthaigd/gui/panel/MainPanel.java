@@ -1,13 +1,19 @@
 package com.pinkyudeer.wthaigd.gui.panel;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.entity.player.EntityPlayer;
 
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import com.cleanroommc.modularui.api.IPanelHandler;
@@ -37,6 +43,11 @@ public class MainPanel extends ModularPanel {
     private static final int ITEM_HOVER = 0x30406060;
     private static final int BTN_BG = 0x335588a0;
     private static final int BTN_HOVER = 0x4477aacc;
+    private static final int SORT_ACTIVE = 0x3366aa99;
+    private static final int SORT_INACTIVE = 0x1a223344;
+    private static final int FILTER_ON = 0x336644aa;
+    private static final int FILTER_OFF = 0x1a223344;
+    private static final int SUB_INDENT = 16;
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("MM-dd HH:mm");
 
@@ -49,20 +60,26 @@ public class MainPanel extends ModularPanel {
     private final TaskScreen taskScreen;
     private ListWidget<IWidget, ?> taskListWidget;
     private IPanelHandler formHandler;
+    private IPanelHandler detailHandler;
+    private String lastDetailTaskId;
     private SortMode currentSort = SortMode.PRIORITY;
     private boolean showCompleted = false;
     private ButtonWidget<?> sortPrioBtn;
     private ButtonWidget<?> sortTimeBtn;
     private ButtonWidget<?> filterDoneBtn;
+    private final Set<String> expandedTasks = new HashSet<>();
+
+    private List<Task> cachedTasks = new ArrayList<>();
+    private final Map<String, List<Task>> cachedSubtasks = new HashMap<>();
+    private final Map<String, Integer> cachedSubCounts = new HashMap<>();
 
     public MainPanel(TaskScreen taskScreen) {
-        super("main");
+        super("wthaigd_main_panel");
         this.taskScreen = taskScreen;
         sizeRel(0.88f, 0.84f);
         center();
         background(IDrawable.EMPTY);
         overlay(ShaderDrawable.panel(12f, PANEL_BG, ACCENT));
-
         child(buildLayout());
     }
 
@@ -76,11 +93,56 @@ public class MainPanel extends ModularPanel {
         taskScreen.startClosing(super::closeIfOpen);
     }
 
+    // --- Cache management ---
+
+    private void reloadCache() {
+        cachedSubtasks.clear();
+        cachedSubCounts.clear();
+        try {
+            cachedTasks = showCompleted ? TaskService.getAllTasks() : TaskService.getActiveTasks();
+        } catch (Exception e) {
+            cachedTasks = new ArrayList<>();
+        }
+        for (Task t : cachedTasks) {
+            if (t.getParentTaskId() != null) continue;
+            ensureSubtasksCached(t.getId());
+        }
+    }
+
+    private void ensureSubtasksCached(String taskId) {
+        if (cachedSubCounts.containsKey(taskId)) return;
+        List<Task> subs = TaskService.getSubtasks(taskId);
+        cachedSubtasks.put(taskId, subs);
+        cachedSubCounts.put(taskId, subs.size());
+        if (expandedTasks.contains(taskId)) {
+            for (Task sub : subs) {
+                ensureSubtasksCached(sub.getId());
+            }
+        }
+    }
+
+    private int getCachedSubCount(String taskId) {
+        if (!cachedSubCounts.containsKey(taskId)) {
+            ensureSubtasksCached(taskId);
+        }
+        return cachedSubCounts.getOrDefault(taskId, 0);
+    }
+
+    private List<Task> getCachedSubtasks(String taskId) {
+        if (!cachedSubCounts.containsKey(taskId)) {
+            ensureSubtasksCached(taskId);
+        }
+        return cachedSubtasks.getOrDefault(taskId, new ArrayList<>());
+    }
+
+    // --- Layout ---
+
     private Row buildLayout() {
         Row layout = new Row();
         layout.widthRel(1f)
             .heightRel(1f)
-            .padding(6);
+            .padding(6)
+            .name("main/layout");
         layout.child(buildSidebar());
         layout.child(buildContentArea());
         return layout;
@@ -89,30 +151,30 @@ public class MainPanel extends ModularPanel {
     private Column buildSidebar() {
         Column sidebar = new Column();
         sidebar.widthRel(0.18f)
-            .heightRel(1f);
+            .heightRel(1f)
+            .name("main/sidebar");
         sidebar.background(ShaderDrawable.roundedRect(8f, SIDEBAR_BG));
         sidebar.padding(8);
-
         sidebar.child(
             IKey.str("WTHAIGD")
                 .color(ACCENT)
                 .shadow(true)
                 .asWidget()
                 .heightRel(0.08f)
-                .widthRel(1f));
-
-        sidebar.child(navButton("Tasks", true));
-        sidebar.child(navButton("Teams", false));
-        sidebar.child(navButton("Tags", false));
-
+                .widthRel(1f)
+                .name("sidebar/logo"));
+        sidebar.child(navButton("Tasks", true, "sidebar/nav_tasks"));
+        sidebar.child(navButton("Teams", false, "sidebar/nav_teams"));
+        sidebar.child(navButton("Tags", false, "sidebar/nav_tags"));
         return sidebar;
     }
 
-    private ButtonWidget<?> navButton(String label, boolean active) {
+    private ButtonWidget<?> navButton(String label, boolean active, String widgetName) {
         int bg = active ? BTN_BG : 0x00000000;
         return new ButtonWidget<>().widthRel(0.9f)
             .height(22)
             .marginTop(4)
+            .name(widgetName)
             .background(ShaderDrawable.roundedRect(6f, bg))
             .overlay(
                 IKey.str(label)
@@ -123,39 +185,40 @@ public class MainPanel extends ModularPanel {
     private Column buildContentArea() {
         Column content = new Column();
         content.widthRel(0.82f)
-            .heightRel(1f);
+            .heightRel(1f)
+            .name("main/content");
         content.paddingLeft(8);
-
         content.child(buildHeader());
         content.child(buildSortBar());
 
         taskListWidget = new ListWidget<>();
         taskListWidget.widthRel(1f)
-            .heightRel(0.82f);
-        populateTaskList();
+            .heightRel(0.82f)
+            .name("content/task_list");
+        populateTaskList(true);
         content.child(taskListWidget);
-
         return content;
     }
 
     private Row buildHeader() {
         Row header = new Row();
         header.widthRel(1f)
-            .height(32);
-        header.marginBottom(2);
-
+            .height(32)
+            .marginBottom(2)
+            .name("content/header");
         header.child(
             IKey.str("Active Tasks")
                 .color(0xEEEEEEff)
                 .shadow(true)
                 .asWidget()
                 .widthRel(0.7f)
-                .heightRel(1f));
-
+                .heightRel(1f)
+                .name("header/title"));
         header.child(
             new ButtonWidget<>().widthRel(0.25f)
                 .height(24)
                 .alignY(0.5f)
+                .name("header/btn_new_task")
                 .background(ShaderDrawable.roundedRect(6f, BTN_BG))
                 .hoverBackground(ShaderDrawable.roundedRect(6f, BTN_HOVER))
                 .overlay(
@@ -166,19 +229,15 @@ public class MainPanel extends ModularPanel {
                     openTaskForm();
                     return true;
                 }));
-
         return header;
     }
-
-    private static final int SORT_ACTIVE = 0x3366aa99;
-    private static final int SORT_INACTIVE = 0x1a223344;
 
     private Row buildSortBar() {
         Row bar = new Row();
         bar.widthRel(1f)
             .height(16)
-            .marginBottom(4);
-
+            .marginBottom(4)
+            .name("content/sort_bar");
         bar.child(
             IKey.str("Sort:")
                 .color(0x777777ff)
@@ -190,7 +249,6 @@ public class MainPanel extends ModularPanel {
         sortTimeBtn = buildSortButton("Time", SortMode.TIME_DESC);
         bar.child(sortPrioBtn);
         bar.child(sortTimeBtn);
-
         bar.child(
             IKey.str("  ")
                 .asWidget()
@@ -199,12 +257,8 @@ public class MainPanel extends ModularPanel {
 
         filterDoneBtn = buildFilterDoneButton();
         bar.child(filterDoneBtn);
-
         return bar;
     }
-
-    private static final int FILTER_ON = 0x336644aa;
-    private static final int FILTER_OFF = 0x1a223344;
 
     private ButtonWidget<?> buildFilterDoneButton() {
         int bg = showCompleted ? FILTER_ON : FILTER_OFF;
@@ -213,6 +267,7 @@ public class MainPanel extends ModularPanel {
             .height(14)
             .alignY(0.5f)
             .marginLeft(3)
+            .name("sort_bar/filter_done")
             .background(ShaderDrawable.roundedRect(3f, bg))
             .hoverBackground(ShaderDrawable.roundedRect(3f, BTN_HOVER))
             .overlay(
@@ -247,12 +302,12 @@ public class MainPanel extends ModularPanel {
             arrow = currentSort == SortMode.TIME_ASC ? " ^" : " v";
         }
         int bg = active ? SORT_ACTIVE : SORT_INACTIVE;
-
         ButtonWidget<?> btn = new ButtonWidget<>();
         btn.width(48)
             .height(14)
             .alignY(0.5f)
             .marginLeft(3)
+            .name("sort_bar/sort_" + label.toLowerCase())
             .background(ShaderDrawable.roundedRect(3f, bg))
             .hoverBackground(ShaderDrawable.roundedRect(3f, BTN_HOVER))
             .overlay(
@@ -278,7 +333,6 @@ public class MainPanel extends ModularPanel {
         boolean prioActive = currentSort == SortMode.PRIORITY;
         boolean timeActive = currentSort == SortMode.TIME_DESC || currentSort == SortMode.TIME_ASC;
         String timeArrow = currentSort == SortMode.TIME_ASC ? " ^" : (timeActive ? " v" : "");
-
         sortPrioBtn.background(ShaderDrawable.roundedRect(3f, prioActive ? SORT_ACTIVE : SORT_INACTIVE))
             .overlay(
                 IKey.str("Priority")
@@ -293,6 +347,8 @@ public class MainPanel extends ModularPanel {
                     .scale(0.85f));
     }
 
+    // --- Panel open ---
+
     private void openTaskForm() {
         if (formHandler == null) {
             formHandler = IPanelHandler.simple(
@@ -305,30 +361,52 @@ public class MainPanel extends ModularPanel {
         }
     }
 
+    private Task pendingDetailTask;
+
     private void openTaskDetail(Task task) {
-        IPanelHandler handler = IPanelHandler.simple(
-            this,
-            (ModularPanel parentPanel, EntityPlayer player) -> new TaskDetailPanel(task, this::refreshTaskList),
-            true);
-        handler.openPanel();
+        this.pendingDetailTask = task;
+        if (detailHandler == null) {
+            lastDetailTaskId = task.getId();
+            detailHandler = IPanelHandler.simple(
+                this,
+                (ModularPanel parentPanel,
+                    EntityPlayer player) -> new TaskDetailPanel(pendingDetailTask, this::refreshTaskList),
+                true);
+        } else {
+            if (detailHandler.isPanelOpen()) return;
+            if (!task.getId()
+                .equals(lastDetailTaskId)) {
+                detailHandler.deleteCachedPanel();
+                lastDetailTaskId = task.getId();
+            }
+        }
+        detailHandler.openPanel();
     }
 
-    private void populateTaskList() {
+    // --- Task list populate ---
+
+    private void populateTaskList(boolean fromDb) {
         try {
-            List<Task> tasks = showCompleted ? TaskService.getAllTasks() : TaskService.getActiveTasks();
-            tasks.removeIf(t -> t.getParentTaskId() != null);
-            if (tasks.isEmpty()) {
+            if (fromDb) {
+                reloadCache();
+            }
+            List<Task> topLevel = new ArrayList<>();
+            for (Task t : cachedTasks) {
+                if (t.getParentTaskId() == null) topLevel.add(t);
+            }
+            if (topLevel.isEmpty()) {
                 taskListWidget.child(
                     IKey.str("No tasks yet. Click '+ New Task' to create one.")
                         .color(0x888888ff)
                         .asWidget()
                         .widthRel(1f)
                         .height(30)
-                        .marginTop(20));
+                        .marginTop(20)
+                        .name("task_list/empty_hint"));
             } else {
-                sortTasks(tasks);
-                for (Task task : tasks) {
-                    taskListWidget.child(buildTaskItem(task));
+                sortTasks(topLevel);
+                for (Task task : topLevel) {
+                    addTaskAndChildren(task, 0);
                 }
             }
         } catch (Exception e) {
@@ -338,7 +416,50 @@ public class MainPanel extends ModularPanel {
                     .asWidget()
                     .widthRel(1f)
                     .height(30)
-                    .marginTop(20));
+                    .marginTop(20)
+                    .name("task_list/error_hint"));
+        }
+    }
+
+    private void addTaskAndChildren(Task task, int depth) {
+        taskListWidget.child(buildTaskItem(task, depth));
+        if (expandedTasks.contains(task.getId())) {
+            List<Task> subs = getCachedSubtasks(task.getId());
+            sortTasks(subs);
+            for (Task sub : subs) {
+                addTaskAndChildren(sub, depth + 1);
+            }
+        }
+    }
+
+    private void toggleExpand(Task task, boolean recursive) {
+        String id = task.getId();
+        if (expandedTasks.contains(id)) {
+            if (recursive) {
+                collapseRecursive(id);
+            } else {
+                expandedTasks.remove(id);
+            }
+        } else {
+            expandedTasks.add(id);
+            if (recursive) {
+                expandRecursive(id);
+            }
+        }
+        rebuildFromCache();
+    }
+
+    private void expandRecursive(String taskId) {
+        expandedTasks.add(taskId);
+        for (Task sub : getCachedSubtasks(taskId)) {
+            expandRecursive(sub.getId());
+        }
+    }
+
+    private void collapseRecursive(String taskId) {
+        expandedTasks.remove(taskId);
+        for (Task sub : getCachedSubtasks(taskId)) {
+            collapseRecursive(sub.getId());
         }
     }
 
@@ -354,45 +475,93 @@ public class MainPanel extends ModularPanel {
         tasks.sort(cmp);
     }
 
-    public void refreshTaskList() {
+    /** Rebuild UI from cached data only, no DB queries. */
+    private void rebuildFromCache() {
         if (taskListWidget == null) return;
         taskListWidget.removeAll();
-        populateTaskList();
+        populateTaskList(false);
         taskListWidget.scheduleResize();
     }
 
-    private ButtonWidget<?> buildTaskItem(Task task) {
-        boolean completed = task.getStatus() == Task.TaskStatus.Completed || task.getStatus() == Task.TaskStatus.Closed;
+    /** Reload from DB and rebuild the UI. Called when data changes. */
+    public void refreshTaskList() {
+        if (taskListWidget == null) return;
+        if (detailHandler != null) {
+            detailHandler.deleteCachedPanel();
+            lastDetailTaskId = null;
+        }
+        taskListWidget.removeAll();
+        populateTaskList(true);
+        taskListWidget.scheduleResize();
+    }
 
+    // --- Status icon mapping ---
+
+    private static String getStatusIcon(Task.TaskStatus status) {
+        return switch (status) {
+            case Completed -> "[/] ";
+            case Closed -> "[-] ";
+            case InProgress -> "[~] ";
+            case Blocked -> "[!] ";
+            case Postponed -> "[>] ";
+            case Canceled -> "[x] ";
+            case Rejected -> "[x] ";
+            case InTrialRun -> "[?] ";
+            default -> "[ ] ";
+        };
+    }
+
+    private static int getStatusIconColor(Task.TaskStatus status) {
+        return switch (status) {
+            case Completed -> 0x66CC66;
+            case Closed -> 0x666666;
+            case InProgress -> 0x44AAFF;
+            case Blocked -> 0xFF8844;
+            case Postponed -> 0xAAAA44;
+            case Canceled, Rejected -> 0xCC4444;
+            case InTrialRun -> 0x88CCAA;
+            default -> 0xAAAAAA;
+        };
+    }
+
+    // --- Task item builder ---
+
+    private ButtonWidget<?> buildTaskItem(Task task, int depth) {
+        Task.TaskStatus status = task.getStatus();
         String prioLabel = formatPriority(task.getPriority());
         int prioColor = getPriorityColor(task.getPriority());
-        String statusLabel = task.getStatus()
-            .name();
-        int statusColor = getStatusColor(task.getStatus());
-        int subCount = TaskService.getSubtaskCount(task.getId());
-        String subLabel = subCount > 0 ? " (" + subCount + ")" : "";
+        String statusLabel = status.name();
+        int statusColor = getStatusColor(status);
+        int subCount = getCachedSubCount(task.getId());
+        boolean expanded = expandedTasks.contains(task.getId());
+        int indent = depth * SUB_INDENT;
+        String statusIcon = getStatusIcon(status);
+        int iconColor = getStatusIconColor(status);
+
+        FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
+        int arrowWidth = subCount > 0 ? fr.getStringWidth(expanded ? "v " : "> ") : 0;
 
         IDrawable itemOverlay = (context, x, y, width, height, widgetTheme) -> {
-            FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
             GL11.glPushMatrix();
             GL11.glEnable(GL11.GL_TEXTURE_2D);
             GL11.glEnable(GL11.GL_BLEND);
 
             int textY = y + (height - fr.FONT_HEIGHT) / 2;
             int pad = 6;
+            int cx = x + pad + indent;
 
-            int cx = x + pad;
-            String icon = completed ? "[x] " : "[ ] ";
-            fr.drawStringWithShadow(icon, cx, textY, completed ? 0x66CC66 : 0xAAAAAA);
-            cx += fr.getStringWidth(icon);
+            if (subCount > 0) {
+                String arrow = expanded ? "v " : "> ";
+                fr.drawStringWithShadow(arrow, cx, textY, 0x7799AA);
+                cx += fr.getStringWidth(arrow);
+            }
 
-            String rightPart = statusLabel + subLabel;
-            int rightW = fr.getStringWidth(rightPart);
-            int maxTitleW = width - pad * 2
-                - fr.getStringWidth(icon)
-                - fr.getStringWidth(" [" + prioLabel + "]")
-                - rightW
-                - 20;
+            fr.drawStringWithShadow(statusIcon, cx, textY, iconColor);
+            cx += fr.getStringWidth(statusIcon);
+
+            int rightW = fr.getStringWidth(statusLabel);
+            if (subCount > 0) rightW += fr.getStringWidth(" (" + subCount + ")") + 4;
+            int maxTitleW = width - (cx - x) - pad - fr.getStringWidth(" [" + prioLabel + "]") - rightW - 12;
 
             String title = task.getTitle();
             if (maxTitleW > 0 && fr.getStringWidth(title) > maxTitleW) {
@@ -401,7 +570,8 @@ public class MainPanel extends ModularPanel {
                 }
                 title += "..";
             }
-            fr.drawStringWithShadow(title, cx, textY, completed ? 0x888888 : 0xDDDDDD);
+            boolean done = status == Task.TaskStatus.Completed || status == Task.TaskStatus.Closed;
+            fr.drawStringWithShadow(title, cx, textY, done ? 0x888888 : 0xDDDDDD);
             cx += fr.getStringWidth(title);
 
             fr.drawStringWithShadow(" [", cx, textY, 0x666666);
@@ -424,13 +594,31 @@ public class MainPanel extends ModularPanel {
         };
 
         ButtonWidget<?> btn = new ButtonWidget<>();
+        int itemBg = depth > 0 ? blendColor(ITEM_BG, depth) : ITEM_BG;
+        int itemHover = depth > 0 ? blendColor(ITEM_HOVER, depth) : ITEM_HOVER;
+        String shortTitle = task.getTitle()
+            .length() > 12 ? task.getTitle()
+                .substring(0, 12) : task.getTitle();
         btn.widthRel(1f)
-            .height(26)
-            .marginTop(2)
-            .background(ShaderDrawable.roundedRect(4f, ITEM_BG))
-            .hoverBackground(ShaderDrawable.roundedRect(4f, ITEM_HOVER))
+            .height(24)
+            .marginTop(1)
+            .name("task_list/item_" + shortTitle + "_d" + depth)
+            .background(ShaderDrawable.roundedRect(4f, itemBg))
+            .hoverBackground(ShaderDrawable.roundedRect(4f, itemHover))
             .overlay(itemOverlay)
             .onMousePressed(b -> {
+                if (subCount > 0) {
+                    int mx = btn.getContext()
+                        .getAbsMouseX();
+                    int arrowStartX = btn.getArea().x + 6 + indent;
+                    int arrowEndX = arrowStartX + arrowWidth;
+                    if (mx >= arrowStartX && mx < arrowEndX) {
+                        boolean shift = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)
+                            || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
+                        toggleExpand(task, shift);
+                        return true;
+                    }
+                }
                 openTaskDetail(task);
                 return true;
             });
@@ -442,7 +630,6 @@ public class MainPanel extends ModularPanel {
                     .color(0xFFFFFF))
                 .newLine();
             tip.spaceLine(2);
-
             String desc = task.getDescription();
             if (desc != null && !desc.isEmpty()) {
                 tip.add(
@@ -451,7 +638,6 @@ public class MainPanel extends ModularPanel {
                     .newLine();
                 tip.spaceLine(2);
             }
-
             tip.add(
                 IKey.str("Priority: ")
                     .color(0x999999))
@@ -486,7 +672,6 @@ public class MainPanel extends ModularPanel {
                             .name())
                         .color(0xBBBBBB))
                 .newLine();
-
             if (subCount > 0) {
                 tip.add(
                     IKey.str("Subtasks:   ")
@@ -496,7 +681,6 @@ public class MainPanel extends ModularPanel {
                             .color(0x7799AA))
                     .newLine();
             }
-
             if (task.getCreateTime() != null) {
                 tip.spaceLine(2);
                 tip.add(
@@ -507,8 +691,17 @@ public class MainPanel extends ModularPanel {
                     .newLine();
             }
         });
-
         return btn;
+    }
+
+    // --- Utilities ---
+
+    private static int blendColor(int base, int depth) {
+        int a = (base >>> 24) & 0xFF;
+        int r = Math.min(255, ((base >> 16) & 0xFF) + depth * 8);
+        int g = Math.min(255, ((base >> 8) & 0xFF) + depth * 8);
+        int b = Math.min(255, (base & 0xFF) + depth * 12);
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
     private int getPriorityColor(Task.Priority priority) {

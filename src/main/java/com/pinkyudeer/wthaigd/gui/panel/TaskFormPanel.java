@@ -46,7 +46,7 @@ public class TaskFormPanel extends ModularPanel {
     }
 
     public TaskFormPanel(Runnable onSaved, String parentTaskId) {
-        super(parentTaskId != null ? "subtask_form" : "task_form");
+        super(parentTaskId != null ? "wthaigd_subtask_form" : "wthaigd_task_form");
         this.onSaved = onSaved;
         this.parentTaskId = parentTaskId;
         size(260, 220);
@@ -68,7 +68,8 @@ public class TaskFormPanel extends ModularPanel {
     private Column buildForm() {
         Column form = new Column();
         form.widthRel(1f)
-            .heightRel(1f);
+            .heightRel(1f)
+            .name("form/root");
         form.padding(12);
 
         form.child(
@@ -77,7 +78,8 @@ public class TaskFormPanel extends ModularPanel {
                 .shadow(true)
                 .asWidget()
                 .widthRel(1f)
-                .height(20));
+                .height(20)
+                .name("form/header_title"));
 
         form.child(
             IKey.str("Title")
@@ -88,7 +90,8 @@ public class TaskFormPanel extends ModularPanel {
                 .marginTop(8));
 
         titleField.widthRel(0.95f)
-            .height(18);
+            .height(18)
+            .name("form/title_field");
         titleField.background(ShaderDrawable.roundedRect(4f, INPUT_BG));
         form.child(titleField);
 
@@ -101,7 +104,8 @@ public class TaskFormPanel extends ModularPanel {
                 .marginTop(6));
 
         descField.widthRel(0.95f)
-            .height(18);
+            .height(18)
+            .name("form/desc_field");
         descField.background(ShaderDrawable.roundedRect(4f, INPUT_BG));
         form.child(descField);
 
@@ -118,7 +122,8 @@ public class TaskFormPanel extends ModularPanel {
         Row row = new Row();
         row.widthRel(1f)
             .height(22)
-            .marginTop(6);
+            .marginTop(6)
+            .name("form/importance_row");
         row.child(
             IKey.str("Importance: ")
                 .color(0xAAAAAAff)
@@ -136,6 +141,7 @@ public class TaskFormPanel extends ModularPanel {
                 new ButtonWidget<>().width(crit ? 44 : 36)
                     .height(16)
                     .marginLeft(4)
+                    .name("form/imp_" + imp.name())
                     .background(ShaderDrawable.roundedRect(4f, active ? activeBg : TOGGLE_INACTIVE))
                     .overlay(
                         IKey.str(
@@ -156,7 +162,8 @@ public class TaskFormPanel extends ModularPanel {
         Row row = new Row();
         row.widthRel(1f)
             .height(22)
-            .marginTop(4);
+            .marginTop(4)
+            .name("form/urgency_row");
         row.child(
             IKey.str("Urgency: ")
                 .color(0xAAAAAAff)
@@ -173,6 +180,7 @@ public class TaskFormPanel extends ModularPanel {
                 new ButtonWidget<>().width(crit ? 44 : 36)
                     .height(16)
                     .marginLeft(4)
+                    .name("form/urg_" + urg.name())
                     .background(ShaderDrawable.roundedRect(4f, active ? activeBg : TOGGLE_INACTIVE))
                     .overlay(
                         IKey.str(
@@ -215,11 +223,13 @@ public class TaskFormPanel extends ModularPanel {
         Row actions = new Row();
         actions.widthRel(1f)
             .height(24)
-            .marginTop(10);
+            .marginTop(10)
+            .name("form/actions");
 
         actions.child(
             new ButtonWidget<>().widthRel(0.45f)
                 .height(22)
+                .name("form/actions/btn_save")
                 .background(ShaderDrawable.roundedRect(6f, BTN_SAVE))
                 .overlay(
                     IKey.str("Save")
@@ -234,6 +244,7 @@ public class TaskFormPanel extends ModularPanel {
             new ButtonWidget<>().widthRel(0.45f)
                 .height(22)
                 .marginLeft(8)
+                .name("form/actions/btn_cancel")
                 .background(ShaderDrawable.roundedRect(6f, BTN_CANCEL))
                 .overlay(
                     IKey.str("Cancel")
