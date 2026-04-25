@@ -22,8 +22,10 @@ public class LocalTeamProvider implements TeamProvider {
     @Override
     public int getPartyForPlayer(UUID playerId) {
         List<Team> teams = TeamService.getVisibleTeams(playerId);
-        return teams.isEmpty() ? NO_PARTY : aliasFor(teams.get(0)
-            .getId());
+        return teams.isEmpty() ? NO_PARTY
+            : aliasFor(
+                teams.get(0)
+                    .getId());
     }
 
     @Override

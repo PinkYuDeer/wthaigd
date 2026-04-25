@@ -8,7 +8,9 @@ import com.pinkyudeer.wthaigd.client.TaskClientStore;
 import com.pinkyudeer.wthaigd.network.PacketIds;
 import com.pinkyudeer.wthaigd.network.PacketSender;
 import com.pinkyudeer.wthaigd.network.PacketTypeRegistry;
+import com.pinkyudeer.wthaigd.task.entity.Tag;
 import com.pinkyudeer.wthaigd.task.entity.Task;
+import com.pinkyudeer.wthaigd.task.service.TagService;
 import com.pinkyudeer.wthaigd.task.service.TaskService;
 
 public final class NetTaskSync {
@@ -49,16 +51,72 @@ public final class NetTaskSync {
         tag.setString("title", safe(task.getTitle()));
         tag.setString("description", safe(task.getDescription()));
         tag.setInteger("version", task.getVersion() == null ? 0 : task.getVersion());
-        tag.setString("status", task.getStatus() == null ? "" : task.getStatus().name());
-        tag.setString("priority", task.getPriority() == null ? "" : task.getPriority().name());
-        tag.setString("importance", task.getImportance() == null ? "" : task.getImportance().name());
-        tag.setString("urgency", task.getUrgency() == null ? "" : task.getUrgency().name());
-        tag.setString("visibility", task.getVisibility() == null ? "" : task.getVisibility().name());
+        tag.setString(
+            "status",
+            task.getStatus() == null ? ""
+                : task.getStatus()
+                    .name());
+        tag.setString(
+            "priority",
+            task.getPriority() == null ? ""
+                : task.getPriority()
+                    .name());
+        tag.setString(
+            "importance",
+            task.getImportance() == null ? ""
+                : task.getImportance()
+                    .name());
+        tag.setString(
+            "urgency",
+            task.getUrgency() == null ? ""
+                : task.getUrgency()
+                    .name());
+        tag.setString(
+            "visibility",
+            task.getVisibility() == null ? ""
+                : task.getVisibility()
+                    .name());
         tag.setString("parentTaskId", safe(task.getParentTaskId()));
-        tag.setString("teamId", task.getTeamId() == null ? "" : task.getTeamId().toString());
-        tag.setString("creator", task.getCreator() == null ? "" : task.getCreator().toString());
-        tag.setString("createTime", task.getCreateTime() == null ? "" : task.getCreateTime().toString());
-        tag.setString("updateTime", task.getUpdateTime() == null ? "" : task.getUpdateTime().toString());
+        tag.setString(
+            "teamId",
+            task.getTeamId() == null ? ""
+                : task.getTeamId()
+                    .toString());
+        tag.setString(
+            "creator",
+            task.getCreator() == null ? ""
+                : task.getCreator()
+                    .toString());
+        tag.setString(
+            "createTime",
+            task.getCreateTime() == null ? ""
+                : task.getCreateTime()
+                    .toString());
+        tag.setString(
+            "updateTime",
+            task.getUpdateTime() == null ? ""
+                : task.getUpdateTime()
+                    .toString());
+        NBTTagList tags = new NBTTagList();
+        for (Tag taskTag : TagService.getTagsForTask(task.getId())) {
+            NBTTagCompound tagEntry = new NBTTagCompound();
+            tagEntry.setString(
+                "id",
+                taskTag.getId() == null ? ""
+                    : taskTag.getId()
+                        .toString());
+            tagEntry.setString("name", safe(taskTag.getName()));
+            tagEntry.setString("description", safe(taskTag.getDescription()));
+            tagEntry.setString("colorCode", safe(taskTag.getColorCode()));
+            tagEntry.setString("fontColorCode", safe(taskTag.getFontColorCode()));
+            tagEntry.setString(
+                "scope",
+                taskTag.getScope() == null ? ""
+                    : taskTag.getScope()
+                        .name());
+            tags.appendTag(tagEntry);
+        }
+        tag.setTag("tags", tags);
         return tag;
     }
 

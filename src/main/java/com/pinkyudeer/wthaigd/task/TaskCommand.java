@@ -108,12 +108,7 @@ public class TaskCommand extends CommandBase {
         String title = args[1];
         String description = joinArgs(args, 2);
         TaskService.PermissionContext context = TeamService.contextFor(player.getUniqueID(), null, isOp(player));
-        Task task = TaskService.createTask(
-            context,
-            title,
-            description,
-            Task.Importance.MEDIUM,
-            Task.Urgency.MEDIUM);
+        Task task = TaskService.createTask(context, title, description, Task.Importance.MEDIUM, Task.Urgency.MEDIUM);
         sender.addChatMessage(new ChatComponentText(task == null ? "任务创建失败" : "任务已创建: " + task.getId()));
     }
 
@@ -128,8 +123,8 @@ public class TaskCommand extends CommandBase {
         }
         sender.addChatMessage(new ChatComponentText("可见任务: " + tasks.size()));
         for (Task task : tasks) {
-            sender.addChatMessage(new ChatComponentText(
-                task.getId() + " [" + task.getStatus() + "] " + task.getTitle()));
+            sender
+                .addChatMessage(new ChatComponentText(task.getId() + " [" + task.getStatus() + "] " + task.getTitle()));
         }
     }
 

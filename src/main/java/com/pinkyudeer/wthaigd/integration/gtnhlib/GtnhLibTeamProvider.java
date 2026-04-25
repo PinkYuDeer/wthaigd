@@ -108,8 +108,10 @@ public class GtnhLibTeamProvider implements TeamProvider {
     }
 
     private Object getTeam(String teamKey) {
-        if (!isAvailable() || teamKey == null || teamKey.trim()
-            .isEmpty()) return null;
+        if (!isAvailable() || teamKey == null
+            || teamKey.trim()
+                .isEmpty())
+            return null;
         try {
             Class<?> manager = Class.forName(TEAM_MANAGER);
             Method method = findMethod(manager, "getTeamByName", String.class);

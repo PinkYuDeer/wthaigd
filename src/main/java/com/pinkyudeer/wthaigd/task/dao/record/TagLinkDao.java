@@ -2,6 +2,7 @@ package com.pinkyudeer.wthaigd.task.dao.record;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import com.pinkyudeer.wthaigd.db.SQLHelper;
 import com.pinkyudeer.wthaigd.db.builder.DeleteBuilder;
@@ -36,6 +37,10 @@ public class TagLinkDao {
 
     public static SelectBuilder<TagLink> select() {
         return SQLHelper.select(TagLink.class);
+    }
+
+    public static TagLink selectById(UUID id) {
+        return SQLHelper.selectByPremiereKey(TagLink.class, id);
     }
 
     public static List<TagLink> selectAll() throws SQLException {

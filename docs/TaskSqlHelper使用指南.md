@@ -1,190 +1,82 @@
 # TaskSqlHelper 使用指南
 
-## 简介
+## 定位
 
-TaskSqlHelper 是一个强大的数据库操作工具类，它提供了简单而优雅的API来进行数据库的增删改查操作。这个工具类采用了建造者模式，使得数据库操作变得更加直观和易于使用。
+`TaskSqlHelper` 只负责任务数据库初始化与迁移。业务代码不应再调用旧式 `TaskSqlHelper.entity(...)` 或 `ConvenienceMethods`，这些 API 已不存在。
 
-## 基础用法
+当前分层如下：
 
-### 1. 单个实体的操作
+- 建表与迁移：`TaskSqlHelper.initTaskDataBase()`、`TaskSqlHelper.migrateSchema()`。
+- SQL 构建：`SQLHelper.createTables/select/insert/update/delete`。
+- 连接、查询回调、事务：`SQLiteManager.query(...)`、`SQLiteManager.executeUpdate(...)`、`SQLiteManager.transaction(...)`。
+- 任务用例：`TaskService`。
+- 团队用例：`TeamService`。
+- 标签用例：`TagService`。
 
-#### 创建实体
+## 建库与迁移
+
+世界主库载入时，`SQLiteManager.initSqlite()` 会创建或恢复内存 SQLite。新库调用 `TaskSqlHelper.initTaskDataBase()` 扫描 `com.pinkyudeer.wthaigd.task.entity` 下的 `@Table` 实体并建表；已有库恢复后调用 `migrateSchema()`。
+
+迁移通过 `schema_version` 记录版本，必须保持幂等：
 
 ```java
-Task task = new Task();
-// 设置任务属性
-task.setTitle("新任务");
-task.setDescription("任务描述");
-
-// 创建任务
-TaskSqlHelper.entity(task).create();
+TaskSqlHelper.migrateSchema();
 ```
 
-#### 更新实体
+现有迁移覆盖：
+
+- `tasks.parent_task_id`
+- `teams.sync_source`
+- `teams.external_party_id`
+- `teams.sync_status`
+- `teams.last_sync_time`
+- `teams.external_team_key`
+- `tags.owner_team_id`
+
+## 查询与事务
+
+读取优先用 `SQLiteManager.query`，使 `PreparedStatement` 与 `ResultSet` 在回调后关闭：
 
 ```java
-// 根据ID更新
-Task task = new Task();
-task.setId(1L);
-task.setTitle("更新后的标题");
-TaskSqlHelper.entity(task).updateById();
-
-// 根据条件更新
-Task task = new Task();
-TaskSqlHelper.entity(task)
-    .update(entity -> {
-        entity.setStatus("已完成");
-        entity.setCompletedAt(new Date());
-    });
-```
-
-#### 删除实体
-
-```java
-// 根据ID删除
-Task task = new Task();
-task.setId(1L);
-TaskSqlHelper.entity(task).deleteById();
-
-// 根据条件删除
-Task task = new Task();
-TaskSqlHelper.entity(task)
-    .delete(entity -> {
-        entity.setStatus("已删除");
-    });
-```
-
-#### 查询实体
-
-```java
-// 查询单个实体
-Task task = new Task();
-ResultSet resultSet = TaskSqlHelper.entity(task).query();
-```
-
-### 2. 批量操作
-
-#### 批量创建
-
-```java
-List<Task> tasks = Arrays.asList(
-    new Task("任务1"),
-    new Task("任务2"),
-    new Task("任务3")
+Integer count = SQLiteManager.query(
+    "SELECT COUNT(*) AS c FROM tag_links WHERE tag_id = ?",
+    rs -> rs.next() ? rs.getInt("c") : 0,
+    tagId
 );
-TaskSqlHelper.batch(tasks).create();
 ```
 
-#### 批量更新
+多表写入须放入事务：
 
 ```java
-List<Task> tasks = getTasks();
-TaskSqlHelper.batch(tasks)
-    .updateById();  // 根据ID批量更新
+SQLiteManager.transaction(() -> {
+    Team team = TeamService.createLocalTeam("alpha", ownerId, null);
+    TaskService.createTask(TeamService.contextFor(ownerId, team.getId(), false), "task", "", null, null);
+    return team;
+});
 ```
 
-#### 批量删除
+## 服务层入口
+
+任务写入应走 `TaskService`，团队写入应走 `TeamService`，标签写入应走 `TagService`。GUI 与网络 handler 只提交操作意图，不直接操作 DAO。
+
+任务标签示例：
 
 ```java
-List<Task> tasks = getTasks();
-TaskSqlHelper.batch(tasks)
-    .deleteById();  // 根据ID批量删除
+TaskService.PermissionContext context = TeamService.contextFor(playerId, teamId, false);
+Task task = TaskService.createTask(context, "组装线", "准备材料", Task.Importance.HIGH, Task.Urgency.MEDIUM);
+
+Tag tag = TagService.addTagToTask(
+    context,
+    task.getId(),
+    "物流",
+    "物流与管线分类",
+    "#336699",
+    Tag.TagScope.TEAM
+);
 ```
 
-### 3. 便捷方法的使用
+## 注意
 
-TaskSqlHelper 为每种实体类型都提供了便捷方法，使用起来更加简洁：
-
-```java
-// 任务相关操作
-TaskSqlHelper.ConvenienceMethods.Tasks.of(task).create();
-TaskSqlHelper.ConvenienceMethods.Tasks.batch(tasks).create();
-TaskSqlHelper.ConvenienceMethods.Tasks.query();
-
-// 玩家相关操作
-TaskSqlHelper.ConvenienceMethods.Players.of(player).create();
-TaskSqlHelper.ConvenienceMethods.Players.batch(players).create();
-TaskSqlHelper.ConvenienceMethods.Players.query();
-
-// 团队相关操作
-TaskSqlHelper.ConvenienceMethods.Teams.of(team).create();
-TaskSqlHelper.ConvenienceMethods.Teams.batch(teams).create();
-TaskSqlHelper.ConvenienceMethods.Teams.query();
-```
-
-## 实际使用示例
-
-### 1. 创建一个新任务并分配标签
-
-```java
-// 创建任务
-Task task = new Task();
-task.setTitle("新任务");
-task.setDescription("这是一个新任务");
-TaskSqlHelper.ConvenienceMethods.Tasks.of(task).create();
-
-// 创建标签
-Tag tag = new Tag();
-tag.setName("重要");
-TaskSqlHelper.ConvenienceMethods.Tags.of(tag).create();
-
-// 关联任务和标签
-TagLink tagLink = new TagLink();
-tagLink.setTaskId(task.getId());
-tagLink.setTagId(tag.getId());
-TaskSqlHelper.ConvenienceMethods.TagLinks.of(tagLink).create();
-```
-
-### 2. 更新任务状态并记录变更
-
-```java
-// 更新任务状态
-Task task = new Task();
-task.setId(1L);
-task.setStatus("进行中");
-TaskSqlHelper.ConvenienceMethods.Tasks.of(task).updateById();
-
-// 记录状态变更
-StatusChangeRecord record = new StatusChangeRecord();
-record.setTaskId(task.getId());
-record.setOldStatus("待处理");
-record.setNewStatus("进行中");
-TaskSqlHelper.ConvenienceMethods.StatusChangeRecords.of(record).create();
-```
-
-### 3. 查询特定状态的任务
-
-```java
-// 查询所有进行中的任务
-ResultSet resultSet = TaskSqlHelper.ConvenienceMethods.Tasks.query()
-    .where(task -> task.setStatus("进行中"))
-    .execute();
-```
-
-## 注意事项
-
-1. 在使用前确保数据库已经正确初始化：
-
-    ```java
-    TaskSqlHelper.initTaskDataBase();
-    ```
-
-2. 所有的实体类都需要使用 `@Table` 注解进行标记。
-
-3. 在进行批量操作时，建议控制每批次的数据量，避免一次性处理过多数据。
-
-4. 使用条件更新或删除时，确保条件足够明确，避免误操作。
-
-## 常见问题
-
-1. **Q: 为什么我的实体创建失败了？**
-
-   A: 检查实体类是否正确使用了 `@Table` 注解，以及所有必填字段是否都已设置。
-
-2. **Q: 批量操作时出现异常怎么办？**
-
-   A: 建议将批量操作拆分成较小的批次，并添加适当的错误处理机制。
-
-3. **Q: 如何确保数据库操作的原子性？**
-
-   A: 对于需要保证原子性的操作，建议使用事务进行包装。
+- `Task.id` 目前仍为 `String` 格式 UUID；`TagLink.entityId` 以 `UUID` 存储，任务标签服务会在边界处转换。
+- `SQLHelper.select(...).execute()` 仍返回裸 `ResultSet`；新代码宜优先用 `SQLiteManager.query(...)` 或在 DAO/服务层立即消费结果。
+- 正式发布前，应继续补 Builder 层单元测试，并把 SQL 日志从 `info` 降为 `debug`。

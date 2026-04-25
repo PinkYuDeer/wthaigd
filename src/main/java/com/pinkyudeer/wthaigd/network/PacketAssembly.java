@@ -75,7 +75,12 @@ public final class PacketAssembly {
         byte[] data = packet.getByteArray("data");
 
         if (size <= 0 || parts <= 0 || part < 0 || part >= parts || index < 0 || index + data.length > size) {
-            Wthaigd.LOG.error("Invalid wthaigd packet fragment: size={}, index={}, part={}, parts={}", size, index, part, parts);
+            Wthaigd.LOG.error(
+                "Invalid wthaigd packet fragment: size={}, index={}, part={}, parts={}",
+                size,
+                index,
+                part,
+                parts);
             return null;
         }
 

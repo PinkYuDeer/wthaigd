@@ -3,6 +3,9 @@ package com.pinkyudeer.wthaigd.core;
 import java.io.File;
 import java.io.IOException;
 
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.World;
+
 import com.pinkyudeer.wthaigd.config.ConfigHelper;
 import com.pinkyudeer.wthaigd.helper.ModFileHelper;
 import com.pinkyudeer.wthaigd.integration.gtnhlib.GtnhLibTeamDataBridge;
@@ -23,8 +26,6 @@ import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.World;
 
 @SuppressWarnings("EmptyMethod")
 public class CommonProxy {

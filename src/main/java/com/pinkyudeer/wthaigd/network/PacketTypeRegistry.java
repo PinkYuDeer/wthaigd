@@ -18,7 +18,6 @@ import com.pinkyudeer.wthaigd.network.handler.NetTaskSync;
 import com.pinkyudeer.wthaigd.network.handler.NetTeamAction;
 import com.pinkyudeer.wthaigd.network.handler.NetTeamSync;
 
-
 public final class PacketTypeRegistry {
 
     public static final PacketTypeRegistry INSTANCE = new PacketTypeRegistry();

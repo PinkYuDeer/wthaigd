@@ -58,6 +58,10 @@ public class Tag {
     @Column(name = "owner_id")
     @Reference(entity = Player.class)
     private UUID ownerId; // 私有标签拥有者
+    @Nullable
+    @Column(name = "owner_team_id")
+    @Reference(entity = Team.class)
+    private UUID ownerTeamId; // 团队标签所属团队
 
     // 时间戳
     @Nonnull
@@ -73,6 +77,8 @@ public class Tag {
         TEAM, // 团队内部标签
         PRIVATE // 用户私有标签
     }
+
+    public Tag() {}
 
     public Tag(@Nonnull String name, @Nullable String description) {
         this.name = name;

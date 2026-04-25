@@ -14,8 +14,8 @@ import com.pinkyudeer.wthaigd.task.dao.TaskDao;
 import com.pinkyudeer.wthaigd.task.entity.Task;
 import com.pinkyudeer.wthaigd.task.entity.Task.TaskStatus;
 import com.pinkyudeer.wthaigd.task.entity.Team;
-import com.pinkyudeer.wthaigd.task.entity.record.TeamMember;
 import com.pinkyudeer.wthaigd.task.entity.record.StatusChangeRecord;
+import com.pinkyudeer.wthaigd.task.entity.record.TeamMember;
 
 public class TaskService {
 
@@ -41,8 +41,8 @@ public class TaskService {
         return task;
     }
 
-    public static Task createTask(PermissionContext context, String title, String description, Task.Importance importance,
-        Task.Urgency urgency) {
+    public static Task createTask(PermissionContext context, String title, String description,
+        Task.Importance importance, Task.Urgency urgency) {
         if (context == null) throw new IllegalArgumentException("权限上下文不能为空");
         if (context.getTeamId() != null && !context.canCreateTeamTask()) {
             Wthaigd.LOG.warn("Player {} cannot create task in team {}", context.getActorId(), context.getTeamId());
@@ -163,20 +163,32 @@ public class TaskService {
         if (isOp) return getAllTasks();
         java.util.ArrayList<Task> visible = new java.util.ArrayList<>();
         for (Task task : getAllTasks()) {
-            if (task.getVisibility() == Task.PrivacyLevel.PUBLIC) {
-                visible.add(task);
-                continue;
-            }
-            if (playerId != null && playerId.equals(task.getCreator())) {
-                visible.add(task);
-                continue;
-            }
-            if (task.getTeamId() != null && task.getVisibility() == Task.PrivacyLevel.TEAM) {
-                TeamMember member = TeamService.getMember(task.getTeamId(), playerId);
-                if (member != null && member.getStatus() == TeamMember.MemberStatus.ACTIVE) visible.add(task);
-            }
+            if (canViewTask(playerId, false, task)) visible.add(task);
         }
         return visible;
+    }
+
+    public static boolean canViewTask(UUID playerId, boolean isOp, Task task) {
+        if (task == null) return false;
+        if (isOp || task.getVisibility() == Task.PrivacyLevel.PUBLIC) return true;
+        if (playerId != null && playerId.equals(task.getCreator())) return true;
+        if (playerId != null && task.getTeamId() != null && task.getVisibility() == Task.PrivacyLevel.TEAM) {
+            TeamMember member = TeamService.getMember(task.getTeamId(), playerId);
+            return member != null && member.getStatus() == TeamMember.MemberStatus.ACTIVE;
+        }
+        return false;
+    }
+
+    public static boolean canWriteTask(PermissionContext context, Task task) {
+        if (context == null || task == null) return false;
+        if (context.isOp()) return true;
+        if (context.getActorId() != null && context.getActorId()
+            .equals(task.getCreator())) return true;
+        if (task.getTeamId() != null && task.getTeamId()
+            .equals(context.getTeamId())) {
+            return context.canAssignTeamTask();
+        }
+        return false;
     }
 
     public static boolean deleteTask(String taskId) {

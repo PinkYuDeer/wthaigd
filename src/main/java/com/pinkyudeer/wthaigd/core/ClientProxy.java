@@ -3,6 +3,10 @@ package com.pinkyudeer.wthaigd.core;
 import java.io.File;
 import java.io.IOException;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.server.integrated.IntegratedServer;
+import net.minecraft.world.World;
+
 import com.pinkyudeer.wthaigd.client.network.ClientWthaigdPacketHandler;
 import com.pinkyudeer.wthaigd.gui.KeyBindGuiHandler;
 import com.pinkyudeer.wthaigd.gui.ModularTheme;
@@ -15,9 +19,6 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.relauncher.Side;
-import net.minecraft.client.Minecraft;
-import net.minecraft.server.integrated.IntegratedServer;
-import net.minecraft.world.World;
 
 public class ClientProxy extends CommonProxy {
 

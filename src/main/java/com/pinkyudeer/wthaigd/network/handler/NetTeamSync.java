@@ -49,23 +49,51 @@ public final class NetTeamSync {
 
     private static NBTTagCompound writeTeam(Team team, List<TeamMember> members) {
         NBTTagCompound tag = new NBTTagCompound();
-        tag.setString("id", team.getId() == null ? "" : team.getId().toString());
+        tag.setString(
+            "id",
+            team.getId() == null ? ""
+                : team.getId()
+                    .toString());
         tag.setString("name", team.getName() == null ? "" : team.getName());
         tag.setString("description", team.getDescription() == null ? "" : team.getDescription());
-        tag.setString("ownerId", team.getOwnerId() == null ? "" : team.getOwnerId().toString());
+        tag.setString(
+            "ownerId",
+            team.getOwnerId() == null ? ""
+                : team.getOwnerId()
+                    .toString());
         tag.setInteger("totalMembers", team.getTotalMembers() == null ? 0 : team.getTotalMembers());
-        tag.setString("syncSource", team.getSyncSource() == null ? "" : team.getSyncSource().name());
+        tag.setString(
+            "syncSource",
+            team.getSyncSource() == null ? ""
+                : team.getSyncSource()
+                    .name());
         tag.setInteger("externalPartyId", team.getExternalPartyId() == null ? -1 : team.getExternalPartyId());
         tag.setString("externalTeamKey", team.getExternalTeamKey() == null ? "" : team.getExternalTeamKey());
-        tag.setString("syncStatus", team.getSyncStatus() == null ? "" : team.getSyncStatus().name());
+        tag.setString(
+            "syncStatus",
+            team.getSyncStatus() == null ? ""
+                : team.getSyncStatus()
+                    .name());
         tag.setString("lastSyncTime", writeTime(team.getLastSyncTime()));
 
         NBTTagList memberList = new NBTTagList();
         for (TeamMember member : members) {
             NBTTagCompound memberTag = new NBTTagCompound();
-            memberTag.setString("playerId", member.getPlayerId() == null ? "" : member.getPlayerId().toString());
-            memberTag.setString("role", member.getRole() == null ? "" : member.getRole().name());
-            memberTag.setString("status", member.getStatus() == null ? "" : member.getStatus().name());
+            memberTag.setString(
+                "playerId",
+                member.getPlayerId() == null ? ""
+                    : member.getPlayerId()
+                        .toString());
+            memberTag.setString(
+                "role",
+                member.getRole() == null ? ""
+                    : member.getRole()
+                        .name());
+            memberTag.setString(
+                "status",
+                member.getStatus() == null ? ""
+                    : member.getStatus()
+                        .name());
             memberList.appendTag(memberTag);
         }
         tag.setTag("members", memberList);

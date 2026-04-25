@@ -1,16 +1,21 @@
 package com.pinkyudeer.wthaigd.network.handler;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 
 import com.pinkyudeer.wthaigd.Wthaigd;
 import com.pinkyudeer.wthaigd.helper.UtilHelper;
 import com.pinkyudeer.wthaigd.network.PacketIds;
 import com.pinkyudeer.wthaigd.network.PacketSender;
 import com.pinkyudeer.wthaigd.network.PacketTypeRegistry;
+import com.pinkyudeer.wthaigd.task.entity.Tag;
 import com.pinkyudeer.wthaigd.task.entity.Task;
+import com.pinkyudeer.wthaigd.task.service.TagService;
 import com.pinkyudeer.wthaigd.task.service.TaskService;
 import com.pinkyudeer.wthaigd.task.service.TeamService;
 
@@ -31,10 +36,8 @@ public final class NetTaskAction {
         String action = payload.getString("action");
         try {
             if ("create".equals(action)) {
-                TaskService.PermissionContext context = TeamService.contextFor(
-                    sender.getUniqueID(),
-                    readUuid(payload, "teamId"),
-                    isOp(sender));
+                TaskService.PermissionContext context = TeamService
+                    .contextFor(sender.getUniqueID(), readUuid(payload, "teamId"), isOp(sender));
                 Task task = TaskService.createTask(
                     context,
                     payload.getString("title"),
@@ -83,7 +86,8 @@ public final class NetTaskAction {
                 task.setPriority(Task.calculatePriority(task.getImportance(), task.getUrgency()));
                 boolean ok = TaskService.updateTask(task, oldTask);
                 if (ok && payload.hasKey("status")) {
-                    ok = TaskService.changeStatus(payload.getString("taskId"), readStatus(payload), sender.getUniqueID());
+                    ok = TaskService
+                        .changeStatus(payload.getString("taskId"), readStatus(payload), sender.getUniqueID());
                 }
                 if (ok) NetTaskSync.sendSync(sender, true);
                 else NetError.send(sender, NetError.SERVER_ERROR, "task update failed");
@@ -94,7 +98,8 @@ public final class NetTaskAction {
                     return;
                 }
                 assertCanWrite(sender, task);
-                boolean ok = TaskService.changeStatus(payload.getString("taskId"), readStatus(payload), sender.getUniqueID());
+                boolean ok = TaskService
+                    .changeStatus(payload.getString("taskId"), readStatus(payload), sender.getUniqueID());
                 if (ok) NetTaskSync.sendSync(sender, true);
                 else NetError.send(sender, NetError.NOT_FOUND, "task not found");
             } else if ("complete".equals(action)) {
@@ -117,11 +122,42 @@ public final class NetTaskAction {
                 boolean ok = TaskService.deleteTask(payload.getString("taskId"));
                 if (ok) NetTaskSync.sendSync(sender, true);
                 else NetError.send(sender, NetError.NOT_FOUND, "task not found");
+            } else if ("add_tag".equals(action)) {
+                Task task = requireTask(payload.getString("taskId"), sender);
+                boolean ok = TagService
+                    .addTagToTask(contextForTask(sender, task), task.getId(), readUuid(payload, "tagId"));
+                if (ok) NetTaskSync.sendSync(sender, true);
+                else NetError.send(sender, NetError.SERVER_ERROR, "tag add failed");
+            } else if ("add_tag_by_name".equals(action)) {
+                Task task = requireTask(payload.getString("taskId"), sender);
+                Tag tag = TagService.addTagToTask(
+                    contextForTask(sender, task),
+                    task.getId(),
+                    payload.getString("tagName"),
+                    payload.getString("description"),
+                    payload.getString("colorCode"),
+                    readTagScope(payload));
+                if (tag != null) NetTaskSync.sendSync(sender, true);
+                else NetError.send(sender, NetError.SERVER_ERROR, "tag add failed");
+            } else if ("remove_tag".equals(action)) {
+                Task task = requireTask(payload.getString("taskId"), sender);
+                boolean ok = TagService
+                    .removeTagFromTask(contextForTask(sender, task), task.getId(), readUuid(payload, "tagId"));
+                if (ok) NetTaskSync.sendSync(sender, true);
+                else NetError.send(sender, NetError.NOT_FOUND, "tag link not found");
+            } else if ("set_tags".equals(action)) {
+                Task task = requireTask(payload.getString("taskId"), sender);
+                boolean ok = TagService
+                    .setTagsForTask(contextForTask(sender, task), task.getId(), readUuidList(payload, "tagIds"));
+                if (ok) NetTaskSync.sendSync(sender, true);
+                else NetError.send(sender, NetError.SERVER_ERROR, "tag set failed");
             } else {
                 NetError.send(sender, NetError.INVALID_ACTION, action);
             }
         } catch (SecurityException e) {
             NetError.send(sender, NetError.PERMISSION_DENIED, e.getMessage());
+        } catch (TaskNotFoundException e) {
+            NetError.send(sender, NetError.NOT_FOUND, e.getMessage());
         } catch (IllegalArgumentException e) {
             NetError.send(sender, NetError.INVALID_PAYLOAD, e.getMessage());
         } catch (Exception e) {
@@ -151,6 +187,21 @@ public final class NetTaskAction {
         return Task.TaskStatus.valueOf(payload.getString("status"));
     }
 
+    private static Tag.TagScope readTagScope(NBTTagCompound payload) {
+        if (!payload.hasKey("scope")) return Tag.TagScope.PUBLIC;
+        return Tag.TagScope.valueOf(payload.getString("scope"));
+    }
+
+    private static List<UUID> readUuidList(NBTTagCompound payload, String key) {
+        List<UUID> values = new ArrayList<>();
+        if (!payload.hasKey(key)) return values;
+        NBTTagList list = payload.getTagList(key, 8);
+        for (int i = 0; i < list.tagCount(); i++) {
+            values.add(UUID.fromString(list.getStringTagAt(i)));
+        }
+        return values;
+    }
+
     private static boolean isOp(EntityPlayerMP player) {
         return player.mcServer != null && player.mcServer.getConfigurationManager()
             .func_152596_g(player.getGameProfile());
@@ -162,9 +213,27 @@ public final class NetTaskAction {
             return;
         }
         if (task.getTeamId() != null) {
-            TaskService.PermissionContext context = TeamService.contextFor(sender.getUniqueID(), task.getTeamId(), false);
+            TaskService.PermissionContext context = TeamService
+                .contextFor(sender.getUniqueID(), task.getTeamId(), false);
             if (context.canAssignTeamTask()) return;
         }
         throw new SecurityException("无权操作此任务");
+    }
+
+    private static Task requireTask(String taskId, EntityPlayerMP sender) {
+        Task task = TaskService.getTask(taskId);
+        if (task == null) throw new TaskNotFoundException("task not found");
+        return task;
+    }
+
+    private static TaskService.PermissionContext contextForTask(EntityPlayerMP sender, Task task) {
+        return TeamService.contextFor(sender.getUniqueID(), task.getTeamId(), isOp(sender));
+    }
+
+    private static final class TaskNotFoundException extends RuntimeException {
+
+        private TaskNotFoundException(String message) {
+            super(message);
+        }
     }
 }

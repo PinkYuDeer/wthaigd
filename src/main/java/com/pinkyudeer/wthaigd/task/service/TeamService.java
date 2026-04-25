@@ -55,8 +55,9 @@ public final class TeamService {
                 Notification.SourceType.PLAYER,
                 operatorId);
             request.setInviterId(operatorId);
-            request.setExpireTime(LocalDateTime.now()
-                .plusDays(7));
+            request.setExpireTime(
+                LocalDateTime.now()
+                    .plusDays(7));
             TeamRequestDao.insert(request);
             team.setInvitationsCount(safeInt(team.getInvitationsCount()) + 1);
             SQLHelper.updateById(team)
@@ -76,8 +77,9 @@ public final class TeamService {
                 Notification.SourceType.PLAYER,
                 applicantId);
             request.setReason(reason);
-            request.setExpireTime(LocalDateTime.now()
-                .plusDays(7));
+            request.setExpireTime(
+                LocalDateTime.now()
+                    .plusDays(7));
             TeamRequestDao.insert(request);
             team.setJoinRequestsCount(safeInt(team.getJoinRequestsCount()) + 1);
             SQLHelper.updateById(team)
@@ -236,13 +238,7 @@ public final class TeamService {
     }
 
     public static boolean syncGtnhLibTeam(UUID teamId, UUID operatorId, boolean isOp) {
-        return syncExternalTeam(
-            teamId,
-            Team.SyncSource.GTNH_LIB,
-            TeamProviders.gtnhLib(),
-            operatorId,
-            isOp,
-            "GTNHLib");
+        return syncExternalTeam(teamId, Team.SyncSource.GTNH_LIB, TeamProviders.gtnhLib(), operatorId, isOp, "GTNHLib");
     }
 
     public static boolean unlinkBetterQuestingTeam(UUID teamId, UUID operatorId, boolean isOp) {
@@ -251,7 +247,8 @@ public final class TeamService {
 
     public static boolean unlinkExternalTeam(UUID teamId, UUID operatorId, boolean isOp) {
         Team team = requireTeam(teamId);
-        if (!isOp && (operatorId == null || !operatorId.equals(team.getOwnerId()))) throw new SecurityException("只有队长可解除关联");
+        if (!isOp && (operatorId == null || !operatorId.equals(team.getOwnerId())))
+            throw new SecurityException("只有队长可解除关联");
         return SQLiteManager.transaction(() -> {
             Team oldTeam = UtilHelper.deepClone(team, Team.class);
             team.setSyncSource(Team.SyncSource.LOCAL);
@@ -271,10 +268,18 @@ public final class TeamService {
             if (provider == null) continue;
             try {
                 String teamKey = externalKey(team);
-                if (isOp || isActiveMember(team.getId(), playerId) || !provider.isAvailable()
+                if (isOp || isActiveMember(team.getId(), playerId)
+                    || !provider.isAvailable()
                     || (!isBlank(teamKey) && provider.getMembers(teamKey)
-                            .contains(playerId))) {
-                    syncExternalTeam(team.getId(), team.getSyncSource(), provider, playerId, isOp, team.getSyncSource().name());
+                        .contains(playerId))) {
+                    syncExternalTeam(
+                        team.getId(),
+                        team.getSyncSource(),
+                        provider,
+                        playerId,
+                        isOp,
+                        team.getSyncSource()
+                            .name());
                 }
             } catch (Exception e) {
                 Wthaigd.LOG.warn("External team sync failed: {} {}", team.getSyncSource(), team.getId(), e);
@@ -289,7 +294,14 @@ public final class TeamService {
             TeamProvider provider = team == null ? null : providerFor(team.getSyncSource());
             if (team != null && provider != null) {
                 try {
-                    syncExternalTeam(teamId, team.getSyncSource(), provider, actorId, isOp, team.getSyncSource().name());
+                    syncExternalTeam(
+                        teamId,
+                        team.getSyncSource(),
+                        provider,
+                        actorId,
+                        isOp,
+                        team.getSyncSource()
+                            .name());
                 } catch (Exception e) {
                     Wthaigd.LOG.warn("External team permission refresh failed: {} {}", team.getSyncSource(), teamId, e);
                 }
@@ -348,15 +360,8 @@ public final class TeamService {
         }
     }
 
-    private static boolean linkExternalTeam(
-        UUID teamId,
-        Team.SyncSource syncSource,
-        TeamProvider provider,
-        String teamKey,
-        int legacyPartyId,
-        UUID operatorId,
-        boolean isOp,
-        String providerName) {
+    private static boolean linkExternalTeam(UUID teamId, Team.SyncSource syncSource, TeamProvider provider,
+        String teamKey, int legacyPartyId, UUID operatorId, boolean isOp, String providerName) {
         Team team = requireTeam(teamId);
         if (!isOp && (operatorId == null || !operatorId.equals(team.getOwnerId())))
             throw new SecurityException("只有队长可关联 " + providerName);
@@ -380,13 +385,8 @@ public final class TeamService {
         });
     }
 
-    private static boolean syncExternalTeam(
-        UUID teamId,
-        Team.SyncSource syncSource,
-        TeamProvider provider,
-        UUID operatorId,
-        boolean isOp,
-        String providerName) {
+    private static boolean syncExternalTeam(UUID teamId, Team.SyncSource syncSource, TeamProvider provider,
+        UUID operatorId, boolean isOp, String providerName) {
         Team team = requireTeam(teamId);
         if (team.getSyncSource() != syncSource) return false;
 
@@ -404,8 +404,9 @@ public final class TeamService {
             return false;
         }
 
-        if (!isOp && (operatorId == null || (!operatorId.equals(team.getOwnerId()) && !canManageMembers(team, operatorId)
-            && !providerMembers.contains(operatorId)))) {
+        if (!isOp
+            && (operatorId == null || (!operatorId.equals(team.getOwnerId()) && !canManageMembers(team, operatorId)
+                && !providerMembers.contains(operatorId)))) {
             throw new SecurityException("无权同步 " + providerName + " 队伍");
         }
 

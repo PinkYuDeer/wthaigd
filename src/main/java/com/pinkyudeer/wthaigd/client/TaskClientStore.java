@@ -112,10 +112,11 @@ public final class TaskClientStore {
         task.setStatus(readEnum(Task.TaskStatus.class, tag.getString("status"), Task.TaskStatus.UnClaimed));
         task.setImportance(readEnum(Task.Importance.class, tag.getString("importance"), Task.Importance.UNDEFINED));
         task.setUrgency(readEnum(Task.Urgency.class, tag.getString("urgency"), Task.Urgency.UNDEFINED));
-        task.setPriority(readEnum(
-            Task.Priority.class,
-            tag.getString("priority"),
-            Task.calculatePriority(task.getImportance(), task.getUrgency())));
+        task.setPriority(
+            readEnum(
+                Task.Priority.class,
+                tag.getString("priority"),
+                Task.calculatePriority(task.getImportance(), task.getUrgency())));
         task.setVisibility(readEnum(Task.PrivacyLevel.class, tag.getString("visibility"), Task.PrivacyLevel.PRIVATE));
         if (!tag.getString("parentTaskId")
             .isEmpty()) task.setParentTaskId(tag.getString("parentTaskId"));

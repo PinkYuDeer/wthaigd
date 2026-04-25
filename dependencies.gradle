@@ -45,4 +45,6 @@ dependencies {
     implementation("com.google.code.findbugs:jsr305:3.0.2")
     implementation("com.google.code.gson:gson:2.12.1")
     implementation("com.esotericsoftware:kryo:5.6.2")
+
+    testImplementation("junit:junit:4.13.2")
 }

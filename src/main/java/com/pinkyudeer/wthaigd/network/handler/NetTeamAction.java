@@ -9,7 +9,6 @@ import com.pinkyudeer.wthaigd.Wthaigd;
 import com.pinkyudeer.wthaigd.network.PacketIds;
 import com.pinkyudeer.wthaigd.network.PacketSender;
 import com.pinkyudeer.wthaigd.network.PacketTypeRegistry;
-import com.pinkyudeer.wthaigd.task.entity.Team;
 import com.pinkyudeer.wthaigd.task.service.TeamService;
 
 public final class NetTeamAction {
@@ -52,7 +51,8 @@ public final class NetTeamAction {
                 TeamService.transferOwner(readUuid(payload, "teamId"), readUuid(payload, "playerId"), actorId, op);
                 NetTeamSync.sendSync(sender, true);
             } else if ("link_bq".equals(action)) {
-                TeamService.linkBetterQuestingParty(readUuid(payload, "teamId"), payload.getInteger("partyId"), actorId, op);
+                TeamService
+                    .linkBetterQuestingParty(readUuid(payload, "teamId"), payload.getInteger("partyId"), actorId, op);
                 NetTeamSync.sendSync(sender, true);
             } else if ("sync_bq".equals(action)) {
                 TeamService.syncBetterQuestingTeam(readUuid(payload, "teamId"), actorId, op);

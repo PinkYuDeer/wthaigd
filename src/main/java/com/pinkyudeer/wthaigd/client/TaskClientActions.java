@@ -21,8 +21,8 @@ public final class TaskClientActions {
         NetTaskAction.sendAction(payload);
     }
 
-    public static void updateTask(String taskId, int version, String title, String description, Task.Importance importance,
-        Task.Urgency urgency, Task.TaskStatus status) {
+    public static void updateTask(String taskId, int version, String title, String description,
+        Task.Importance importance, Task.Urgency urgency, Task.TaskStatus status) {
         NBTTagCompound payload = new NBTTagCompound();
         payload.setString("action", "update");
         payload.setString("taskId", safe(taskId));

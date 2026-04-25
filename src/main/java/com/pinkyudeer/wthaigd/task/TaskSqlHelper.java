@@ -39,20 +39,21 @@ public class TaskSqlHelper {
     public static void migrateSchema() {
         ensureSchemaVersionTable();
         applyMigration(1, "tasks.parent_task_id", () -> addColumnIfNotExists("tasks", "parent_task_id", "TEXT"));
-        applyMigration(2, "teams.sync_source", () -> addColumnIfNotExists(
-            "teams",
-            "sync_source",
-            "TEXT DEFAULT 'LOCAL'"));
-        applyMigration(3, "teams.external_party_id", () -> addColumnIfNotExists(
-            "teams",
-            "external_party_id",
-            "INTEGER DEFAULT -1"));
-        applyMigration(4, "teams.sync_status", () -> addColumnIfNotExists(
-            "teams",
-            "sync_status",
-            "TEXT DEFAULT 'ACTIVE'"));
+        applyMigration(
+            2,
+            "teams.sync_source",
+            () -> addColumnIfNotExists("teams", "sync_source", "TEXT DEFAULT 'LOCAL'"));
+        applyMigration(
+            3,
+            "teams.external_party_id",
+            () -> addColumnIfNotExists("teams", "external_party_id", "INTEGER DEFAULT -1"));
+        applyMigration(
+            4,
+            "teams.sync_status",
+            () -> addColumnIfNotExists("teams", "sync_status", "TEXT DEFAULT 'ACTIVE'"));
         applyMigration(5, "teams.last_sync_time", () -> addColumnIfNotExists("teams", "last_sync_time", "TIMESTAMP"));
         applyMigration(6, "teams.external_team_key", () -> addColumnIfNotExists("teams", "external_team_key", "TEXT"));
+        applyMigration(7, "tags.owner_team_id", () -> addColumnIfNotExists("tags", "owner_team_id", "TEXT"));
     }
 
     private static void addColumnIfNotExists(String table, String column, String type) {
@@ -70,8 +71,7 @@ public class TaskSqlHelper {
 
     private static void ensureSchemaVersionTable() {
         SQLiteManager.executeUpdate(
-            "CREATE TABLE IF NOT EXISTS schema_version ("
-                + "id INTEGER PRIMARY KEY, "
+            "CREATE TABLE IF NOT EXISTS schema_version (" + "id INTEGER PRIMARY KEY, "
                 + "description TEXT NOT NULL, "
                 + "applied_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                 + ")");
@@ -81,20 +81,14 @@ public class TaskSqlHelper {
         SQLiteManager.transaction(() -> {
             if (isMigrationApplied(id)) return null;
             migration.run();
-            SQLiteManager.executeUpdate(
-                "INSERT INTO schema_version (id, description) VALUES (?, ?)",
-                id,
-                description);
+            SQLiteManager.executeUpdate("INSERT INTO schema_version (id, description) VALUES (?, ?)", id, description);
             Wthaigd.LOG.info("数据库迁移完成: {} {}", id, description);
             return null;
         });
     }
 
     private static boolean isMigrationApplied(int id) {
-        Boolean applied = SQLiteManager.query(
-            "SELECT 1 FROM schema_version WHERE id = ? LIMIT 1",
-            rs -> rs.next(),
-            id);
+        Boolean applied = SQLiteManager.query("SELECT 1 FROM schema_version WHERE id = ? LIMIT 1", rs -> rs.next(), id);
         return Boolean.TRUE.equals(applied);
     }
 

@@ -52,6 +52,8 @@ public class TagLink extends BaseRecord {
     @Column(name = "is_active", defaultValue = "true")
     private Boolean isActive = true; // 关联是否有效（软删除标志）
 
+    public TagLink() {}
+
     public TagLink(@Nonnull UUID tagId, @Nonnull RelatedEntityType entityType, @Nonnull UUID entityId,
         @Nonnull UUID operatorId) {
         super(operatorId);
