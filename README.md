@@ -1,3 +1,7 @@
+[This project has moved to Tasket.](https://github.com/PinkYuDeer/tasket)
+
+[中文：本项目已迁移至 Tasket（任物篮）。](https://github.com/PinkYuDeer/tasket)
+
 # wthaigd
 What the hell am I gonna do (Minecraft Mod)
 

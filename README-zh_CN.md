@@ -1,3 +1,7 @@
+[本项目已迁移至 Tasket（任物篮）。](https://github.com/PinkYuDeer/tasket)
+
+[English: This project has moved to Tasket.](https://github.com/PinkYuDeer/tasket)
+
 # wthaigd
 我该干啥（Minecraft模组）
 
