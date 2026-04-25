@@ -107,6 +107,23 @@ public class Team {
     @Column(name = "disband_time")
     private LocalDateTime disbandTime; // 解散时间
 
+    // 外部组队同步
+    @Nonnull
+    @Column(name = "sync_source", defaultValue = "'LOCAL'")
+    private SyncSource syncSource = SyncSource.LOCAL;
+    @Nullable
+    @Column(name = "external_party_id", defaultValue = "-1")
+    private Integer externalPartyId = -1;
+    @Nullable
+    @Column(name = "external_team_key")
+    private String externalTeamKey;
+    @Nonnull
+    @Column(name = "sync_status", defaultValue = "'ACTIVE'")
+    private SyncStatus syncStatus = SyncStatus.ACTIVE;
+    @Nullable
+    @Column(name = "last_sync_time")
+    private LocalDateTime lastSyncTime;
+
     // 权限设置
     @Nonnull
     @Column(name = "allow_member_create_task", defaultValue = "true")
@@ -128,6 +145,20 @@ public class Team {
         MEMBER,
         GUEST
     }
+
+    public enum SyncSource {
+        LOCAL,
+        BETTER_QUESTING,
+        GTNH_LIB
+    }
+
+    public enum SyncStatus {
+        ACTIVE,
+        STALE,
+        UNLINKED
+    }
+
+    public Team() {}
 
     public Team(@Nonnull String name, @Nonnull UUID ownerId, @Nullable String description) {
         this.name = name;

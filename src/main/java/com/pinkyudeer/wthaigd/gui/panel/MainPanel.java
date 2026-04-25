@@ -25,10 +25,11 @@ import com.cleanroommc.modularui.widgets.ButtonWidget;
 import com.cleanroommc.modularui.widgets.ListWidget;
 import com.cleanroommc.modularui.widgets.layout.Column;
 import com.cleanroommc.modularui.widgets.layout.Row;
+import com.pinkyudeer.wthaigd.client.TaskClientStore;
 import com.pinkyudeer.wthaigd.gui.drawable.ShaderDrawable;
 import com.pinkyudeer.wthaigd.gui.screen.TaskScreen;
+import com.pinkyudeer.wthaigd.network.handler.NetMainSync;
 import com.pinkyudeer.wthaigd.task.entity.Task;
-import com.pinkyudeer.wthaigd.task.service.TaskService;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -80,6 +81,7 @@ public class MainPanel extends ModularPanel {
         center();
         background(IDrawable.EMPTY);
         overlay(ShaderDrawable.panel(12f, PANEL_BG, ACCENT));
+        NetMainSync.requestSync();
         child(buildLayout());
     }
 
@@ -99,7 +101,7 @@ public class MainPanel extends ModularPanel {
         cachedSubtasks.clear();
         cachedSubCounts.clear();
         try {
-            cachedTasks = showCompleted ? TaskService.getAllTasks() : TaskService.getActiveTasks();
+            cachedTasks = TaskClientStore.INSTANCE.getTaskList(showCompleted);
         } catch (Exception e) {
             cachedTasks = new ArrayList<>();
         }
@@ -111,7 +113,7 @@ public class MainPanel extends ModularPanel {
 
     private void ensureSubtasksCached(String taskId) {
         if (cachedSubCounts.containsKey(taskId)) return;
-        List<Task> subs = TaskService.getSubtasks(taskId);
+        List<Task> subs = TaskClientStore.INSTANCE.getSubtasks(taskId);
         cachedSubtasks.put(taskId, subs);
         cachedSubCounts.put(taskId, subs.size());
         if (expandedTasks.contains(taskId)) {

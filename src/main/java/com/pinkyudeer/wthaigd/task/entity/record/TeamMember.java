@@ -62,6 +62,8 @@ public class TeamMember extends BaseRecord {
     @Reference(entity = Player.class)
     private UUID lastOperatorId; // 最后操作人（用于权限变更记录）
 
+    public TeamMember() {}
+
     public TeamMember(@Nonnull UUID teamId, @Nonnull UUID playerId, @Nonnull UUID operatorId) {
         super(operatorId);
         this.teamId = teamId;

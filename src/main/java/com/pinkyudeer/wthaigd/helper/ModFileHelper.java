@@ -6,8 +6,7 @@ import static com.pinkyudeer.wthaigd.Wthaigd.MODID;
 import java.io.File;
 import java.io.IOException;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.server.MinecraftServer;
+import com.pinkyudeer.wthaigd.Wthaigd;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import lombok.Getter;
@@ -47,24 +46,11 @@ public class ModFileHelper {
     }
 
     private static File getBaseDir() {
-        boolean isServer = FMLCommonHandler.instance()
-            .getSide()
-            .isServer();
-        File baseDir; // .minecraft或服务器根目录
-        if (isServer) {
-            MinecraftServer server = FMLCommonHandler.instance()
-                .getMinecraftServerInstance();
-            try {
-                baseDir = server.getFile(".")
-                    .getAbsoluteFile()
-                    .getCanonicalFile();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            baseDir = Minecraft.getMinecraft().mcDataDir;
+        try {
+            return Wthaigd.proxy.getBaseDir();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        return baseDir;
     }
 
     private static void updateModWorldDir() {

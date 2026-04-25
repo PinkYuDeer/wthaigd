@@ -1,6 +1,5 @@
 package com.pinkyudeer.wthaigd.task;
 
-import java.sql.ResultSet;
 import java.util.Set;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -38,24 +37,75 @@ public class TaskSqlHelper {
     }
 
     public static void migrateSchema() {
-        addColumnIfNotExists("tasks", "parent_task_id", "TEXT");
+        ensureSchemaVersionTable();
+        applyMigration(1, "tasks.parent_task_id", () -> addColumnIfNotExists("tasks", "parent_task_id", "TEXT"));
+        applyMigration(2, "teams.sync_source", () -> addColumnIfNotExists(
+            "teams",
+            "sync_source",
+            "TEXT DEFAULT 'LOCAL'"));
+        applyMigration(3, "teams.external_party_id", () -> addColumnIfNotExists(
+            "teams",
+            "external_party_id",
+            "INTEGER DEFAULT -1"));
+        applyMigration(4, "teams.sync_status", () -> addColumnIfNotExists(
+            "teams",
+            "sync_status",
+            "TEXT DEFAULT 'ACTIVE'"));
+        applyMigration(5, "teams.last_sync_time", () -> addColumnIfNotExists("teams", "last_sync_time", "TIMESTAMP"));
+        applyMigration(6, "teams.external_team_key", () -> addColumnIfNotExists("teams", "external_team_key", "TEXT"));
     }
 
     private static void addColumnIfNotExists(String table, String column, String type) {
         try {
-            Object result = SQLiteManager.executeSafeSQL("PRAGMA table_info(" + table + ")");
-            if (result instanceof ResultSet rs) {
-                while (rs.next()) {
-                    if (column.equals(rs.getString("name"))) {
-                        return;
-                    }
-                }
-                SQLiteManager.executeSafeSQL("ALTER TABLE " + table + " ADD COLUMN " + column + " " + type);
-                Wthaigd.LOG.info("已迁移: {} 表添加列 {}", table, column);
+            if (columnExists(table, column)) {
+                return;
             }
+            SQLiteManager.executeUpdate("ALTER TABLE " + table + " ADD COLUMN " + column + " " + type);
+            Wthaigd.LOG.info("已迁移: {} 表添加列 {}", table, column);
         } catch (Exception e) {
             Wthaigd.LOG.error("数据库迁移失败: {}.{}", table, column, e);
+            throw new RuntimeException(e);
         }
+    }
+
+    private static void ensureSchemaVersionTable() {
+        SQLiteManager.executeUpdate(
+            "CREATE TABLE IF NOT EXISTS schema_version ("
+                + "id INTEGER PRIMARY KEY, "
+                + "description TEXT NOT NULL, "
+                + "applied_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                + ")");
+    }
+
+    private static void applyMigration(int id, String description, Runnable migration) {
+        SQLiteManager.transaction(() -> {
+            if (isMigrationApplied(id)) return null;
+            migration.run();
+            SQLiteManager.executeUpdate(
+                "INSERT INTO schema_version (id, description) VALUES (?, ?)",
+                id,
+                description);
+            Wthaigd.LOG.info("数据库迁移完成: {} {}", id, description);
+            return null;
+        });
+    }
+
+    private static boolean isMigrationApplied(int id) {
+        Boolean applied = SQLiteManager.query(
+            "SELECT 1 FROM schema_version WHERE id = ? LIMIT 1",
+            rs -> rs.next(),
+            id);
+        return Boolean.TRUE.equals(applied);
+    }
+
+    private static boolean columnExists(String table, String column) {
+        Boolean exists = SQLiteManager.query("PRAGMA table_info(" + table + ")", rs -> {
+            while (rs.next()) {
+                if (column.equals(rs.getString("name"))) return true;
+            }
+            return false;
+        });
+        return Boolean.TRUE.equals(exists);
     }
 
     public static class player {

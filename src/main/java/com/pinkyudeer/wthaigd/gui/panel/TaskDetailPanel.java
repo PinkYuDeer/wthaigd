@@ -1,9 +1,6 @@
 package com.pinkyudeer.wthaigd.gui.panel;
 
 import java.util.List;
-import java.util.UUID;
-
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 
 import com.cleanroommc.modularui.api.IPanelHandler;
@@ -18,10 +15,11 @@ import com.cleanroommc.modularui.widgets.layout.Column;
 import com.cleanroommc.modularui.widgets.layout.Row;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
 import com.pinkyudeer.wthaigd.Wthaigd;
+import com.pinkyudeer.wthaigd.client.TaskClientActions;
+import com.pinkyudeer.wthaigd.client.TaskClientStore;
 import com.pinkyudeer.wthaigd.gui.drawable.ShaderDrawable;
 import com.pinkyudeer.wthaigd.gui.widget.MultilineTextField;
 import com.pinkyudeer.wthaigd.task.entity.Task;
-import com.pinkyudeer.wthaigd.task.service.TaskService;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -447,7 +445,7 @@ public class TaskDetailPanel extends ModularPanel {
 
     private void populateSubtasks() {
         try {
-            List<Task> subs = TaskService.getSubtasks(task.getId());
+            List<Task> subs = TaskClientStore.INSTANCE.getSubtasks(task.getId());
             if (subs.isEmpty()) {
                 subtaskList.child(
                     IKey.str("No subtasks.")
@@ -611,25 +609,14 @@ public class TaskDetailPanel extends ModularPanel {
             if (newTitle == null || newTitle.trim()
                 .isEmpty()) return;
 
-            Task oldTask = com.pinkyudeer.wthaigd.helper.UtilHelper.deepClone(task, Task.class);
-            task.setTitle(newTitle.trim());
-            task.setDescription(newDesc != null ? newDesc.trim() : "");
-
-            if (selectedImportance != oldTask.getImportance()) {
-                task.setImportance(selectedImportance);
-            }
-            if (selectedUrgency != oldTask.getUrgency()) {
-                task.setUrgency(selectedUrgency);
-            }
-            if (selectedImportance != oldTask.getImportance() || selectedUrgency != oldTask.getUrgency()) {
-                task.setPriority(Task.calculatePriority(selectedImportance, selectedUrgency));
-            }
-
-            if (selectedStatus != oldTask.getStatus()) {
-                UUID operatorId = Minecraft.getMinecraft().thePlayer.getUniqueID();
-                TaskService.changeStatus(task.getId(), selectedStatus, operatorId);
-            }
-            TaskService.updateTask(task, oldTask);
+            TaskClientActions.updateTask(
+                task.getId(),
+                task.getVersion() == null ? 0 : task.getVersion(),
+                newTitle.trim(),
+                newDesc != null ? newDesc.trim() : "",
+                selectedImportance,
+                selectedUrgency,
+                selectedStatus);
             closeIfOpen();
             if (onChanged != null) onChanged.run();
         } catch (Exception e) {
@@ -639,8 +626,7 @@ public class TaskDetailPanel extends ModularPanel {
 
     private void completeAndClose() {
         try {
-            UUID operatorId = Minecraft.getMinecraft().thePlayer.getUniqueID();
-            TaskService.completeTask(task.getId(), operatorId);
+            TaskClientActions.completeTask(task.getId());
             closeIfOpen();
             if (onChanged != null) onChanged.run();
         } catch (Exception e) {
@@ -650,7 +636,7 @@ public class TaskDetailPanel extends ModularPanel {
 
     private void deleteAndClose() {
         try {
-            TaskService.deleteTask(task.getId());
+            TaskClientActions.deleteTask(task.getId());
             closeIfOpen();
             if (onChanged != null) onChanged.run();
         } catch (Exception e) {

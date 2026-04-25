@@ -72,6 +72,8 @@ public class TeamRequest extends BaseRecord {
     @Column(name = "metadata")
     private String metadata; // 附加信息（如邀请码使用情况）
 
+    public TeamRequest() {}
+
     public TeamRequest(@Nonnull RequestType requestType, @Nonnull UUID teamId, @Nonnull UUID applicantId,
         @Nonnull Notification.SourceType sourceType, @Nonnull UUID operatorId) {
         super(operatorId);

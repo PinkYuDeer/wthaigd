@@ -1,9 +1,5 @@
 package com.pinkyudeer.wthaigd.gui.panel;
 
-import java.util.UUID;
-
-import net.minecraft.client.Minecraft;
-
 import com.cleanroommc.modularui.api.drawable.IDrawable;
 import com.cleanroommc.modularui.api.drawable.IKey;
 import com.cleanroommc.modularui.screen.ModularPanel;
@@ -11,10 +7,10 @@ import com.cleanroommc.modularui.widgets.ButtonWidget;
 import com.cleanroommc.modularui.widgets.layout.Column;
 import com.cleanroommc.modularui.widgets.layout.Row;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
+import com.pinkyudeer.wthaigd.client.TaskClientActions;
 import com.pinkyudeer.wthaigd.Wthaigd;
 import com.pinkyudeer.wthaigd.gui.drawable.ShaderDrawable;
 import com.pinkyudeer.wthaigd.task.entity.Task;
-import com.pinkyudeer.wthaigd.task.service.TaskService;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -266,26 +262,10 @@ public class TaskFormPanel extends ModularPanel {
             .isEmpty()) return;
         if (desc == null) desc = "";
 
-        UUID creatorId = Minecraft.getMinecraft().thePlayer.getUniqueID();
-
         try {
-            Task task;
-            if (parentTaskId != null) {
-                task = TaskService.createSubtask(
-                    title.trim(),
-                    desc.trim(),
-                    creatorId,
-                    parentTaskId,
-                    selectedImportance,
-                    selectedUrgency);
-            } else {
-                task = TaskService
-                    .createTask(title.trim(), desc.trim(), creatorId, selectedImportance, selectedUrgency);
-            }
-            if (task != null) {
-                closeIfOpen();
-                if (onSaved != null) onSaved.run();
-            }
+            TaskClientActions.createTask(title.trim(), desc.trim(), parentTaskId, selectedImportance, selectedUrgency);
+            closeIfOpen();
+            if (onSaved != null) onSaved.run();
         } catch (Exception e) {
             Wthaigd.LOG.error("Failed to save task from GUI", e);
         }

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -24,9 +25,19 @@ public class SQLiteManager {
 
     private static final String MEM_DB_URL = "jdbc:sqlite::memory:"; // 内存数据库 URL
     private static Connection inMemoryConnection;
-    private static final File DATABASE_FILE = ModFileHelper.getWorldFile("main.db", false)
-        .getAbsoluteFile();
     public static boolean isWorldLoaded = false;
+
+    @FunctionalInterface
+    public interface ResultSetHandler<T> {
+
+        T handle(ResultSet rs) throws SQLException;
+    }
+
+    @FunctionalInterface
+    public interface TransactionalWork<T> {
+
+        T execute() throws Exception;
+    }
 
     /**
      * 初始化内存数据库。
@@ -41,7 +52,7 @@ public class SQLiteManager {
             return;
         }
         isWorldLoaded = true;
-        if (!DATABASE_FILE.exists()) {
+        if (!getDatabaseFile().exists()) {
             initNewDataBase();
         } else {
             loadDataFromFileToMemory();
@@ -75,7 +86,7 @@ public class SQLiteManager {
             @SuppressWarnings("resource")
             SQLiteConnection mem = unwrapConnection();
             int result = mem.getDatabase()
-                .restore("main", DATABASE_FILE.getAbsolutePath(), (remaining, pageCount) -> {
+                .restore("main", getDatabaseFile().getAbsolutePath(), (remaining, pageCount) -> {
                     int progress = (int) ((1 - (double) remaining / pageCount) * 100);
                     Wthaigd.LOG.info("恢复进度: {}%, 剩余: {}/{}", progress, remaining, pageCount);
                 });
@@ -99,7 +110,7 @@ public class SQLiteManager {
             SQLiteConnection mem = unwrapConnection();
             ModFileHelper.ensureWorldDirExist();
             int result = mem.getDatabase()
-                .backup("main", DATABASE_FILE.getAbsolutePath(), (remaining, pageCount) -> {
+                .backup("main", getDatabaseFile().getAbsolutePath(), (remaining, pageCount) -> {
                     int progress = (int) ((1 - (double) remaining / pageCount) * 100);
                     Wthaigd.LOG.info("备份进度: {}%, 剩余: {}/{}", progress, remaining, pageCount);
                 });
@@ -153,6 +164,61 @@ public class SQLiteManager {
         return null;
     }
 
+    public static Integer executeUpdate(String sql, Object... params) {
+        try (PreparedStatement ps = inMemoryConnection.prepareStatement(sql)) {
+            if (params.length > 0) {
+                setParameters(ps, Arrays.asList(params));
+            }
+            Wthaigd.LOG.info("执行 SQL: {}", ps.toString()); // TODO:正式发布前转 debug
+            int count = ps.executeUpdate();
+            Wthaigd.LOG.info("影响行数: {}", count); // TODO:正式发布前转 debug
+            return count;
+        } catch (SQLException e) {
+            Wthaigd.LOG.error("执行 SQL 更新失败: {}", sql, e);
+            return null;
+        }
+    }
+
+    public static <T> T query(String sql, ResultSetHandler<T> handler, Object... params) {
+        try (PreparedStatement ps = inMemoryConnection.prepareStatement(sql)) {
+            if (params.length > 0) {
+                setParameters(ps, Arrays.asList(params));
+            }
+            Wthaigd.LOG.info("执行 SQL: {}", ps.toString()); // TODO:正式发布前转 debug
+            try (ResultSet rs = ps.executeQuery()) {
+                return handler.handle(rs);
+            }
+        } catch (SQLException e) {
+            Wthaigd.LOG.error("执行 SQL 查询失败: {}", sql, e);
+            return null;
+        }
+    }
+
+    public static <T> T transaction(TransactionalWork<T> work) {
+        if (work == null) throw new IllegalArgumentException("事务内容不能为空");
+        try {
+            boolean oldAutoCommit = inMemoryConnection.getAutoCommit();
+            if (!oldAutoCommit) {
+                return work.execute();
+            }
+
+            inMemoryConnection.setAutoCommit(false);
+            try {
+                T result = work.execute();
+                inMemoryConnection.commit();
+                return result;
+            } catch (Exception e) {
+                inMemoryConnection.rollback();
+                throw e;
+            } finally {
+                inMemoryConnection.setAutoCommit(true);
+            }
+        } catch (Exception e) {
+            Wthaigd.LOG.error("SQLite 事务失败", e);
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * 解包 SQLiteConnection。
      *
@@ -165,6 +231,11 @@ public class SQLiteManager {
         } catch (SQLException e) {
             throw new RuntimeException("解包连接失败", e);
         }
+    }
+
+    private static File getDatabaseFile() {
+        return ModFileHelper.getWorldFile("main.db", false)
+            .getAbsoluteFile();
     }
 
     /**

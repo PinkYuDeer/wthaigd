@@ -1,7 +1,11 @@
 package com.pinkyudeer.wthaigd.core;
 
+import java.io.File;
+import java.io.IOException;
+
 import com.pinkyudeer.wthaigd.config.ConfigHelper;
 import com.pinkyudeer.wthaigd.helper.ModFileHelper;
+import com.pinkyudeer.wthaigd.integration.gtnhlib.GtnhLibTeamDataBridge;
 import com.pinkyudeer.wthaigd.loader.BlockLoader;
 import com.pinkyudeer.wthaigd.loader.CommandLoader;
 import com.pinkyudeer.wthaigd.loader.CreativeTabsLoader;
@@ -19,6 +23,8 @@ import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.World;
 
 @SuppressWarnings("EmptyMethod")
 public class CommonProxy {
@@ -50,7 +56,9 @@ public class CommonProxy {
     }
 
     // 模组间交互（如获取其他模组内容）、覆盖原版逻辑。
-    public void postInit(FMLPostInitializationEvent event) {}
+    public void postInit(FMLPostInitializationEvent event) {
+        GtnhLibTeamDataBridge.register();
+    }
 
     // 模组加载完成后的操作, 执行最终全局调整（如修改原版生物生成规则）。
     public void LoadComplete(FMLLoadCompleteEvent event) {}
@@ -60,6 +68,10 @@ public class CommonProxy {
 
     // register server commands in this event handler (Remove if not needed)
     public void serverStarting(FMLServerStartingEvent event) {
+        ServerTaskScheduler.INSTANCE.start(Thread.currentThread());
+        FMLCommonHandler.instance()
+            .bus()
+            .register(ServerTaskScheduler.INSTANCE);
         CommandLoader.init(event);
     }
 
@@ -70,6 +82,24 @@ public class CommonProxy {
     public void preServerStopping(FMLServerStoppingEvent event) {}
 
     // 服务器关闭后的操作
-    public void afterServerStopped(FMLServerStoppedEvent event) {}
+    public void afterServerStopped(FMLServerStoppedEvent event) {
+        FMLCommonHandler.instance()
+            .bus()
+            .unregister(ServerTaskScheduler.INSTANCE);
+        ServerTaskScheduler.INSTANCE.stop();
+    }
 
+    public File getBaseDir() throws IOException {
+        MinecraftServer server = FMLCommonHandler.instance()
+            .getMinecraftServerInstance();
+        return server.getFile(".")
+            .getAbsoluteFile()
+            .getCanonicalFile();
+    }
+
+    public File getCurrentWorldDir(World world) throws IOException {
+        return world.getSaveHandler()
+            .getWorldDirectory()
+            .getCanonicalFile();
+    }
 }
